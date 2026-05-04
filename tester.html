@@ -464,6 +464,86 @@
     background: rgba(184,73,58,0.10);
     color: var(--danger);
   }
+
+  /* ─── Mobile-first improvements ─────────────────────────────────────── */
+
+  /* Avoid iOS zoom on focus + larger tap targets on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    .field input[type="text"],
+    .field input[type="number"],
+    .field select,
+    .preset-row select {
+      min-height: 44px;
+      font-size: 16px;
+    }
+    button.evaluate, button.reset, button.preset-load,
+    .add-cchi {
+      min-height: 44px;
+    }
+    .field-check input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+    }
+    .cchi-row select, .cchi-row input { min-height: 36px; font-size: 16px; }
+    .cchi-row .rm { width: 32px; height: 36px; font-size: 1.4rem; }
+  }
+
+  /* Sticky Evaluate bar on mobile (single-column layout) */
+  @media (max-width: 959px) {
+    .evaluate-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(255,255,255,0.96);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
+      backdrop-filter: saturate(180%) blur(10px);
+      margin: 1.1rem -1.15rem -1.1rem;
+      padding: 0.7rem 1.15rem calc(0.7rem + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      z-index: 30;
+    }
+    main { padding-bottom: 1.5rem; }
+    .panel { padding-bottom: 1.4rem; }
+  }
+
+  /* Compact top nav on small screens */
+  @media (max-width: 520px) {
+    header.topbar nav {
+      gap: 0.6rem;
+      font-size: 0.84rem;
+    }
+    header.topbar nav a { white-space: nowrap; }
+    header.topbar .brand {
+      font-size: 0.84rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 130px;
+    }
+    section.intro { padding: 1.25rem 0 0.95rem; }
+    h1 { font-size: 1.35rem; line-height: 1.25; }
+    .lede { font-size: 0.92rem; }
+  }
+
+  /* Reflow CCHI row on very narrow screens — tier + cap-exhausted side-by-side under insurer */
+  @media (max-width: 439px) {
+    .cchi-row {
+      grid-template-columns: 1fr 1fr 32px;
+      grid-template-areas:
+        "insurer  insurer  rm"
+        "tier     exh      rm";
+      gap: 0.4rem;
+      padding: 0.5rem 0.55rem;
+    }
+    .cchi-row > select:first-of-type  { grid-area: insurer; }
+    .cchi-row > select:nth-of-type(2) { grid-area: tier; }
+    .cchi-row > label                 { grid-area: exh; font-size: 0.82rem; }
+    .cchi-row > .rm                   { grid-area: rm; align-self: stretch; }
+  }
+
+  /* Two-panel layout: smooth scroll between panels on small screens */
+  @media (max-width: 959px) {
+    .panel { scroll-margin-top: 70px; }
+  }
 </style>
 </head>
 <body>
@@ -1393,9 +1473,10 @@
     const verdict = determineLiableCoverage(input);
     const expected = $('preset-meta').dataset.expected;
     render(verdict, expected);
-    // Scroll output into view on mobile
+    // Scroll output panel into view on mobile (respects scroll-margin-top via CSS)
     if (window.innerWidth < 960) {
-      $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const outPanel = $('output').closest('.panel');
+      if (outPanel) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 
