@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f7c66">
+<meta name="description" content="مُختبِر تفاعلي لمحرِّك تنسيق المنافع لمشروع coverage-router-ksa — حمِّل أيًّا من 26 حالة مثال، عدِّل المُدخلات، وشاهد حُكم الخوارزمية مع تسلسل الاستدلال.">
+<title>مُختبِر تنسيق المنافع · العربية</title>
+<style>
+  :root {
+    --bg: #fbfaf7; --surface: #ffffff; --surface-alt: #f4f1ec;
+    --text: #1f2933; --text-muted: #5a6473;
+    --primary: #0f7c66; --primary-light: #d6efe8;
+    --accent: #c97b29; --accent-light: #fbecd9;
+    --danger: #b8493a; --success: #2f9e6b; --warning: #d8a520;
+    --border: #e6e3dc; --radius: 10px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", "Noto Sans Arabic", "SF Arabic", "Geeza Pro", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--primary); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.92em; background: var(--surface-alt);
+    padding: 1px 5px; border-radius: 3px;
+    direction: ltr; unicode-bidi: embed;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 1.1rem; }
+
+  header.topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.94);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  header.topbar .container {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; gap: 1rem;
+  }
+  header.topbar .brand {
+    font-weight: 700; color: var(--primary);
+    font-size: 0.95rem;
+  }
+  header.topbar nav {
+    display: flex; gap: 1rem; font-size: 0.92rem;
+  }
+  header.topbar nav a {
+    color: var(--text-muted); text-decoration: none; font-weight: 500;
+  }
+  header.topbar nav a:hover { color: var(--primary); }
+  header.topbar nav a.active { color: var(--primary); font-weight: 600; }
+
+  section.intro {
+    padding: 1.75rem 0 1.25rem;
+    background: linear-gradient(180deg, var(--primary-light) 0%, transparent 100%);
+  }
+  h1 {
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.015em;
+  }
+  .lede {
+    color: var(--text-muted); margin: 0 0 1rem;
+    max-width: 760px; font-size: 0.98rem;
+  }
+  .badge {
+    display: inline-block; background: var(--surface);
+    border: 1px solid var(--border); padding: 0.25rem 0.7rem;
+    border-radius: 100px; font-size: 0.78rem; font-weight: 600;
+    color: var(--primary); margin-left: 0.4rem;
+  }
+
+  main { padding: 1.5rem 0 4rem; }
+  .layout { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+  @media (min-width: 960px) { .layout { grid-template-columns: 1fr 1fr; } }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.15rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel h2 {
+    margin: 0 0 0.85rem;
+    font-size: 1.1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .panel h2 .panel-num {
+    display: inline-flex;
+    width: 24px; height: 24px;
+    align-items: center; justify-content: center;
+    background: var(--primary); color: white;
+    border-radius: 50%; font-size: 0.78rem; font-weight: 700;
+  }
+
+  .preset-row {
+    display: flex; gap: 0.5rem; align-items: stretch;
+    margin-bottom: 0.85rem;
+  }
+  .preset-row select {
+    flex: 1; min-width: 0;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-alt);
+    font: inherit; font-size: 0.92rem;
+  }
+  .preset-row button.preset-load {
+    flex: 0 0 auto;
+    padding: 0.55rem 1.05rem;
+    border: 1px solid var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: var(--radius);
+    font: inherit; font-size: 0.92rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .preset-row button.preset-load:hover { background: var(--primary); color: white; }
+  .preset-meta {
+    background: var(--surface-alt); border-radius: 6px;
+    padding: 0.6rem 0.75rem; font-size: 0.85rem;
+    color: var(--text-muted); margin-bottom: 0.85rem;
+    display: none;
+  }
+  .preset-meta.shown { display: block; }
+  .preset-meta strong { color: var(--text); }
+
+  .field-group { margin-bottom: 1.1rem; }
+  .field-group h3 {
+    margin: 0 0 0.6rem;
+    font-size: 0.82rem; letter-spacing: 0.04em;
+    color: var(--text-muted); font-weight: 700;
+  }
+  .field { display: grid; gap: 0.3rem; margin-bottom: 0.6rem; }
+  @media (min-width: 480px) { .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; } }
+  .field label { font-size: 0.84rem; font-weight: 600; color: var(--text-muted); }
+  .field input[type="text"], .field input[type="number"], .field select {
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    font: inherit; font-size: 0.95rem;
+  }
+  .field input[type="checkbox"] {
+    margin-left: 0.4rem; accent-color: var(--primary);
+  }
+  .field-check {
+    display: flex; align-items: flex-start;
+    font-size: 0.92rem; margin: 0.5rem 0;
+    gap: 0.45rem;
+  }
+  .field-check label { font-weight: 500; color: var(--text); flex: 1; }
+
+  .cchi-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .cchi-row {
+    display: grid;
+    grid-template-columns: 1fr 70px 90px 30px;
+    gap: 0.4rem; align-items: center;
+    background: var(--surface-alt);
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.86rem;
+  }
+  .cchi-row select, .cchi-row input {
+    font-size: 0.86rem;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px; background: white;
+  }
+  .cchi-row .rm {
+    background: transparent; border: none; cursor: pointer;
+    color: var(--danger); font-size: 1.2rem; padding: 0;
+  }
+  .add-cchi {
+    background: transparent; border: 1px dashed var(--border);
+    border-radius: 6px; padding: 0.4rem 0.7rem;
+    cursor: pointer; font: inherit; font-size: 0.85rem;
+    color: var(--primary); align-self: flex-start;
+  }
+
+  .evaluate-bar {
+    margin-top: 1rem; display: flex; gap: 0.55rem;
+  }
+  button.evaluate {
+    flex: 1; padding: 0.8rem 1rem;
+    background: var(--primary); color: white;
+    border: none; border-radius: var(--radius);
+    font: inherit; font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+  }
+  button.evaluate:hover { background: #0c6856; }
+  button.reset {
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit; font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .verdict {
+    background: var(--surface-alt);
+    border-right: 4px solid var(--text-muted);
+    padding: 0.95rem 1.05rem;
+    border-radius: var(--radius);
+    margin-bottom: 0.85rem;
+  }
+  .verdict.high { border-right-color: var(--success); background: rgba(47,158,107,0.06); }
+  .verdict.medium { border-right-color: var(--warning); background: rgba(216,165,32,0.07); }
+  .verdict.low { border-right-color: var(--danger); background: rgba(184,73,58,0.06); }
+  .verdict .label {
+    font-size: 0.78rem; letter-spacing: 0.02em;
+    font-weight: 700; color: var(--text-muted);
+    margin-bottom: 0.35rem;
+  }
+  .verdict .liable {
+    font-size: 1.2rem; font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+  .verdict.high .liable { color: var(--success); }
+  .verdict.medium .liable { color: #a07b00; }
+  .verdict.low .liable { color: var(--danger); }
+  .verdict .meta {
+    display: flex; flex-wrap: wrap;
+    gap: 0.4rem 0.95rem;
+    font-size: 0.88rem; color: var(--text-muted);
+  }
+  .verdict .meta strong { color: var(--text); }
+
+  .compare-badge {
+    display: inline-flex; padding: 0.22rem 0.55rem;
+    border-radius: 4px; font-size: 0.78rem; font-weight: 700;
+  }
+  .compare-badge.pass { background: rgba(47,158,107,0.15); color: var(--success); }
+  .compare-badge.differs { background: rgba(216,165,32,0.18); color: #a07b00; }
+  .compare-badge.unexpected { background: rgba(184,73,58,0.12); color: var(--danger); }
+
+  .placeholder {
+    text-align: center; color: var(--text-muted);
+    padding: 2.5rem 1rem; font-size: 0.95rem;
+  }
+  .placeholder strong {
+    color: var(--text); display: block;
+    margin-bottom: 0.5rem; font-size: 1.05rem;
+  }
+
+  .out-section { margin-top: 0.95rem; }
+  .out-section h3 {
+    margin: 0 0 0.5rem; font-size: 0.78rem;
+    letter-spacing: 0.02em; color: var(--text-muted);
+    font-weight: 700;
+  }
+  .citation-list, .trace-list { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; }
+  .citation-list li {
+    background: var(--surface-alt);
+    padding: 0.45rem 0.7rem;
+    border-radius: 5px; margin-bottom: 0.3rem;
+    border-right: 3px solid var(--primary);
+  }
+  .trace-list li {
+    background: var(--surface-alt);
+    padding: 0.45rem 1.6rem 0.45rem 0.65rem;
+    border-radius: 5px; margin-bottom: 0.3rem;
+    position: relative;
+  }
+  .trace-list li.matched {
+    background: rgba(47,158,107,0.07);
+    border-right: 3px solid var(--success);
+    padding-right: 0.85rem;
+  }
+  .trace-list li.skipped { color: var(--text-muted); }
+  .trace-list li::before {
+    content: "·"; position: absolute;
+    right: 0.65rem; color: var(--text-muted);
+  }
+  .trace-list li.matched::before { content: "✓"; color: var(--success); right: 0.45rem; }
+  .trace-list li .rule-id {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8rem; background: rgba(0,0,0,0.06);
+    padding: 0 5px; border-radius: 3px;
+    margin-left: 0.45rem;
+    direction: ltr; unicode-bidi: embed;
+  }
+  .trace-list li .why {
+    color: var(--text-muted); font-size: 0.85rem;
+    display: block; margin-top: 0.2rem;
+  }
+
+  .open-questions {
+    background: rgba(184,73,58,0.05);
+    border: 1px solid rgba(184,73,58,0.18);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+    margin-top: 0.55rem;
+  }
+  .open-questions strong { color: var(--danger); }
+  .open-questions code {
+    background: rgba(184,73,58,0.10);
+    color: var(--danger);
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <div class="brand">موجِّه التغطية التأمينية</div>
+    <nav>
+      <a href="Research.ar.html">الأبحاث</a>
+      <a href="tester.ar.html" class="active">المُختبِر</a>
+      <a href="tester.html" lang="en">English</a>
+      <a href="https://github.com/SaifDalli2/coverage-router-ksa" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="intro">
+  <div class="container">
+    <span class="badge">تفاعلي · v0.1</span>
+    <h1>مُختبِر محرِّك قرارات تنسيق المنافع</h1>
+    <p class="lede">حمِّل أيًّا من 26 حالة مثال موثَّقة، عدِّل المُدخلات، وشغِّل الخوارزمية. الحُكم وتسلسل الاستدلال والاستشهادات تظهر على اليسار؛ شارة «مطابق» / «مختلف» إذا كان قد جرى تحميل سيناريو جاهز. الخوارزمية بالـJavaScript تطابق الشيفرة الموثَّقة في <code>docs/coordination-of-benefits.md</code>.</p>
+  </div>
+</section>
+
+<main>
+  <div class="container layout">
+
+    <!-- INPUT PANEL -->
+    <section class="panel">
+      <h2><span class="panel-num">١</span> المُدخلات</h2>
+
+      <div class="preset-row">
+        <select id="preset-select" aria-label="اختر سيناريو">
+          <option value="">— مخصَّص (ابنِ من البداية) —</option>
+        </select>
+        <button class="preset-load" id="preset-load-btn" type="button">حمِّل</button>
+      </div>
+
+      <div class="preset-meta" id="preset-meta"></div>
+
+      <div class="field-group">
+        <h3>المستفيد</h3>
+        <div class="field-row">
+          <div class="field">
+            <label for="b-class">الفئة</label>
+            <select id="b-class">
+              <option value="STANDARD">قياسية (سعودي أو مقيم غير سعودي)</option>
+              <option value="DIPLOMATIC_MISSION">عضو بعثة دبلوماسية</option>
+              <option value="INTL_ORGANIZATION">عضو منظمة دولية</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="b-nationality">الجنسية (ISO-2)</label>
+            <input type="text" id="b-nationality" maxlength="2" value="SA" placeholder="SA, EG, US...">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="b-age">العمر</label>
+            <input type="number" id="b-age" min="0" max="120" value="34">
+          </div>
+          <div class="field">
+            <label for="b-employment">قطاع التوظيف</label>
+            <select id="b-employment">
+              <option value="private">قطاع خاص</option>
+              <option value="public">قطاع عام / حكومي</option>
+              <option value="military">عسكري / أمني</option>
+              <option value="aramco">أرامكو</option>
+              <option value="retired">متقاعد</option>
+              <option value="domestic_worker">عامل منزلي</option>
+              <option value="visitor">زائر / سائح</option>
+              <option value="pilgrim">حاجٌّ / معتمر</option>
+              <option value="undocumented">بلا إقامة</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-check">
+          <input type="checkbox" id="b-gosi" checked>
+          <label for="b-gosi">مسجَّل في التأمينات الاجتماعية (أو ضمن مهلة التسجيل)</label>
+        </div>
+        <div class="field">
+          <label for="b-eligible-for">أهلية في نظام صحي مغلق</label>
+          <select id="b-eligible-for">
+            <option value="">— لا شيء —</option>
+            <option value="NGHA">الشؤون الصحية بوزارة الحرس الوطني</option>
+            <option value="MSD">الخدمات الطبية لوزارة الدفاع</option>
+            <option value="MOI_MEDICAL">الخدمات الطبية لوزارة الداخلية</option>
+            <option value="SAMSO">الخدمات الطبية لأرامكو (SAMSO / JHAH)</option>
+            <option value="RCJY">الخدمات الطبية للهيئة الملكية (الجبيل/ينبع)</option>
+          </select>
+        </div>
+
+        <div class="field" style="margin-top:0.7rem;">
+          <label>وثائق التأمين الصحي التعاوني</label>
+          <div class="cchi-list" id="cchi-list"></div>
+          <button class="add-cchi" id="add-cchi-btn" type="button">+ أضف وثيقة</button>
+        </div>
+
+        <div class="field" style="margin-top:0.7rem;">
+          <label for="b-special-scheme">نظام خاص (إن وُجِد)</label>
+          <select id="b-special-scheme">
+            <option value="">— لا شيء —</option>
+            <option value="HAJJ_UMRAH">تأمين الحجَّاج / المعتمرين</option>
+            <option value="VISITOR">تأمين الزوار / السائحين</option>
+            <option value="DOMESTIC_WORKER">تأمين العمالة المنزلية</option>
+          </select>
+        </div>
+
+        <div class="field-check">
+          <input type="checkbox" id="b-has-other-coverage">
+          <label for="b-has-other-coverage">للمستفيد تغطية إضافية (مثل تأمين دولي من بلده) — يُفعِّل المادة 6 من تأمين الزوار</label>
+        </div>
+
+        <div class="field" style="margin-top:0.5rem;">
+          <label for="b-billing-mode">نمط الفوترة (الدبلوماسيون والمنظمات الدولية فقط)</label>
+          <select id="b-billing-mode">
+            <option value="EMBASSY_DIRECT">فوترة مباشرة من السفارة</option>
+            <option value="PRIVATE_INTL_INSURER">شركة تأمين دولي خاصَّة (Cigna, Allianz...)</option>
+            <option value="SELF_PAY">دفع شخصي</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3>الحالة</h3>
+        <div class="field-row">
+          <div class="field">
+            <label for="c-type">نوع الحالة</label>
+            <select id="c-type">
+              <option value="emergency">إسعافية</option>
+              <option value="elective">انتقائية</option>
+              <option value="work_injury">إصابة عمل</option>
+              <option value="rta">حادث مروري</option>
+              <option value="occupational_disease">مرض مهني</option>
+              <option value="tertiary">إحالة تخصُّصية</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="c-najm">رقم تقرير «نجم» / «المرور» (للحوادث)</label>
+            <input type="text" id="c-najm" placeholder="NJM-2026-...">
+          </div>
+        </div>
+        <div class="field-check">
+          <input type="checkbox" id="c-emergency">
+          <label for="c-emergency">حالة إسعافية (تنطبق قاعدة «العلاج أوَّلاً»)</label>
+        </div>
+        <div class="field-check">
+          <input type="checkbox" id="c-commute-related">
+          <label for="c-commute-related">حادث مرتبط بالتنقُّل اليومي بين السكن والعمل (المادة 30(1) من نظام التأمينات الاجتماعية م/273 تعتبره إصابة عمل؛ إذا كان أيضًا حادثًا مروريًا مع تقرير نجم، تنطبق الاستثناءان معًا)</label>
+        </div>
+        <div class="field-check">
+          <input type="checkbox" id="c-cap-exhausted">
+          <label for="c-cap-exhausted">استُنفِد حدُّ تغطية وثيقة التأمين الصحي (مادة 5(أ) من الملحق 66)</label>
+        </div>
+        <div class="field-check">
+          <input type="checkbox" id="c-service-excluded">
+          <label for="c-service-excluded">الخدمة من استثناءات وثيقة التأمين الصحي (مادة 5(ب) من الملحق 66)</label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3>المنشأة</h3>
+        <div class="field">
+          <label for="f-type">نوع المنشأة</label>
+          <select id="f-type">
+            <option value="private">مستشفى خاص</option>
+            <option value="moh">مستشفى وزارة الصحة (عام)</option>
+            <option value="closed_system">منشأة نظام مغلق (NGHA / MSD / SAMSO)</option>
+            <option value="university_medical_city">مدينة طبية جامعية (KAUH / KSUMC / KFSHRC) — مستقبل إحالة مفتوح</option>
+          </select>
+        </div>
+        <div class="field" id="f-system-wrap">
+          <label for="f-system">نظام المنشأة (إذا كان مغلقًا أو جامعيًّا)</label>
+          <select id="f-system">
+            <option value="">— لا شيء —</option>
+            <option value="NGHA">الحرس الوطني</option>
+            <option value="MSD">الدفاع</option>
+            <option value="MOI_MEDICAL">الداخلية</option>
+            <option value="SAMSO">SAMSO / JHAH</option>
+            <option value="RCJY">الهيئة الملكية</option>
+            <option value="KFSHRC">KFSHRC</option>
+            <option value="KAUH">KAUH</option>
+            <option value="KSUMC">KSUMC</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="evaluate-bar">
+        <button class="evaluate" id="evaluate-btn" type="button">قيِّم ←</button>
+        <button class="reset" id="reset-btn" type="button">إعادة تعيين</button>
+      </div>
+    </section>
+
+    <!-- OUTPUT PANEL -->
+    <section class="panel">
+      <h2><span class="panel-num">٢</span> الحُكم</h2>
+      <div id="output">
+        <div class="placeholder">
+          <strong>لم يَجرِ تقييم بعد.</strong>
+          اختر سيناريو من الأعلى واضغط «حمِّل» (أو املأ النموذج يدويًا)، ثم اضغط «قيِّم». تُشغَّل الخوارزمية في متصفِّحك؛ لا تُرسَل أيُّ بيانات لأيِّ مكان.
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(() => {
+
+  const CLOSED_SYSTEMS = ['NGHA', 'MSD', 'MOI_MEDICAL', 'SAMSO', 'RCJY'];
+  const UNIVERSITY_OPEN = ['KFSHRC', 'KAUH', 'KSUMC'];
+
+  function annex66_eligible(b) {
+    if (b.nationality === 'SA') return true;
+    if (b.employment_sector === 'pilgrim') return true;
+    if (b.employment_sector === 'domestic_worker') return true;
+    if (b.employment_sector === 'undocumented') return true;
+    if (['BH','KW','OM','QA','AE'].includes(b.nationality)) return true;
+    return false;
+  }
+
+  function determineLiableCoverage(input) {
+    const { case_attrs, beneficiary, facility } = input;
+    const trace = [];
+    const note = (rule, matched, why) => trace.push({ rule, matched, why });
+
+    if (['DIPLOMATIC_MISSION', 'INTL_ORGANIZATION'].includes(beneficiary.class)) {
+      note('RF-0', true, `فئة المستفيد = ${beneficiary.class} ← يُتجاوز تسلسل التأمين التعاوني`);
+      return {
+        liable_party: beneficiary.billing_mode || 'EMBASSY_DIRECT',
+        confidence: 'high',
+        rule_family: 'RF-0 (استثناء دبلوماسي)',
+        citations: ['اتفاقية فيينا للعلاقات الدبلوماسية 1961، المواد 23 و33 و34'],
+        notes: 'خارج نطاق التأمين التعاوني. يُسوِّى الحساب لاحقًا عبر السفارة أو شركة التأمين.',
+        trace
+      };
+    }
+    note('RF-0', false, 'المستفيد ليس من البعثة الدبلوماسية أو منظمة دولية');
+
+    const is_work_injury = case_attrs.type === 'work_injury'
+      || (case_attrs.commute_related && beneficiary.gosi_registered);
+    const is_rta_with_mtpl_claim = case_attrs.injury_kind === 'bodily'
+      && case_attrs.najm_report_id
+      && (case_attrs.type === 'rta' || case_attrs.commute_related);
+
+    if (is_work_injury && is_rta_with_mtpl_claim) {
+      note('تداخل RF-1', true, 'حادث تنقُّل: ينطبق كلٌّ من إصابة العمل (المادة 30(1)) وحادث المرور (المادة 3 من وثيقة التأمين الإلزامي)');
+      const fallback = beneficiary.cchi_coverages && beneficiary.cchi_coverages[0]
+        ? `التأمين الصحي ${beneficiary.cchi_coverages[0].insurer.toUpperCase()} (دفع مؤقَّت حتَّى صدور تقرير نجم)`
+        : null;
+      return {
+        liable_party: 'NAJM_MTPL — رئيسي للفاتورة الطبية (مسؤولية تقصيرية تجاه الطرف الثالث)',
+        fallback_party: fallback,
+        parallel_claim: 'GOSI — مطالبة موازية لتعويضات العامل (إعانة العجز وفق المادة 31(1)(ب)/(ج))',
+        confidence: 'medium',
+        rule_family: 'تداخل RF-1 (حادث تنقُّل — موزَّع)',
+        citations: [
+          'نظام التأمينات الاجتماعية م/273، المادة 30(1) — بند التنقُّل',
+          'نظام التأمينات الاجتماعية م/273، المادة 31(1)(ب)/(ج) — تعويضات العامل',
+          'وثيقة التأمين الإلزامي الموحَّدة على المركبات، المواد 3/4/6',
+          'وثيقة تأمين الزوار المادة 6 (نظير الرجوع بالحلول)'
+        ],
+        notes: 'تأمين المركبات رئيسي للفاتورة الطبية؛ التأمينات الاجتماعية مطالبة موازية لتعويضات العامل. التوزيع تفسيري — رسالتا المجلس وهيئة التأمين تستوضحان (Q1.x-تنقُّل).',
+        open_questions: ['Q1.x-تنقُّل'],
+        trace
+      };
+    }
+
+    if (is_work_injury) {
+      note('RF-1a', true, case_attrs.commute_related
+        ? 'مرتبط بالتنقُّل (المادة 30(1)) ولا توجد مطالبة طرف ثالث'
+        : 'إصابة عمل ومسجَّل في التأمينات الاجتماعية');
+      return {
+        liable_party: 'GOSI — المؤسسة العامة للتأمينات الاجتماعية / فرع الأخطار المهنية',
+        confidence: 'high',
+        rule_family: 'RF-1a (استثناء نظامي — إصابة عمل)',
+        citations: [
+          'نظام التأمينات الاجتماعية م/273 لعام 1445هـ، المواد 28 و30 و31 و32',
+          'حزمة المنافع الأساسية المُحدَّثة، الفصل 3 §أ البند 7 (السؤال 1.1 مُجاب — استثناء إصابات العمل)'
+        ],
+        notes: 'استثناء: حزمة المنافع §3.أ.7 تستثني صراحةً إصابات العمل. يُعالَج لدى منشآت معتمدة من المؤسسة فقط.',
+        trace
+      };
+    }
+    note('RF-1a', false, case_attrs.type === 'work_injury'
+      ? 'إصابة عمل لكنَّ المستفيد غير مسجَّل في التأمينات (Q1.2)'
+      : 'ليست إصابة عمل');
+
+    if (is_rta_with_mtpl_claim) {
+      note('RF-1b', true, 'إصابة جسدية بحادث مروري + تقرير نجم موجود');
+      const fallback = beneficiary.cchi_coverages && beneficiary.cchi_coverages[0]
+        ? `التأمين الصحي ${beneficiary.cchi_coverages[0].insurer.toUpperCase()} (دفع مؤقَّت + رجوع بالحلول)`
+        : null;
+      return {
+        liable_party: 'NAJM_MTPL (تأمين السائق المخطئ الإلزامي)',
+        fallback_party: fallback,
+        confidence: 'high',
+        rule_family: 'RF-1b (استثناء نظامي — تأمين المركبات)',
+        citations: [
+          'وثيقة التأمين الإلزامي الموحَّدة على المركبات، المواد 3 و4 و6 + الملحق أ',
+          'وثيقة تأمين الزوار المادة 6 (نظير الرجوع بالحلول)'
+        ],
+        trace
+      };
+    }
+    note('RF-1b', false, 'ليس حادثًا مروريًا / لا إصابة جسدية / لا تقرير نجم');
+
+    if (case_attrs.is_emergency) {
+      note('RF-2', true, 'الحالة إسعافية ← ينطبق تسلسل الحالات الإسعافية');
+      const has_cchi = beneficiary.cchi_coverages && beneficiary.cchi_coverages.length > 0;
+      const cchi = has_cchi ? beneficiary.cchi_coverages[0] : null;
+      const is_saudi = beneficiary.nationality === 'SA';
+
+      if (has_cchi && is_saudi && (case_attrs.cap_exhausted || case_attrs.service_excluded)) {
+        note('  RF-2 / المادة 5 من الملحق 66', true,
+          case_attrs.cap_exhausted ? 'سعودي + استُنفِد حدُّ التأمين' : 'سعودي + الخدمة من استثناءات الوثيقة');
+        return {
+          liable_party: 'وزارة الصحة عبر شركة إدارة المطالبات (استكمال)',
+          confidence: 'high',
+          rule_family: 'RF-2 (تسلسل المادة 5 — استنفاد سعودي)',
+          citations: [
+            `الملحق 66 المادة 5${case_attrs.cap_exhausted ? '(أ)' : '(ب)'}`,
+            'أقرب تسلسل تنسيق منافع منشور في تنظيم التأمين التعاوني السعودي'
+          ],
+          notes: 'تُبلَّغ شركة إدارة المطالبات خلال 24 ساعة عبر purchasingprogram.com.sa؛ تُوثِّق شركة التأمين استنفاد الحدِّ.',
+          trace
+        };
+      }
+
+      if (has_cchi) {
+        note('  RF-2 / مؤمَّن', true, 'للمستفيد وثيقة تأمين تعاوني');
+        return {
+          liable_party: `شركة التأمين ${cchi.insurer.toUpperCase()}${cchi.tier ? ' (الفئة ' + cchi.tier + ')' : ''}`,
+          confidence: 'high',
+          rule_family: 'RF-2 (حالة إسعافية لمؤمَّن)',
+          citations: [
+            'الملحق 66 المادة 1 (التزام العلاج أوَّلاً، حرفيًّا)',
+            'التعميم العاجل من المجلس البند سادسًا (إعفاء المشاركة في الدفع للحالات الإسعافية)'
+          ],
+          trace
+        };
+      }
+
+      if (annex66_eligible(beneficiary)) {
+        note('  RF-2 / استكمال على نفقة الدولة', true, 'المستفيد ضمن فئات الملحق 66 المؤهَّلة');
+        return {
+          liable_party: 'الدولة عبر شركة إدارة المطالبات (TPA)',
+          confidence: 'high',
+          rule_family: 'RF-2 (استكمال على نفقة الدولة)',
+          citations: [
+            'الملحق 66 المواد 1 و3 و4 (إبلاغ خلال 24 ساعة)',
+            'تعميم آلية شراء الخدمة الطبية رقم 274877-1439هـ (مُشار إليه في المادة 11)'
+          ],
+          trace
+        };
+      }
+
+      if (beneficiary.employment_sector === 'private' && !is_saudi) {
+        note('  RF-2 / مسؤولية صاحب العمل', true, 'عامل غير سعودي غير مؤمَّن في القطاع الخاص');
+        return {
+          liable_party: 'صاحب العمل (التزام نظامي بالتأمين)',
+          confidence: 'high',
+          rule_family: 'RF-2 (مسؤولية صاحب العمل)',
+          citations: ['نظام الضمان الصحي التعاوني م/10، المادتان 2 و3'],
+          trace
+        };
+      }
+
+      note('  RF-2 / الدولة افتراضيًّا', true, 'لا تنطبق الفئات السابقة — حُكم قضائي معتاد');
+      return {
+        liable_party: 'الدولة (سابقة قضائية)',
+        confidence: 'medium',
+        rule_family: 'RF-2 (الدولة افتراضيًّا)',
+        citations: ['سوابق قضائية في علاج بلا إقامة'],
+        notes: 'الملحق 66 يضيف اشتراط توثيق إبلاغ الجوازات لِمَن لا هُويَّة له.',
+        trace
+      };
+    }
+    note('RF-2', false, 'ليست حالة إسعافية');
+
+    if (facility.type === 'closed_system' && CLOSED_SYSTEMS.includes(facility.system)
+        && beneficiary.eligible_for === facility.system) {
+      note('RF-3', true, `نظام المنشأة = ${facility.system} وللمستفيد أهلية فيه`);
+      return {
+        liable_party: facility.system,
+        confidence: 'high',
+        rule_family: 'RF-3 (التوجيه حسب المنشأة)',
+        citations: [`عُرف النظام المغلق ${facility.system} (غير مُقنَّن)`],
+        trace
+      };
+    }
+    if (facility.type === 'closed_system' && beneficiary.eligible_for !== facility.system) {
+      note('RF-3', false, 'منشأة نظام مغلق لكنَّ المستفيد ليس من المؤهَّلين فيها');
+    }
+    if (beneficiary.eligible_for && facility.type !== 'closed_system') {
+      note('RF-3 (تجاوز)', true,
+        `للمستفيد أهلية في ${beneficiary.eligible_for} لكنَّه في منشأة خارج نظامه — الأنظمة المغلقة لا تُسدِّد الفواتير الخارجية`);
+    }
+
+    if (facility.type === 'university_medical_city' && UNIVERSITY_OPEN.includes(facility.system)) {
+      note('RF-3 / إحالة مفتوحة', true, 'مدينة طبية جامعية — مستقبل إحالة مفتوح متعدِّد الجهات الدافعة');
+      return {
+        liable_party: null,
+        resolution_required: 'human_review',
+        confidence: 'low',
+        rule_family: 'RF-3 (مدينة طبية جامعية)',
+        citations: ['بحث T11 — KAUH/KSUMC/KFSHRC مستقبلات إحالة مفتوحة'],
+        notes: 'التوجيه يعتمد على خطاب الإحالة / علاقة المريض بالمنشأة. تحتاج معلومات إضافية.',
+        open_questions: ['التحقُّق من T11'],
+        trace
+      };
+    }
+
+    const applicable = (beneficiary.cchi_coverages || []).filter(c => c.active);
+
+    if (applicable.length === 1) {
+      note('RF-5 (تأمين تعاوني واحد)', true, 'وثيقة تأمين تعاوني واحدة فقط');
+      return {
+        liable_party: `التأمين ${applicable[0].insurer.toUpperCase()}${applicable[0].tier ? ' (الفئة ' + applicable[0].tier + ')' : ''}`,
+        confidence: 'high',
+        rule_family: 'RF-5 (تعاوني واحد افتراضي)',
+        citations: ['سياسة تغطية مستفيدي التأمين الصحي'],
+        trace
+      };
+    }
+
+    if (applicable.length > 1) {
+      note('RF-4 (تعاوني متعدِّد)', true, `${applicable.length} وثائق تأمين فعَّالة`);
+      return {
+        liable_party: null,
+        confidence: 'low',
+        resolution_required: 'human_review',
+        rule_family: 'RF-4 (تخصيص متعدِّد التعاوني — غامض)',
+        citations: [
+          'قاعدة جهة عمل الزوج من الأسئلة الشائعة للمجلس رقم 37 (تفسيرية — غير موجودة في سياسة المستفيدين نصًّا)',
+          'بانتظار رسالة المجلس الأسئلة 5–8 للتأكيد'
+        ],
+        open_questions: ['Q5.1', 'Q4.1', 'Q4.4'],
+        notes: 'الوثائق المتعدِّدة تستوجب قاعدة تخصيص يُؤكِّدها المنظِّم. المادة 6 من تأمين الزوار خاصَّة بالزوار، لا تنطبق هنا.',
+        trace
+      };
+    }
+
+    if (beneficiary.special_case_scheme) {
+      const scheme = beneficiary.special_case_scheme;
+      note('RF-5 (نظام خاص)', true, `النظام الفعَّال: ${scheme}`);
+      if (scheme === 'VISITOR' && beneficiary.has_other_coverage) {
+        return {
+          liable_party: 'تأمين الزوار',
+          fallback_party: 'تغطية أخرى (رجوع بالحلول وفق المادة 6)',
+          confidence: 'high',
+          rule_family: 'RF-5 (الزوار: دفع ثم رجوع بالحلول)',
+          citations: ['وثيقة تأمين الزوار المادة 6 — عدم ازدواج المنافع'],
+          notes: 'شركة تأمين الزوار تدفع أوَّلاً، ثم ترجع بالحلول على أيِّ خطَّة أخرى تُغطِّي النفقات نفسها.',
+          trace
+        };
+      }
+      const labels = { HAJJ_UMRAH: 'تأمين الحجَّاج (PILGRIM_TAWUNIYA)', VISITOR: 'تأمين الزوار', DOMESTIC_WORKER: 'تأمين العمالة المنزلية' };
+      return {
+        liable_party: labels[scheme] || scheme,
+        confidence: 'high',
+        rule_family: 'RF-5 (نظام خاص)',
+        citations: [`وثيقة ${labels[scheme] || scheme} الصادرة عن المجلس`],
+        trace
+      };
+    }
+
+    note('RF-5 (بلا تأمين)', true, 'لا تأمين تعاوني، ولا نظام خاص');
+    return {
+      liable_party: null,
+      uninsured_cascade: true,
+      confidence: 'medium',
+      rule_family: 'غير محسوم',
+      notes: 'يطبَّق تسلسل الحالات الإسعافية إن انطبق؛ وإلا فعلى نفقة المستفيد.',
+      trace
+    };
+  }
+
+  // ─── 26 scenarios — same input shapes as English; titles in Arabic ────
+  const SCENARIOS = [
+    { id: 'X-001', title: 'مواطن سعودي — إصابة عمل — في مستشفى خاص',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:34, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'bupa', tier:'A', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'work_injury', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'GOSI', confidence:'high' } },
+    { id: 'X-002', title: 'عامل غير سعودي — حادث مروري بإصابة جسدية — تقرير نجم موجود',
+      input: { beneficiary: { class:'STANDARD', nationality:'EG', age:28, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'medgulf', tier:'B', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'rta', injury_kind:'bodily', is_emergency:true, najm_report_id:'NJM-2026-0042', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'NAJM_MTPL', confidence:'high' } },
+    { id: 'X-003', title: 'عامل غير سعودي — حادث مروري — لا تقرير نجم',
+      input: { beneficiary: { class:'STANDARD', nationality:'EG', age:28, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'medgulf', tier:'B', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'rta', injury_kind:'bodily', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'MEDGULF', confidence:'high' } },
+    { id: 'X-004', title: 'مواطن سعودي بلا تأمين — حالة إسعافية في مستشفى وزارة الصحة',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:65, employment_sector:'retired', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'moh', system:'' } },
+      expected: { liable_party:'الدولة', confidence:'high' } },
+    { id: 'X-005', title: 'مواطن سعودي بتأمين الفئة VIP — حالة إسعافية في مستشفى خاص',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:42, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'tawuniya', tier:'VIP', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'TAWUNIYA', confidence:'high' } },
+    { id: 'X-006', title: 'عامل بنغلاديشي بلا تأمين — حالة إسعافية في مستشفى خاص',
+      input: { beneficiary: { class:'STANDARD', nationality:'BD', age:31, employment_sector:'private', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'صاحب العمل', confidence:'high' } },
+    { id: 'X-007', title: 'بلا إقامة — حالة إسعافية في مستشفى خاص',
+      input: { beneficiary: { class:'STANDARD', nationality:'XX', age:35, employment_sector:'undocumented', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'الدولة', confidence:'high' } },
+    { id: 'X-008', title: 'متقاعد من الحرس الوطني — انتقائية في منشأة الحرس الوطني',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:58, employment_sector:'military', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'NGHA' },
+        case_attrs: { type:'elective', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'closed_system', system:'NGHA' } },
+      expected: { liable_party:'NGHA', confidence:'high' } },
+    { id: 'X-009', title: 'مؤهَّل للحرس الوطني — انتقائية في مستشفى خاص',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:58, employment_sector:'military', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'NGHA' },
+        case_attrs: { type:'elective', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:null, confidence:'medium' } },
+    { id: 'X-010', title: 'مؤهَّل للحرس الوطني — حالة إسعافية في مستشفى خاص (غامض)',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:58, employment_sector:'military', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'NGHA' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'الدولة', confidence:'high' } },
+    { id: 'X-011', title: 'موظف أرامكو سعودي — انتقائية في مستشفى أرامكو الظهران',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:45, employment_sector:'aramco', gosi_registered:true,
+        cchi_coverages:[], eligible_for:'SAMSO' },
+        case_attrs: { type:'elective', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'closed_system', system:'SAMSO' } },
+      expected: { liable_party:'SAMSO', confidence:'high' } },
+    { id: 'X-012', title: 'طفل من زوجَيْن عاملَيْن — التهاب زائدة دودية في مستشفى خاص',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:8, employment_sector:'private', gosi_registered:false,
+        cchi_coverages:[
+          {insurer:'bupa', tier:'A', active:true, cap_exhausted:false},
+          {insurer:'tawuniya', tier:'A', active:true, cap_exhausted:false}
+        ], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:null, confidence:'low' } },
+    { id: 'X-013', title: 'مريض سرطان سعودي — استُنفِد حدُّ تأمين «التعاونية»',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:56, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'tawuniya', tier:'A', active:true, cap_exhausted:true}], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:true, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'وزارة الصحة', confidence:'high' } },
+    { id: 'X-014', title: 'زوجة ملحق دبلوماسي فرنسي — انتقائية في مستشفى السعودي الألماني',
+      input: { beneficiary: { class:'DIPLOMATIC_MISSION', nationality:'FR', age:39, employment_sector:'private', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'', billing_mode:'EMBASSY_DIRECT' },
+        case_attrs: { type:'elective', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'EMBASSY_DIRECT', confidence:'high' } },
+    { id: 'X-015', title: 'حاجٌّ إندونيسي — أزمة قلبية في مستشفى وزارة الصحة',
+      input: { beneficiary: { class:'STANDARD', nationality:'ID', age:67, employment_sector:'pilgrim', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'', special_case_scheme:'HAJJ_UMRAH' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'moh', system:'' } },
+      expected: { liable_party:'الدولة', confidence:'high' } },
+    { id: 'X-016', title: 'حاجٌّ سعودي بتأمين تعاوني (غامض)',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:45, employment_sector:'pilgrim', gosi_registered:false,
+        cchi_coverages:[{insurer:'bupa', tier:'A', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'moh', system:'' } },
+      expected: { liable_party:'BUPA', confidence:'high' } },
+    { id: 'X-017', title: 'سائح أمريكي بتأمين Cigna وتأمين زوار — حادث مروري بإصابة جسدية',
+      input: { beneficiary: { class:'STANDARD', nationality:'US', age:38, employment_sector:'visitor', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'', special_case_scheme:'VISITOR', has_other_coverage:true },
+        case_attrs: { type:'rta', injury_kind:'bodily', is_emergency:true, najm_report_id:'NJM-2026-0099', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'NAJM_MTPL', confidence:'high' } },
+    { id: 'X-018', title: 'عاملة منزلية فلبينية (لدى صاحب عمل > 4 عمال) — التهاب زائدة',
+      input: { beneficiary: { class:'STANDARD', nationality:'PH', age:34, employment_sector:'domestic_worker', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'', special_case_scheme:'DOMESTIC_WORKER' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'الدولة', confidence:'high' } },
+    { id: 'X-019', title: 'عاملة منزلية، صاحب العمل ≤ 4 عمال (غامض)',
+      input: { beneficiary: { class:'STANDARD', nationality:'PH', age:34, employment_sector:'domestic_worker', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'elective', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:null, confidence:'medium' } },
+    { id: 'X-020', title: 'عامل بناء متقاعد — تشخيص سيليكوسيس بعد 25 سنة',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:71, employment_sector:'retired', gosi_registered:true,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'occupational_disease', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'moh', system:'' } },
+      expected: { liable_party:null, confidence:'medium' } },
+    { id: 'X-021', title: 'عامل بنغلاديشي أُصيب قبل اكتمال التسجيل في التأمينات',
+      input: { beneficiary: { class:'STANDARD', nationality:'BD', age:26, employment_sector:'private', gosi_registered:false,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'work_injury', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'صاحب العمل', confidence:'high' } },
+    { id: 'X-022', title: 'حادث مروري بخطأ مشترك 30/70 (غامض Q1.4)',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:44, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'walaa', tier:'B', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'rta', injury_kind:'bodily', is_emergency:true, najm_report_id:'NJM-2026-0142', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'NAJM_MTPL', confidence:'high' } },
+    { id: 'X-023', title: 'مريض سرطان سعودي — إحالة من وزارة الصحة إلى مستشفى الملك فيصل التخصُّصي',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:51, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[], eligible_for:'' },
+        case_attrs: { type:'tertiary', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'university_medical_city', system:'KFSHRC' } },
+      expected: { liable_party:null, confidence:'low' } },
+    { id: 'X-024', title: 'سعودية متزوِّجة بثلاث وثائق تأمين (غامض Q5.1)',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:39, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[
+          {insurer:'bupa', tier:'A', active:true, cap_exhausted:false},
+          {insurer:'tawuniya', tier:'VIP', active:true, cap_exhausted:false},
+          {insurer:'medgulf', tier:'gold', active:true, cap_exhausted:false}
+        ], eligible_for:'' },
+        case_attrs: { type:'elective', is_emergency:false, najm_report_id:'', cap_exhausted:false, service_excluded:false, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:null, confidence:'low' } },
+    { id: 'X-025', title: 'سعودي — حالة إسعافية ناتجة عن خدمة من استثناءات الوثيقة',
+      input: { beneficiary: { class:'STANDARD', nationality:'SA', age:33, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'malath', tier:'B', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:true, commute_related:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'وزارة الصحة', confidence:'high' } },
+    { id: 'X-026', title: 'حادث مروري في طريق العمل — تداخل إصابة عمل + حادث مروري',
+      input: { beneficiary: { class:'STANDARD', nationality:'EG', age:35, employment_sector:'private', gosi_registered:true,
+        cchi_coverages:[{insurer:'bupa', tier:'B', active:true, cap_exhausted:false}], eligible_for:'' },
+        case_attrs: { type:'rta', injury_kind:'bodily', is_emergency:true, commute_related:true,
+                      najm_report_id:'NJM-2026-0210', cap_exhausted:false, service_excluded:false },
+        facility: { type:'private', system:'' } },
+      expected: { liable_party:'NAJM_MTPL', confidence:'medium' } }
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function populatePresets() {
+    const select = $('preset-select');
+    SCENARIOS.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.id} — ${s.title}`;
+      select.appendChild(opt);
+    });
+  }
+
+  let cchiCoverages = [];
+  function renderCchiList() {
+    const list = $('cchi-list');
+    list.innerHTML = '';
+    cchiCoverages.forEach((c, idx) => {
+      const row = document.createElement('div');
+      row.className = 'cchi-row';
+      row.innerHTML = `
+        <select data-idx="${idx}" data-field="insurer">
+          <option value="bupa" ${c.insurer === 'bupa' ? 'selected' : ''}>Bupa Arabia</option>
+          <option value="tawuniya" ${c.insurer === 'tawuniya' ? 'selected' : ''}>Tawuniya</option>
+          <option value="medgulf" ${c.insurer === 'medgulf' ? 'selected' : ''}>MedGulf</option>
+          <option value="axa" ${c.insurer === 'axa' ? 'selected' : ''}>AXA</option>
+          <option value="walaa" ${c.insurer === 'walaa' ? 'selected' : ''}>Walaa</option>
+          <option value="allianz_sf" ${c.insurer === 'allianz_sf' ? 'selected' : ''}>Allianz SF</option>
+          <option value="malath" ${c.insurer === 'malath' ? 'selected' : ''}>Malath</option>
+        </select>
+        <select data-idx="${idx}" data-field="tier">
+          <option value="C" ${c.tier === 'C' ? 'selected' : ''}>C</option>
+          <option value="B" ${c.tier === 'B' ? 'selected' : ''}>B</option>
+          <option value="A" ${c.tier === 'A' ? 'selected' : ''}>A</option>
+          <option value="VIP" ${c.tier === 'VIP' ? 'selected' : ''}>VIP</option>
+        </select>
+        <label style="font-size:0.78rem; display:flex; align-items:center; gap:0.3rem;">
+          <input type="checkbox" data-idx="${idx}" data-field="cap_exhausted" ${c.cap_exhausted ? 'checked' : ''}>
+          استُنفِد
+        </label>
+        <button class="rm" data-idx="${idx}" type="button" aria-label="حذف">×</button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('select, input[type="checkbox"]').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        const field = e.target.dataset.field;
+        if (field === 'cap_exhausted') cchiCoverages[idx][field] = e.target.checked;
+        else cchiCoverages[idx][field] = e.target.value;
+      });
+    });
+    list.querySelectorAll('.rm').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        cchiCoverages.splice(parseInt(e.target.dataset.idx), 1);
+        renderCchiList();
+      });
+    });
+  }
+
+  function readForm() {
+    const beneficiary = {
+      class: $('b-class').value,
+      nationality: $('b-nationality').value.toUpperCase(),
+      age: parseInt($('b-age').value) || 0,
+      employment_sector: $('b-employment').value,
+      gosi_registered: $('b-gosi').checked,
+      eligible_for: $('b-eligible-for').value,
+      cchi_coverages: cchiCoverages.map(c => ({
+        insurer: c.insurer, tier: c.tier, active: true, cap_exhausted: !!c.cap_exhausted
+      })),
+      special_case_scheme: $('b-special-scheme').value || undefined,
+      has_other_coverage: $('b-has-other-coverage').checked,
+      billing_mode: $('b-billing-mode').value
+    };
+    const case_attrs = {
+      type: $('c-type').value,
+      is_emergency: $('c-emergency').checked,
+      commute_related: $('c-commute-related').checked,
+      najm_report_id: $('c-najm').value || '',
+      cap_exhausted: $('c-cap-exhausted').checked,
+      service_excluded: $('c-service-excluded').checked,
+      injury_kind: ($('c-type').value === 'rta' || $('c-commute-related').checked) ? 'bodily' : null
+    };
+    const facility = { type: $('f-type').value, system: $('f-system').value };
+    return { beneficiary, case_attrs, facility };
+  }
+
+  function loadScenario(scenario) {
+    const i = scenario.input;
+    $('b-class').value = i.beneficiary.class || 'STANDARD';
+    $('b-nationality').value = i.beneficiary.nationality || 'SA';
+    $('b-age').value = i.beneficiary.age || 0;
+    $('b-employment').value = i.beneficiary.employment_sector || 'private';
+    $('b-gosi').checked = !!i.beneficiary.gosi_registered;
+    $('b-eligible-for').value = i.beneficiary.eligible_for || '';
+    cchiCoverages = (i.beneficiary.cchi_coverages || []).map(c => ({...c}));
+    renderCchiList();
+    $('b-special-scheme').value = i.beneficiary.special_case_scheme || '';
+    $('b-has-other-coverage').checked = !!i.beneficiary.has_other_coverage;
+    $('b-billing-mode').value = i.beneficiary.billing_mode || 'EMBASSY_DIRECT';
+    $('c-type').value = i.case_attrs.type || 'emergency';
+    $('c-emergency').checked = !!i.case_attrs.is_emergency;
+    $('c-commute-related').checked = !!i.case_attrs.commute_related;
+    $('c-najm').value = i.case_attrs.najm_report_id || '';
+    $('c-cap-exhausted').checked = !!i.case_attrs.cap_exhausted;
+    $('c-service-excluded').checked = !!i.case_attrs.service_excluded;
+    $('f-type').value = i.facility.type || 'private';
+    $('f-system').value = i.facility.system || '';
+
+    const meta = $('preset-meta');
+    let metaHtml = `<strong>${scenario.id}</strong> · المتوقَّع: <code>${scenario.expected.liable_party || 'غامض'}</code> (${scenario.expected.confidence})`;
+    meta.innerHTML = metaHtml;
+    meta.classList.add('shown');
+    meta.dataset.expected = JSON.stringify(scenario.expected);
+  }
+
+  function clearPresetMeta() {
+    const meta = $('preset-meta');
+    meta.classList.remove('shown');
+    delete meta.dataset.expected;
+  }
+
+  function render(verdict, expected) {
+    const out = $('output');
+    const conf = verdict.confidence || 'medium';
+    const liable = verdict.liable_party === null
+      ? '⚠ غامض — يحتاج مراجعة بشرية'
+      : escapeHtml(verdict.liable_party);
+
+    let compareHtml = '';
+    if (expected) {
+      let exp;
+      try { exp = JSON.parse(expected); } catch { exp = null; }
+      if (exp) {
+        const expLiable = exp.liable_party;
+        const actualLiable = verdict.liable_party;
+        let badgeClass = 'pass', badgeText = 'مطابق';
+        if (expLiable === null && actualLiable !== null) { badgeClass = 'unexpected'; badgeText = 'حُكم غير متوقَّع'; }
+        else if (expLiable !== null && actualLiable === null) { badgeClass = 'differs'; badgeText = 'غامض، كان متوقَّعًا'; }
+        else if (expLiable === actualLiable || (actualLiable && actualLiable.includes(expLiable))) { badgeClass = 'pass'; badgeText = 'مطابق'; }
+        else { badgeClass = 'differs'; badgeText = 'مختلف'; }
+        compareHtml = `<span class="compare-badge ${badgeClass}">${badgeText}</span>`;
+        if (badgeClass !== 'pass') {
+          compareHtml += ` <span style="font-size:0.8rem;color:var(--text-muted);">المتوقَّع: <code>${escapeHtml(expLiable || 'غامض')}</code></span>`;
+        }
+      }
+    }
+
+    let html = `
+      <div class="verdict ${conf}">
+        <div class="label">الحُكم ${compareHtml}</div>
+        <div class="liable">${liable}</div>
+        <div class="meta">
+          <span><strong>درجة الثقة:</strong> ${conf}</span>
+          <span><strong>عائلة القاعدة:</strong> ${escapeHtml(verdict.rule_family || '—')}</span>
+          ${verdict.fallback_party ? `<span><strong>الجهة الاحتياطية:</strong> ${escapeHtml(verdict.fallback_party)}</span>` : ''}
+        </div>
+      </div>
+    `;
+    if (verdict.notes) html += `<div class="out-section"><h3>ملاحظات</h3><p style="font-size:0.92rem;margin:0;">${escapeHtml(verdict.notes)}</p></div>`;
+    if (verdict.open_questions && verdict.open_questions.length) {
+      html += `<div class="open-questions"><strong>أسئلة مفتوحة:</strong> ` +
+              verdict.open_questions.map(q => `<code>${escapeHtml(q)}</code>`).join(' · ') + `</div>`;
+    }
+    if (verdict.citations && verdict.citations.length) {
+      html += `<div class="out-section"><h3>الاستشهادات</h3><ul class="citation-list">`;
+      verdict.citations.forEach(c => { html += `<li>${escapeHtml(c)}</li>`; });
+      html += `</ul></div>`;
+    }
+    if (verdict.trace && verdict.trace.length) {
+      html += `<div class="out-section"><h3>تسلسل الاستدلال</h3><ul class="trace-list">`;
+      verdict.trace.forEach(t => {
+        const cls = t.matched ? 'matched' : 'skipped';
+        html += `<li class="${cls}"><span class="rule-id">${escapeHtml(t.rule)}</span>${t.matched ? ' تطابق' : ' لم يتطابق'}<span class="why">${escapeHtml(t.why)}</span></li>`;
+      });
+      html += `</ul></div>`;
+    }
+    out.innerHTML = html;
+  }
+
+  populatePresets();
+  $('preset-select').value = '';
+  cchiCoverages = [];
+  renderCchiList();
+
+  $('preset-load-btn').addEventListener('click', () => {
+    const id = $('preset-select').value;
+    if (!id) { clearPresetMeta(); return; }
+    const scenario = SCENARIOS.find(s => s.id === id);
+    if (scenario) loadScenario(scenario);
+  });
+
+  $('add-cchi-btn').addEventListener('click', () => {
+    cchiCoverages.push({ insurer: 'bupa', tier: 'A', active: true, cap_exhausted: false });
+    renderCchiList();
+  });
+
+  $('evaluate-btn').addEventListener('click', () => {
+    const input = readForm();
+    const verdict = determineLiableCoverage(input);
+    const expected = $('preset-meta').dataset.expected;
+    render(verdict, expected);
+    if (window.innerWidth < 960) {
+      $('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  $('reset-btn').addEventListener('click', () => {
+    $('preset-select').value = '';
+    clearPresetMeta();
+    $('b-class').value = 'STANDARD';
+    $('b-nationality').value = 'SA';
+    $('b-age').value = '34';
+    $('b-employment').value = 'private';
+    $('b-gosi').checked = true;
+    $('b-eligible-for').value = '';
+    cchiCoverages = [];
+    renderCchiList();
+    $('b-special-scheme').value = '';
+    $('b-has-other-coverage').checked = false;
+    $('b-billing-mode').value = 'EMBASSY_DIRECT';
+    $('c-type').value = 'emergency';
+    $('c-emergency').checked = false;
+    $('c-commute-related').checked = false;
+    $('c-najm').value = '';
+    $('c-cap-exhausted').checked = false;
+    $('c-service-excluded').checked = false;
+    $('f-type').value = 'private';
+    $('f-system').value = '';
+    $('output').innerHTML = `<div class="placeholder"><strong>أُعيد التعيين.</strong>اختر سيناريو أو ابنِ المُدخلات يدويًا واضغط «قيِّم».</div>`;
+  });
+})();
+</script>
+
+</body>
+</html>

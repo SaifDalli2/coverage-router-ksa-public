@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f7c66">
+<meta name="description" content="موجِّه التغطية التأمينية الصحية في المملكة العربية السعودية — ملخَّص البحث وعائلات القواعد ونتائج التغطية.">
+<title>موجِّه التغطية التأمينية في السعودية · العربية</title>
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --surface-alt: #f4f1ec;
+    --text: #1f2933;
+    --text-muted: #5a6473;
+    --primary: #0f7c66;
+    --primary-light: #d6efe8;
+    --accent: #c97b29;
+    --accent-light: #fbecd9;
+    --danger: #b8493a;
+    --success: #2f9e6b;
+    --warning: #d8a520;
+    --border: #e6e3dc;
+    --radius: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
+    --max-w: 1100px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", "Noto Sans Arabic", "SF Arabic", "Geeza Pro", Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--primary); }
+
+  .container {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  nav.topnav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.92);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.topnav .container {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+    gap: 1rem;
+  }
+  nav.topnav .brand {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+  }
+  nav.topnav ul {
+    display: none;
+    list-style: none; margin: 0; padding: 0;
+    gap: 1.4rem;
+  }
+  nav.topnav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+  nav.topnav a:hover { color: var(--primary); }
+  @media (min-width: 720px) { nav.topnav ul { display: flex; } }
+
+  /* Hero */
+  header.hero {
+    padding: 2.5rem 0 1.5rem;
+    background:
+      radial-gradient(ellipse at top left, rgba(15,124,102,0.10) 0%, transparent 55%),
+      linear-gradient(180deg, var(--primary-light) 0%, transparent 100%);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 0.4rem 0.85rem;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+  }
+  .badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--warning);
+    box-shadow: 0 0 0 4px rgba(216,165,32,0.18);
+  }
+  h1 {
+    font-size: clamp(1.7rem, 5vw, 2.3rem);
+    line-height: 1.3;
+    margin: 0 0 0.85rem;
+    letter-spacing: -0.015em;
+  }
+  .tagline {
+    font-size: clamp(0.98rem, 1.5vw, 1.05rem);
+    color: var(--text-muted);
+    max-width: 720px;
+    margin: 0 0 1.75rem;
+  }
+  .callout {
+    margin-top: 1.75rem;
+    background: var(--surface);
+    border-right: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    box-shadow: var(--shadow-md);
+  }
+  .callout .label {
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .callout p { margin: 0; font-size: 1.02rem; }
+  .callout strong { color: var(--text); }
+
+  .stats {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 720px) { .stats { grid-template-columns: repeat(5, 1fr); } }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+  .stat .num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat.green .num { color: var(--success); }
+  .stat.yellow .num { color: #a07b00; }
+  .stat.red .num { color: var(--danger); }
+  .stat .label {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  section { padding: 2.75rem 0; }
+  section.alt { background: var(--surface-alt); }
+  section h2 {
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    margin: 0 0 0.55rem;
+    letter-spacing: -0.01em;
+  }
+  section .lede {
+    color: var(--text-muted);
+    margin: 0 0 1.5rem;
+    max-width: 760px;
+  }
+
+  .grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    border-right: 4px solid var(--border);
+  }
+  .card.l-one   { border-right-color: var(--danger); }
+  .card.l-two   { border-right-color: var(--warning); }
+  .card.l-three { border-right-color: var(--primary); }
+  .card.l-four  { border-right-color: var(--text-muted); }
+  .card.l-five  { border-right-color: var(--success); }
+  .card.highlight {
+    background: var(--primary-light);
+    border-color: var(--primary);
+  }
+  .card h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+  .card .num {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .card p {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+  .card .source {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  /* Status pills */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.22rem 0.6rem;
+    border-radius: 100px;
+  }
+  .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; }
+  .status.done { color: var(--success); background: rgba(47,158,107,0.10); }
+  .status.done::before { background: var(--success); }
+  .status.partial { color: #a07b00; background: rgba(216,165,32,0.14); }
+  .status.partial::before { background: var(--warning); }
+  .status.pending { color: var(--danger); background: rgba(184,73,58,0.10); }
+  .status.pending::before { background: var(--danger); }
+
+  /* Coverage cards */
+  .coverage-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .coverage-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .coverage-grid { grid-template-columns: repeat(3, 1fr); } }
+  .cov-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    border-right: 4px solid var(--border);
+  }
+  .cov-card.good { border-right-color: var(--success); }
+  .cov-card.partial { border-right-color: var(--warning); }
+  .cov-card.gap { border-right-color: var(--danger); }
+  .cov-rfid {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .cov-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0.25rem 0 0.55rem;
+  }
+  .cov-detail {
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-right: 1.65rem;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    right: 8px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline .step {
+    position: relative;
+    padding: 0.5rem 0 1rem;
+  }
+  .timeline .step::before {
+    content: "";
+    position: absolute;
+    right: -1.65rem; top: 0.6rem;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+  }
+  .timeline .step.done::before {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .timeline .step.now::before {
+    background: var(--warning);
+    border-color: var(--warning);
+    box-shadow: 0 0 0 4px rgba(216,165,32,0.22);
+  }
+  .timeline .step strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .timeline .step span {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.4rem 0.95rem;
+    font-size: 0.86rem;
+  }
+  .chip strong { color: var(--primary); font-weight: 700; }
+
+  /* Quicklinks */
+  .quicklinks {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .quicklinks { grid-template-columns: repeat(2, 1fr); } }
+  .quicklink {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: 4px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s;
+  }
+  .quicklink:hover { background: var(--primary-light); transform: translateY(-1px); }
+  .quicklink strong { display: block; color: var(--primary); margin-bottom: 0.25rem; font-size: 0.98rem; }
+  .quicklink span { display: block; font-size: 0.86rem; color: var(--text-muted); }
+
+  footer {
+    background: var(--text);
+    color: rgba(255,255,255,0.78);
+    padding: 1.75rem 0;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+  }
+  footer a { color: rgba(255,255,255,0.95); }
+  footer .container { display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.92em;
+    background: var(--surface-alt);
+    padding: 1px 5px;
+    border-radius: 3px;
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+
+  /* high-risk gap callout */
+  .gap-callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: 4px solid var(--danger);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .gap-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.92rem;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .gap-item:last-child { border-bottom: none; }
+  .gap-id {
+    flex-shrink: 0;
+    background: rgba(184,73,58,0.10);
+    color: var(--danger);
+    padding: 0.18rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav" aria-label="primary">
+  <div class="container">
+    <div class="brand">موجِّه التغطية التأمينية</div>
+    <ul>
+      <li><a href="#problem">المشكلة</a></li>
+      <li><a href="#rules">عائلات القواعد</a></li>
+      <li><a href="#coverage">خريطة التغطية</a></li>
+      <li><a href="#roadmap">خارطة الطريق</a></li>
+      <li><a href="tester.ar.html" style="color:var(--primary);font-weight:600;">→ المُختبِر</a></li>
+      <li><a href="Research.html" lang="en">English</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="badge"><span class="dot"></span>قبل ألفا · مرحلة المعمارية</span>
+    <h1>من يدفع عندما يدخل المريض مستشفى سعوديًا؟</h1>
+    <p class="tagline">خدمة قرار تُحدِّد الجهة التأمينية المسؤولة عن سداد تكاليف الحالة الطبية في المملكة العربية السعودية — عبر مجلس الضمان الصحي التعاوني، ومنصَّة «نفيس»، والمؤسسة العامة للتأمينات الاجتماعية، ووزارة الصحة، والأنظمة الصحية للجهات الحكومية والعسكرية، وأرامكو، وتأمين «نجم» الإلزامي على المركبات، وعدد من شركات التأمين الخاصَّة.</p>
+    <div class="callout">
+      <div class="label">النتيجة الرئيسة · مُحدَّثة في 3 مايو 2026</div>
+      <p>المملكة العربية السعودية ليس لديها تسلسل عام منشور لتنسيق المنافع (Coordination of Benefits) في التأمين الصحي التعاوني. مجلس الضمان الصحي ومنصَّة «نفيس» وهيئة التأمين كلُّها تفترض مصدر تغطية واحد للمستفيد. والاستثناء الوحيد المنشور يأتي من المادة (6) من وثيقة تأمين الزوار التي ترسي نموذج «الدفع أوَّلاً ثم الرجوع بالحلول». فيما عدا ذلك، يجب تأليف قرار التوجيه من <strong>خمس عائلات قواعد متمايزة</strong> — وهذا ما تقوم به هذه الخدمة.</p>
+    </div>
+    <div class="stats" role="list">
+      <div class="stat green"><div class="num">١٦ / ١٦</div><div class="label">ملفات PDF ذات الأولوية المُستخرَجة</div></div>
+      <div class="stat green"><div class="num">+30</div><div class="label">اقتباسات حرفية موثَّقة</div></div>
+      <div class="stat yellow"><div class="num">٢ / ٣٠</div><div class="label">أسئلة مفتوحة مُجاب عليها</div></div>
+      <div class="stat green"><div class="num">٢٦</div><div class="label">حالة مثال مؤلَّفة</div></div>
+      <div class="stat red"><div class="num">٠ / ٤</div><div class="label">تأكيدات الجهات التنظيمية</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="container">
+    <h2>المشكلة في فقرة واحدة</h2>
+    <p class="lede">عندما يحضر المستفيد إلى المستشفى في المملكة العربية السعودية، تختار المستشفى عادةً مزوَّد تأمين واحد للفوترة. ولكن في الواقع، تتوزَّع المسؤولية القانونية على جهات متعدِّدة — مجلس الضمان الصحي التعاوني، ووزارة الصحة، ومنصَّة «نفيس»، والمؤسسة العامة للتأمينات الاجتماعية، والخدمات الطبية لوزارات الداخلية والدفاع والحرس الوطني، وشركة أرامكو، و«نجم»، وكثير من شركات التأمين الخاصَّة — لكلٍّ منها قواعدها. والقواعد التي تنطبق تعتمد على نوع الحالة، وفئة المستفيد، وظروف الإصابة. هدفنا أن نُجيب على ذلك السؤال استنادًا إلى المصادر التنظيمية الأوَّلية.</p>
+  </div>
+</section>
+
+<section id="rules" class="alt">
+  <div class="container">
+    <h2>عائلات القواعد الخمس التي نؤلِّفها</h2>
+    <p class="lede">يُحدَّد التوجيه في حالات تعدُّد التغطيات بتطبيق هذه العائلات بالترتيب. أوَّل عائلة تُنتج حُكمًا تكسب.</p>
+    <div class="grid grid-2">
+      <article class="card l-one">
+        <h3><span class="num">١</span> الاستثناءات النظامية</h3>
+        <p><strong>الأعلى أسبقيةً.</strong> إصابات العمل ← المؤسسة العامة للتأمينات الاجتماعية / فرع الأخطار المهنية (نظام التأمينات الاجتماعية، مرسوم ملكي رقم م/273 وتاريخ 1445/12/26هـ، المواد 28، 30، 31، 32). إصابة جسدية بسبب حادث مروري ← التأمين الإلزامي على مركبة المخطئ (وثيقة التأمين الإلزامي الموحَّدة على المركبات). استثناء إصابات العمل من حزمة المنافع الأساسية أُكِّد حرفيًا في الفصل 3، القسم أ، البند 7 — وهو ما يُغلق السؤال Q1.1.</p>
+        <div class="source">المصادر: gosi.gov.sa · rulebook.sama.gov.sa · chi.gov.sa</div>
+      </article>
+      <article class="card l-two">
+        <h3><span class="num">٢</span> أولوية الحالات الإسعافية</h3>
+        <p><strong>متعارضة مع الجميع.</strong> يجب على المستشفى — عام أو خاص — استقبال الحالة وتقديم العلاج الإسعافي بدون أيِّ مطالبة مالية مسبقة (نظام الصحة م/11، الملحق رقم 66 المادة 1 — حرفيًا). وخلال 24 ساعة من استقبال الحالة الحرجة، يُبلِغ المستشفى الخاص شركة إدارة المطالبات (TPA) المعيَّنة من وزارة الصحة عبر بوَّابة purchasingprogram.com.sa، فتقرِّر الشركة بين النقل إلى مستشفى حكومي أو تحمُّل النفقة على نفقة الوزارة (المادة 3 من الملحق 66). بالنسبة للسعوديين الذين استنفدوا حدّ التأمين أو في حال استثناء الخدمة، تتوفَّر آلية استكمال على نفقة وزارة الصحة (المادة 5 — أقرب تسلسل تنسيق منافع منشور).</p>
+        <div class="source">المصادر: نظام الصحة م/11 المادة 5(هـ) · الملحق 66 · التعميم العاجل من المجلس برقم 1733/1439/3531 (إعفاء المشاركة في الدفع للحالات الإسعافية)</div>
+      </article>
+      <article class="card l-three">
+        <h3><span class="num">٣</span> التوجيه حسب المنشأة</h3>
+        <p>الأنظمة الصحية المغلقة — الشؤون الصحية بوزارة الحرس الوطني (NGHA)، والخدمات الطبية لوزارة الدفاع (MSD)، والخدمات الطبية لوزارة الداخلية، وأرامكو/SAMSO، والهيئة الملكية للجبيل وينبع — تدفع فقط في منشآتها الخاصَّة. لا تُسدِّد فواتير المستشفيات الخاصَّة الأخرى. أمَّا المدن الطبية الجامعية (KAUH، KSUMC، KFSHRC) فهي مستقبلات إحالة مفتوحة، متعدِّدة الجهات الدافعة.</p>
+        <div class="source">المصادر: ngha.med.sa · msd.gov.sa · jhah.com</div>
+      </article>
+      <article class="card l-four">
+        <h3><span class="num">٤</span> تخصيص فئة المستفيد</h3>
+        <p>سياسة تغطية المستفيدين الصادرة عن المجلس هي قاعدة <strong>منع الازدواج</strong>، وليست تسلسلًا تنسيقيًا. الافتراض: تأمين الأبناء يكون من خلال جهة عمل الأب. وثيقة تأمين موحَّدة لكلِّ صاحب عمل. تُحدِّد القاعدة جهة المسؤولية، لكنَّها لا تُحدِّد كيفية اقتسام الفاتورة بين شركتَيْ تأمين فعَّالتَين في آنٍ واحد. تعريف «المعال» محفوظ حرفيًا: «الزوج أو الزوجة، والأولاد الذكور حتى سنِّ الخامسة والعشرين، والبنات غير المتزوِّجات، إضافةً إلى الأيتام المحتضنين لدى الأسر الكافلة المستفيدة من التأمين الصحي الإلزامي».</p>
+        <div class="source">المصدر: سياسة تغطية مستفيدي التأمين الصحي · CCHI-08-PR-02-1/0</div>
+      </article>
+      <article class="card l-five">
+        <h3><span class="num">٥</span> التعاوني كحالة افتراضية</h3>
+        <p>ما تبقَّى بعد ما سبق: الزيارات الاعتيادية ← شركة التأمين الصحي التعاوني الرئيسة. تنطبق الأنظمة الخاصَّة (تأمين الحجَّاج والمعتمرين، وتأمين الزوار، وتأمين العمالة المنزلية) إذا كانت فعَّالة. <strong>المادة (6) من وثيقة تأمين الزوار</strong> هي البند الوحيد الصريح لتنسيق المنافع في تنظيم التأمين التعاوني السعودي — نموذج «الدفع ثم الرجوع بالحلول».</p>
+        <div class="source">المصادر: وثيقة الضمان الصحي التعاوني الموحَّدة · سياسة الزوار · سياسة العمالة المنزلية · سياسة الحجَّاج والمعتمرين</div>
+      </article>
+      <article class="card highlight">
+        <h3>لماذا هذا مهم</h3>
+        <p>منصَّة «نفيس» — منصَّة الخدمات الإلكترونية الوطنية لتبادل المعلومات الصحية المبنيَّة على معيار FHIR — <strong>لا</strong> تُرجع مؤشِّرًا للأولوية بين التغطيات عند تعدُّدها. حقل <code>Coverage.order</code> غير مُقيَّد. المستشفيات وشركات إدارة المطالبات تُقرِّر بالاجتهاد. هذه الخدمة تجعل القرار متَّسقًا وقابلاً للتدقيق ومُسنَدًا بالاستشهادات.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="coverage">
+  <div class="container">
+    <h2>خريطة التغطية البحثية</h2>
+    <p class="lede">أين يقف البحث اليوم — نظرة على الفجوات حسب عائلة القواعد. <span class="status done">مُغطَّى جيدًا</span> = مصادر أوَّلية موثَّقة وأسئلة رئيسة مُجاب عليها. <span class="status partial">جزئي</span> = مصادر مستخرَجة، وأسئلة لا تزال مفتوحة. <span class="status pending">فجوة</span> = لا نصَّ أوَّلي، يعتمد على ردِّ الجهة التنظيمية.</p>
+
+    <div class="coverage-grid">
+      <div class="cov-card good">
+        <div class="cov-rfid">RF-1</div>
+        <div class="cov-title">الاستثناءات النظامية</div>
+        <div class="cov-detail">المؤسسة العامة للتأمينات الاجتماعية المواد 28/30/31/32 + التأمين الإلزامي للمركبات + الحزمة الأساسية §3.أ.7. <strong>السؤال 1.1 مُجاب</strong>؛ السؤال 1.2 جزئي عبر المادة 31(2). الأسئلة 1.3–1.6 مفتوحة.</div>
+      </div>
+      <div class="cov-card good">
+        <div class="cov-rfid">RF-2</div>
+        <div class="cov-title">أولوية الحالات الإسعافية</div>
+        <div class="cov-detail">الملحق 66 المواد 1/3/4/5 حرفيًا. قاعدة الـ24 ساعة وُجدت، وآلية استكمال على نفقة وزارة الصحة لِمَن استنفد حدَّ التعاوني مُكتشَفة. الإحالة: السؤال 2.1 — تعميم آلية شراء الخدمة الطبية رقم 274877-1439هـ (المرجع التسعيري الفعلي).</div>
+      </div>
+      <div class="cov-card partial">
+        <div class="cov-rfid">RF-3</div>
+        <div class="cov-title">التوجيه حسب المنشأة</div>
+        <div class="cov-detail">جميع الأنظمة الخمسة المغلقة موثَّقة من صفحاتها الرسمية. القاعدة عُرفية لا مُقنَّنة. الفجوة: السؤال 3.4 — مستفيد من نظام مغلق في حالة إسعافية بمستشفى خاص. هذه الحالة الأكثر احتمالاً للوصول إلى لجنة المنازعات.</div>
+      </div>
+      <div class="cov-card partial">
+        <div class="cov-rfid">RF-4</div>
+        <div class="cov-title">تخصيص فئة المستفيد</div>
+        <div class="cov-detail">سياسة تغطية المستفيدين + سياسة التزام صاحب العمل مُستخرَجتان كاملتَيْن. تعريف المعال موثَّق حرفيًا. الفجوة: قاعدة جهة عمل الزوج تحتاج مترجمًا قانونيًا (T4)؛ الأسئلة 4.1–4.4 مفتوحة بانتظار رسالة المجلس.</div>
+      </div>
+      <div class="cov-card partial">
+        <div class="cov-rfid">RF-5</div>
+        <div class="cov-title">التعاوني كحالة افتراضية</div>
+        <div class="cov-detail">حزمة المنافع المُحدَّثة (108 صفحة)، تأمين الزوار، تأمين الحجَّاج، تأمين العمالة المنزلية كلُّها مُستخرَجة. <strong>المادة 6</strong> من تأمين الزوار هي البند الوحيد المنشور لتنسيق المنافع. الفجوة: السؤالان 5.4 + 5.5 — معالجة «نفيس» للتغطية المتعدِّدة.</div>
+      </div>
+      <div class="cov-card gap">
+        <div class="cov-rfid">RF-6</div>
+        <div class="cov-title">عبر-تنظيمي / الأفق التنظيمي</div>
+        <div class="cov-detail">تنظيمات هيئة التأمين بعد مارس 2024، برنامج «ضمان» / التأمين الإلزامي الموحَّد، مشروع نظام التأمين، سوابق لجنة الفصل في المنازعات التأمينية — كلُّها مُراقَبة لكن لم يُسترجَع نصٌّ أوَّلي بعد. الأسئلة 6.1–6.4 تعتمد كلِّيًا على رسالة هيئة التأمين.</div>
+      </div>
+      <div class="cov-card partial">
+        <div class="cov-rfid">RF-7</div>
+        <div class="cov-title">قيود نظام حماية البيانات الشخصية</div>
+        <div class="cov-detail">نظام حماية البيانات (مرسوم ملكي م/19 + م/148)، لائحة نقل البيانات الشخصية خارج المملكة، دليل تقييم المخاطر — كلُّها مُستخرَجة. الفجوة: الأسئلة 7.1–7.3 (قائمة الكفاية، نموذج تقييم الأثر، آلية سحب الموافقة) تحتاج ردًّا مكتوبًا من الهيئة السعودية للبيانات والذكاء الاصطناعي (T9).</div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:2.5rem;">خمسة أسئلة عالية الخطورة لا تزال مفتوحة</h2>
+    <p class="lede">هذه الفجوات الأكثر تأثيرًا في تغيير حُكم التوجيه. كلُّها مذكورة في رسالتَي المجلس وهيئة التأمين.</p>
+    <div class="gap-callout">
+      <div class="gap-item"><span class="gap-id">Q2.1</span><span>جدول التسعيرة المعتمَد من وزارة الصحة لتعويض الحالات الإسعافية لدى مقدِّمي الخدمة من خارج الشبكة. <strong>الإحالة</strong>: المادة 11 من الملحق 66 تشير إلى تعميم آلية شراء الخدمة الطبية رقم 274877-1439هـ — يحتاج إلى استرجاع. مذكور في رسالة المجلس السؤال 2.</span></div>
+      <div class="gap-item"><span class="gap-id">Q3.4</span><span>عند توجُّه مستفيد من نظام مغلق (الحرس الوطني / الدفاع / الداخلية / أرامكو) إلى مستشفى <em>خاص</em> في حالة إسعافية، من يدفع فعليًا؟ عُرف مقابل تقنين — الحالة الأكثر احتمالًا للوصول إلى لجنة المنازعات.</span></div>
+      <div class="gap-item"><span class="gap-id">Q5.4</span><span>هل توجد نشرات فنية لمنصَّة «نفيس» بعد الإصدار 1.0.0 تُقيِّد <code>Coverage.order</code> في استجابة CoverageEligibilityResponse للتغطية المتعدِّدة؟</span></div>
+      <div class="gap-item"><span class="gap-id">Q5.5</span><span>هل تتوفَّر بيئة اختبار لمنصَّة «نفيس» لاختبار سيناريوهات التغطية المتعدِّدة؟ تحجز مرحلة التكامل.</span></div>
+      <div class="gap-item"><span class="gap-id">Q6.1</span><span>هل أصدرت هيئة التأمين منذ 4 مارس 2024 أيَّ تنظيم يتناول تنسيق المنافع؟ قد يستبدل أجزاءً كبيرة من الخوارزمية المؤلَّفة.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap" class="alt">
+  <div class="container">
+    <h2>خارطة طريق المشروع</h2>
+    <p class="lede">أين نقف وما يأتي تاليًا.</p>
+    <div class="timeline">
+      <div class="step done"><strong>تثبيت قرارات المعمارية</strong><span>قرار معماري ADR-001 (المنظومة التقنية) · ADR-002 (نموذج بيانات شجرة القرار) · ADR-003 (حدود الخدمات).</span></div>
+      <div class="step done"><strong>اكتمال البحث الأوَّل</strong><span>كاتالوج المصادر مع الاستشهادات الأوَّلية، خوارزمية تنسيق المنافع مُؤلَّفة من خمس عائلات قواعد. الفجوات موثَّقة.</span></div>
+      <div class="step done"><strong>اكتمال البحث الثاني</strong><span>16 من 16 ملف PDF أولوية مستخرَجة. السؤال 1.1 مُجاب (استثناء حزمة المنافع للإصابات المهنية)، السؤال 2 مُجاب (الملحق 66 المادة 3). 26 حالة مثال مؤلَّفة. مُختبِر تفاعلي يعمل في المتصفِّح.</span></div>
+      <div class="step now"><strong>إجابة الجهات التنظيمية المنتظَرة</strong><span>إرسال خطابات للمجلس وهيئة التأمين ومنصَّة «نفيس» والهيئة السعودية للبيانات. مُسوَّدات جاهزة بالعربية والإنجليزية.</span></div>
+      <div class="step"><strong>تأليف شجرة القرار v1</strong><span>شجرة JSON مُتحقَّق منها بالمخطَّط، يُراجعها فريق السياسات كما يُراجَع الكود.</span></div>
+      <div class="step"><strong>هيكلة خدمة FastAPI</strong><span>كيان واحد متعدِّد الوحدات. توليد تلقائي لمواصفات OpenAPI 3.1. PostgreSQL + Redis. OAuth2 + JWT.</span></div>
+      <div class="step"><strong>التكامل: تحويل HL7 FHIR + بيئة اختبار «نفيس»</strong><span>حدود FHIR R4 لمصادر CoverageEligibility. تكامل بيئة اختبار «نفيس».</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="links">
+  <div class="container">
+    <h2>التحف البحثية والوثائق</h2>
+    <p class="lede">روابط مباشرة للوثائق الداعمة في المستودع.</p>
+    <div class="quicklinks">
+      <a class="quicklink" href="tester.ar.html" style="border-right-color:var(--accent);">
+        <strong style="color:var(--accent);">⚡ المُختبِر التفاعلي</strong>
+        <span>حمِّل أيَّ سيناريو من 26 حالة مثال، عدِّل المُدخلات، شغِّل الخوارزمية في متصفِّحك، وانظر الحُكم وتسلسل الاستدلال والاستشهادات.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/coordination-of-benefits.md" target="_blank" rel="noopener">
+        <strong>وثيقة تنسيق المنافع</strong>
+        <span>خوارزمية التوجيه الأساسية — خمس عائلات قواعد، شيفرة كاملة، جدول استشهادات، مخاطر حرجة.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/scenarios.md" target="_blank" rel="noopener">
+        <strong>26 حالة مثال مؤلَّفة</strong>
+        <span>مكتبة YAML للاختبار الذهبي للمحرِّك. X-001 إلى X-026؛ خمس حالات غامضة عمدًا تختبر الأسئلة عالية الخطورة.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/your-action-items.md" target="_blank" rel="noopener">
+        <strong>قائمة مهامك</strong>
+        <span>5 مهام مستخدِم متبقِّية (T6 / T7 / T8 / T4 / T9) مع حِزَم خطوة بخطوة ومُسوَّدات جاهزة للإرسال.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/regulator-letters-arabic.md" target="_blank" rel="noopener">
+        <strong>رسائل الجهات التنظيمية بالعربية</strong>
+        <span>مُسوَّدات عمل لرسالتَي المجلس وهيئة التأمين بالفصحى. يُوصى بمراجعة مترجم قانوني عربي قبل الإرسال الرسمي.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/watch-list.md" target="_blank" rel="noopener">
+        <strong>قائمة المراقبة الربعيَّة</strong>
+        <span>رصد الأفق التنظيمي: هيئة التأمين، «ضمان»، المجلس، «نفيس»، الهيئة السعودية للبيانات، لجنة المنازعات، التأمينات الاجتماعية.</span>
+      </a>
+    </div>
+    <p style="font-size:0.86rem;color:var(--text-muted);margin-top:1.25rem;">للاطلاع على النسخة الإنجليزية الكاملة — بما في ذلك نوافذ المصادر التفصيلية ومسوَّدات الرسائل المضمَّنة — انظر <a href="Research.html">النسخة الإنجليزية ←</a>.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div><strong style="color:white;">موجِّه التغطية التأمينية في السعودية</strong> · قبل ألفا · آخر تحديث للبحث: 4 مايو 2026</div>
+    <div>المستودع المصدري: <a href="https://github.com/SaifDalli2/coverage-router-ksa">SaifDalli2/coverage-router-ksa</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

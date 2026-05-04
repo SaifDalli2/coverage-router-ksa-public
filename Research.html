@@ -1,0 +1,2833 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f7c66">
+<meta name="description" content="coverage-router-ksa — a decision service that identifies the liable insurance coverage for a medical case in the Kingdom of Saudi Arabia.">
+<title>coverage-router-ksa · KSA insurance liability routing</title>
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --surface-alt: #f4f1ec;
+    --text: #1f2933;
+    --text-muted: #5a6473;
+    --primary: #0f7c66;
+    --primary-light: #d6efe8;
+    --accent: #c97b29;
+    --accent-light: #fbecd9;
+    --danger: #b8493a;
+    --success: #2f9e6b;
+    --warning: #d8a520;
+    --border: #e6e3dc;
+    --radius: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
+    --max-w: 1100px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans Arabic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--primary); }
+
+  .container {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  /* Sticky nav */
+  nav.topnav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.92);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.topnav .container {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+    gap: 1rem;
+  }
+  nav.topnav .brand {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  nav.topnav ul {
+    display: none;
+    list-style: none; margin: 0; padding: 0;
+    gap: 1.4rem;
+  }
+  nav.topnav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+  nav.topnav a:hover { color: var(--primary); }
+  @media (min-width: 720px) {
+    nav.topnav ul { display: flex; }
+  }
+
+  /* Hero */
+  header.hero {
+    padding: 2.5rem 0 1.5rem;
+    background:
+      radial-gradient(ellipse at top right, rgba(15,124,102,0.10) 0%, transparent 55%),
+      linear-gradient(180deg, var(--primary-light) 0%, transparent 100%);
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    padding: 0.4rem 0.85rem;
+    border-radius: 100px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--warning);
+    box-shadow: 0 0 0 4px rgba(216,165,32,0.18);
+  }
+  h1 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    line-height: 1.15;
+    margin: 0 0 0.85rem;
+    letter-spacing: -0.025em;
+  }
+  .tagline {
+    font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+    color: var(--text-muted);
+    max-width: 660px;
+    margin: 0 0 1.75rem;
+  }
+
+  .callout {
+    margin-top: 1.75rem;
+    background: var(--surface);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    box-shadow: var(--shadow-md);
+  }
+  .callout .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .callout p { margin: 0; font-size: 1.02rem; }
+  .callout strong { color: var(--text); }
+
+  /* Sections */
+  section { padding: 2.75rem 0; }
+  section.alt { background: var(--surface-alt); }
+  section h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.015em;
+  }
+  section .lede {
+    color: var(--text-muted);
+    margin: 0 0 1.5rem;
+    max-width: 720px;
+  }
+  section .lede .status { vertical-align: middle; }
+
+  h3.subhead {
+    font-size: 1rem;
+    margin: 1.75rem 0 0.65rem;
+    letter-spacing: -0.005em;
+  }
+
+  /* Cards */
+  .grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) {
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+  }
+  .card h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.02rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    letter-spacing: -0.005em;
+  }
+  .card .num {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+  }
+  .card .source-row {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 2;
+  }
+  .card .source-row .label {
+    margin-right: 0.35rem;
+  }
+  .card.highlight {
+    background: var(--primary-light);
+    border-color: var(--primary);
+  }
+  .card.highlight p { color: var(--text); }
+
+  /* Source link buttons (inline pills) */
+  .source-link {
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 100px;
+    padding: 0.18rem 0.65rem 0.22rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--primary);
+    cursor: pointer;
+    margin: 0 0.18rem 0.18rem 0;
+    transition: all 0.15s;
+    line-height: 1.3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    text-decoration: none;
+  }
+  .source-link:hover, .source-link:focus {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    border-style: solid;
+    outline: none;
+  }
+  .source-link::after {
+    content: "›";
+    font-size: 1em;
+    line-height: 1;
+    transform: translateY(-1px);
+  }
+
+  /* Status pill */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.22rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .status::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status.done { color: var(--success); background: rgba(47,158,107,0.10); }
+  .status.done::before { background: var(--success); }
+  .status.partial { color: #a07b00; background: rgba(216,165,32,0.14); }
+  .status.partial::before { background: var(--warning); }
+  .status.pending { color: var(--danger); background: rgba(184,73,58,0.10); }
+  .status.pending::before { background: var(--danger); }
+
+  /* Risk pill (used inside modals) */
+  .risk {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .risk-high { background: rgba(184,73,58,0.12); color: var(--danger); }
+  .risk-med { background: rgba(216,165,32,0.16); color: #a07b00; }
+  .risk-low { background: rgba(90,100,115,0.10); color: var(--text-muted); }
+
+  /* Progress table */
+  .progress-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .progress-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-row:last-child { border-bottom: none; }
+  .progress-row .name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    min-width: 0;
+  }
+  .progress-row .name small {
+    display: block;
+    font-weight: 400;
+    color: var(--text-muted);
+    font-size: 0.81rem;
+    margin-top: 0.15rem;
+    line-height: 1.4;
+  }
+
+  /* Timeline — now interactive */
+  .timeline {
+    position: relative;
+    padding-left: 1.65rem;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline .step {
+    position: relative;
+    padding: 0.65rem 0.9rem 0.85rem;
+    margin: -0.25rem -0.9rem 0.5rem;
+    border-radius: var(--radius);
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    width: calc(100% + 1.8rem);
+    font: inherit;
+    color: inherit;
+    display: block;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .timeline .step:hover, .timeline .step:focus-visible {
+    background: var(--surface);
+    border-color: var(--border);
+    outline: none;
+  }
+  .timeline .step::before {
+    content: "";
+    position: absolute;
+    left: -1.65rem; top: 0.95rem;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+  }
+  section.alt .timeline .step::before { background: var(--surface-alt); }
+  section.alt .timeline .step:hover::before, section.alt .timeline .step:focus-visible::before { background: var(--surface); }
+  .timeline .step.done::before {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .timeline .step.now::before {
+    background: var(--warning);
+    border-color: var(--warning);
+    box-shadow: 0 0 0 4px rgba(216,165,32,0.22);
+  }
+  .timeline .step strong {
+    display: block;
+    font-size: 0.96rem;
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.005em;
+  }
+  .timeline .step span {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    display: block;
+  }
+  .timeline .step .open-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .timeline .step .open-hint::after {
+    content: "›";
+    font-size: 1.1em;
+    transform: translateY(-1px);
+  }
+
+  /* Chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .chip strong { color: var(--primary); font-weight: 700; }
+
+  /* Stat row */
+  .stats {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 720px) {
+    .stats { grid-template-columns: repeat(4, 1fr); }
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: left;
+  }
+  .stat .num {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat .label {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  /* Footer */
+  footer {
+    background: var(--text);
+    color: rgba(255,255,255,0.78);
+    padding: 1.75rem 0;
+    margin-top: 2rem;
+    font-size: 0.86rem;
+  }
+  footer a { color: rgba(255,255,255,0.95); }
+  footer code {
+    background: rgba(255,255,255,0.10);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+  footer .container {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+
+  /* ─── Modal ─────────────────────────────────────────────────────────── */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: none;
+    align-items: stretch; justify-content: center;
+  }
+  .modal[aria-hidden="false"] { display: flex; }
+  .modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(15, 22, 30, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  .modal-panel {
+    position: relative;
+    background: var(--surface);
+    width: 100%;
+    max-width: 760px;
+    max-height: 100%;
+    overflow-y: auto;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.20);
+    -webkit-overflow-scrolling: touch;
+    animation: modalSlideUp 0.22s ease-out;
+  }
+  @media (min-width: 720px) {
+    .modal { align-items: center; padding: 1.5rem; }
+    .modal-panel {
+      max-height: 90vh;
+      border-radius: var(--radius);
+      animation: modalFadeIn 0.18s ease-out;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .modal-panel { animation: none; }
+  }
+  @keyframes modalSlideUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal-close {
+    position: absolute; top: 0.85rem; right: 0.85rem;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--text-muted);
+    z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--border); color: var(--text); }
+  .modal-content {
+    padding: 2rem 1.5rem 2rem;
+  }
+  @media (min-width: 720px) {
+    .modal-content { padding: 2.25rem 2rem 2rem; }
+  }
+  .modal-content h3.modal-title {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.2rem, 3vw, 1.4rem);
+    letter-spacing: -0.018em;
+    padding-right: 2.5rem;
+  }
+  .modal-content .modal-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+  .modal-content h4 {
+    margin: 1.5rem 0 0.65rem;
+    font-size: 0.95rem;
+    letter-spacing: -0.005em;
+  }
+  .modal-content h4:first-of-type { margin-top: 1rem; }
+  .modal-content p { margin: 0 0 0.85rem; font-size: 0.95rem; }
+  .modal-content ul, .modal-content ol { margin: 0 0 1rem; padding-left: 1.4rem; font-size: 0.93rem; }
+  .modal-content li { margin: 0.25rem 0; }
+  .modal-content .quote {
+    background: var(--surface-alt);
+    border-left: 3px solid var(--primary);
+    padding: 0.85rem 1rem;
+    margin: 0.5rem 0 0.85rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .modal-content .quote .citation {
+    display: block;
+    margin-top: 0.55rem;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .modal-content .source-url {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.4rem;
+    word-break: break-all;
+    transition: all 0.15s;
+  }
+  .modal-content .source-url:hover { background: var(--primary); color: white; }
+  .modal-content .source-url::after { content: "↗"; margin-left: 0.15rem; }
+  .modal-content .extracted-link {
+    display: block;
+    margin-top: 0.65rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .modal-content .extracted-link code {
+    background: var(--surface-alt);
+    padding: 2px 6px;
+    border-radius: 3px;
+    word-break: break-all;
+  }
+  .modal-content .note {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 0.65rem 0.9rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.86rem;
+    margin: 0.6rem 0 1rem;
+  }
+  .modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .modal-content th, .modal-content td {
+    padding: 0.5rem 0.55rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .modal-content th {
+    background: var(--surface-alt);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .modal-content code.id {
+    background: var(--surface-alt);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+
+  /* ─── Action banner + flag ────────────────────────────────────────────── */
+  .action-banner {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--accent-light);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin: 0 0 1.5rem;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .action-banner:hover, .action-banner:focus-visible {
+    background: var(--accent);
+    outline: none;
+  }
+  .action-banner:hover strong, .action-banner:focus-visible strong,
+  .action-banner:hover span:not(.flag-pill), .action-banner:focus-visible span:not(.flag-pill) {
+    color: white;
+  }
+  .action-banner .flag-pill {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 0.18rem 0.55rem;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+  }
+  .action-banner:hover .flag-pill, .action-banner:focus-visible .flag-pill {
+    background: white;
+    color: var(--accent);
+  }
+  .action-banner strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.005em;
+  }
+  .action-banner > span:not(.flag-pill) {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .action-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--accent);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    margin-right: 0.4rem;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    line-height: 1;
+  }
+  .action-flag::before {
+    content: "⚑";
+    font-size: 0.85em;
+    line-height: 1;
+  }
+  .action-flag:hover { background: #b06a1f; transform: translateY(-1px); }
+
+  /* Task cards inside Action Items modal */
+  .modal-content details.task-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.65rem;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .modal-content details.task-card[open] { box-shadow: var(--shadow-sm); }
+  .modal-content details.task-card summary {
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    background: var(--surface-alt);
+    font-weight: 600;
+    font-size: 0.93rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    transition: background 0.15s;
+  }
+  .modal-content details.task-card summary::-webkit-details-marker { display: none; }
+  .modal-content details.task-card summary:hover { background: var(--border); }
+  .modal-content details.task-card summary .summary-meta {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .modal-content details.task-card summary .toggle {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-left: 0.4rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .modal-content details.task-card[open] summary .toggle { transform: rotate(45deg); }
+  .modal-content details.task-card[open] summary { border-bottom: 1px solid var(--border); }
+  .modal-content details.task-card .task-body { padding: 0.5rem 1rem 1rem; }
+  .modal-content details.task-card .task-body h4 {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .modal-content details.task-card .task-body h4:first-child { margin-top: 0.5rem; }
+  .modal-content details.task-card .task-body ol,
+  .modal-content details.task-card .task-body ul {
+    padding-left: 1.3rem;
+    font-size: 0.9rem;
+  }
+  .modal-content details.task-card .task-body table { font-size: 0.82rem; }
+  .modal-content details.task-card .task-body table td a { word-break: break-all; }
+
+  .modal-content pre.letter-draft, .modal-content pre.cmd {
+    background: var(--surface-alt);
+    padding: 0.85rem 1rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    margin: 0.4rem 0 1rem;
+    border: 1px solid var(--border);
+  }
+  .modal-content pre.cmd {
+    background: var(--text);
+    color: rgba(255,255,255,0.92);
+    border-color: var(--text);
+  }
+  .modal-content pre.letter-draft-rtl {
+    direction: rtl;
+    text-align: right;
+    font-family: -apple-system, "Segoe UI", "Noto Sans Arabic", "SF Arabic", "Geeza Pro", "Tahoma", sans-serif;
+    font-size: 0.94rem;
+    line-height: 1.95;
+    background: var(--surface-alt);
+    padding: 1rem 1.25rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0.4rem 0 1rem;
+    border: 1px solid var(--border);
+    border-right: 3px solid var(--primary);
+    border-left: none;
+  }
+
+  .priority-pill {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .priority-pill.p0 { background: rgba(184,73,58,0.15); color: var(--danger); }
+  .priority-pill.p1 { background: rgba(216,165,32,0.18); color: #a07b00; }
+  .priority-pill.p2 { background: rgba(15,124,102,0.12); color: var(--primary); }
+
+  /* ─── Coverage map (gap diagram) ───────────────────────────────────────── */
+  .coverage-kpis {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(2, 1fr);
+    margin-bottom: 2rem;
+  }
+  @media (min-width: 720px) {
+    .coverage-kpis { grid-template-columns: repeat(5, 1fr); }
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+  .kpi-num {
+    font-size: clamp(1.4rem, 4vw, 1.7rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .kpi.green .kpi-num { color: var(--success); }
+  .kpi.yellow .kpi-num { color: #a07b00; }
+  .kpi.red .kpi-num { color: var(--danger); }
+  .kpi-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0.4rem 0 0.7rem;
+    line-height: 1.3;
+  }
+  .kpi-bar {
+    height: 6px;
+    background: var(--surface-alt);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .kpi-fill { height: 100%; transition: width 0.3s; }
+
+  .coverage-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: 1fr;
+    margin-bottom: 2rem;
+  }
+  @media (min-width: 720px) {
+    .coverage-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1000px) {
+    .coverage-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .coverage-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    border-left: 4px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  .coverage-card.status-good    { border-left-color: var(--success); }
+  .coverage-card.status-partial { border-left-color: var(--warning); }
+  .coverage-card.status-gap     { border-left-color: var(--danger); }
+  .cov-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .cov-header .cov-rfid {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .cov-title {
+    font-weight: 600;
+    font-size: 0.98rem;
+    margin: 0 0 0.55rem;
+    letter-spacing: -0.005em;
+  }
+  .cov-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.8rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 0.55rem;
+  }
+  .cov-metrics span { white-space: nowrap; }
+  .cov-metrics span.metric-good   { color: var(--success); font-weight: 600; }
+  .cov-metrics span.metric-warn   { color: #a07b00; font-weight: 600; }
+  .cov-metrics span.metric-gap    { color: var(--danger); font-weight: 600; }
+  .cov-detail {
+    font-size: 0.84rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .gap-callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--danger);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .gap-item {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+  .gap-item:last-child { border-bottom: none; }
+  .gap-item .gap-id {
+    flex-shrink: 0;
+    background: rgba(184,73,58,0.10);
+    color: var(--danger);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .coverage-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+  .coverage-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .coverage-legend .legend-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+  .legend-swatch.good    { background: var(--success); }
+  .legend-swatch.partial { background: var(--warning); }
+  .legend-swatch.gap     { background: var(--danger); }
+
+  .quicklinks {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) {
+    .quicklinks { grid-template-columns: repeat(2, 1fr); }
+  }
+  .quicklink {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .quicklink:hover, .quicklink:focus-visible {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    outline: none;
+  }
+  .quicklink strong {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--primary);
+    margin-bottom: 0.2rem;
+  }
+  .quicklink span {
+    display: block;
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ─── Decision algorithm flowchart ─────────────────────────────────── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 1rem;
+  }
+  .flow-layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
+  .flow-layer.l-zero  { border-left-color: var(--accent); }
+  .flow-layer.l-one   { border-left-color: var(--danger); }
+  .flow-layer.l-two   { border-left-color: var(--warning); }
+  .flow-layer.l-three { border-left-color: var(--primary); }
+  .flow-layer.l-four  { border-left-color: var(--success); }
+  .flow-arrow {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0.45rem 0;
+    user-select: none;
+  }
+  .flow-arrow .fall-label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.15rem;
+  }
+  .flow-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .flow-header strong {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .flow-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    letter-spacing: -0.005em;
+  }
+  .flow-summary {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0 0 0.6rem;
+  }
+  .flow-branches {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .flow-branch {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.4rem 0.6rem;
+    background: var(--surface-alt);
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+  .flow-branch .cond {
+    color: var(--text);
+  }
+  .flow-branch .cond code {
+    font-size: 0.85em;
+    background: rgba(0,0,0,0.04);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .flow-branch .arrow {
+    color: var(--text-muted);
+    margin: 0 0.2rem;
+  }
+  .flow-branch .verdict {
+    color: var(--primary);
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .flow-branch.amb { background: rgba(184,73,58,0.05); }
+  .flow-branch.amb .verdict { color: var(--danger); }
+  .flow-branch.cit {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: transparent;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .flow-branch.cit::before {
+    content: "↳ cites: ";
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav" aria-label="primary">
+  <div class="container">
+    <div class="brand">coverage-router-ksa</div>
+    <ul>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#rules">Rule families</a></li>
+      <li><a href="#coverage">Coverage map</a></li>
+      <li><a href="#progress">Research</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="tester.html" style="color:var(--primary);font-weight:600;">Tester →</a></li>
+      <li><a href="Research.ar.html" lang="ar" style="font-family:'Noto Sans Arabic','SF Arabic',sans-serif;">العربية</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="badge"><span class="dot"></span>Pre-alpha · Architecture phase</span>
+    <h1>Who pays when a patient walks into a Saudi hospital?</h1>
+    <p class="tagline">A decision service that identifies the liable insurance entity for a medical case in the Kingdom of Saudi Arabia — across CCHI, NPHIES, GOSI, MoH, military health systems, Aramco, Najm/MTPL, and a fragmented landscape of private TPAs.</p>
+    <div class="callout">
+      <div class="label">Headline finding · refined 3 May 2026</div>
+      <p>KSA has <strong>no general Coordination of Benefits cascade</strong> for cooperative health insurance. CHI, NPHIES, and the Insurance Authority all assume single-source coverage per beneficiary. <strong>One narrow exception</strong> surfaced in the second-pass extraction: CCHI Visitor Insurance Article 6 establishes a pay-and-subrogate model — the only explicit COB clause in any KSA primary cooperative-insurance regulation. The general regime still requires composing routing from <strong>five distinct rule families</strong> — exactly what this service does.</p>
+    </div>
+    <div class="stats" role="list">
+      <div class="stat" role="listitem">
+        <div class="num">5</div>
+        <div class="label">Rule families composed</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="num">16 / 16</div>
+        <div class="label">Priority PDFs extracted</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="num">30+</div>
+        <div class="label">Verbatim citations captured</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="num">1 / 30</div>
+        <div class="label">Open questions answered</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="container">
+    <h2>The problem in one paragraph</h2>
+    <p class="lede">When a beneficiary visits a hospital in KSA, the hospital typically defaults to a single insurance provider for billing. In reality, liability is fragmented — CCHI, MoH, NPHIES, GOSI, MoI, MoD, NGHA, SAMSO, Najm, and many private TPAs all have their own rules. Whose rules apply depends on the type of case, the beneficiary's class, and the circumstances of injury. We answer that question from primary regulatory sources.</p>
+  </div>
+</section>
+
+<section id="rules" class="alt">
+  <div class="container">
+    <h2>The five rule families we compose</h2>
+    <p class="lede">Multi-coverage routing is determined by applying these in order. The first family that yields a verdict wins. <strong>Click any source pill</strong> to see the verbatim quotation and the link to the primary document.</p>
+    <div class="grid grid-2">
+      <article class="card">
+        <h3><span class="num">1</span> Statutory carve-outs</h3>
+        <p><strong>Highest precedence.</strong> Work injury → GOSI Occupational Hazards (Social Insurance Law <strong>M/273 of 1445H</strong>, Arts. 28/30/31/32 — supersedes the older M/33 of 1421H). RTA bodily injury → MTPL of at-fault driver. The work-injury carve-out is now <strong>confirmed verbatim</strong> in CCHI EBP §3.A.7 — Q1.1 ANSWERED.</p>
+        <div class="source-row">
+          <span class="label">Sources:</span>
+          <button class="source-link" data-source="gosi-m273">GOSI SIL M/273</button>
+          <button class="source-link" data-source="mtpl-policy">Unified MTPL Policy</button>
+          <button class="source-link" data-source="najm">Najm procedures</button>
+          <button class="source-link" data-source="cchi-ebp-exclusion">CCHI EBP exclusion</button>
+        </div>
+      </article>
+      <article class="card">
+        <h3><span class="num">2</span> Emergency override</h3>
+        <p><strong>Orthogonal to all others.</strong> Hospitals must treat first regardless of nationality, employer, or insurance — verbatim from <strong>MoH Annex 66 Article 1</strong> + Health Law M/11 §5.E. <strong>24-hour rule located 3 May 2026</strong>: the private hospital notifies an MoH-appointed TPA (not the patient's CCHI insurer) per <strong>Annex 66 Art. 3</strong>; TPA decides between transfer to a government hospital or state-funded continuation. CCHI Urgent Circular §6 separately exempts the three urgent levels from co-payment. <strong>Annex 66 Art. 5</strong> establishes a Saudi-CCHI-cap-exhausted cascade: when private cap exhausted, MoH bears continuation via the TPA.</p>
+        <div class="source-row">
+          <span class="label">Sources:</span>
+          <button class="source-link" data-source="health-law-m11">Health Law M/11</button>
+          <button class="source-link" data-source="moh-annex-66">MoH Annex 66</button>
+          <button class="source-link" data-source="cchi-urgent-circular">CCHI Urgent Circular</button>
+        </div>
+      </article>
+      <article class="card">
+        <h3><span class="num">3</span> Facility-driven routing</h3>
+        <p>NGHA, MSD, MoI Medical, SAMSO, and Royal Commission are <strong>closed-system payers</strong> — they pay only at their own facilities. An NGHA-eligible person walking into a private hospital does not get NGHA coverage applied.</p>
+        <div class="source-row">
+          <span class="label">Sources:</span>
+          <button class="source-link" data-source="ngha-closed">NGHA</button>
+          <button class="source-link" data-source="msd-closed">MSD</button>
+          <button class="source-link" data-source="moi-medical">MoI Medical</button>
+          <button class="source-link" data-source="samso-jhah">SAMSO / JHAH</button>
+          <button class="source-link" data-source="rcjy-medical">Royal Commission</button>
+        </div>
+      </article>
+      <article class="card">
+        <h3><span class="num">4</span> Beneficiary-class assignment</h3>
+        <p>CHI's <strong>Beneficiaries Policy</strong> is an anti-duplication assignment rule, not a cascade. Default: husband's employer covers children. One unified policy per employer. Resolves which insurer is responsible at all — not how two split a bill.</p>
+        <div class="source-row">
+          <span class="label">Source:</span>
+          <button class="source-link" data-source="chi-beneficiaries">CHI Beneficiaries Policy</button>
+        </div>
+      </article>
+      <article class="card">
+        <h3><span class="num">5</span> Default to private cover</h3>
+        <p>What's left after the above: routine encounters → primary CCHI insurer. Special-case schemes apply if active: Hajj/Umrah pilgrim, <strong>Visitor (with explicit pay-and-subrogate COB clause in Article 6 — the only published COB cascade in any KSA cooperative regulation)</strong>, Domestic Worker. Otherwise the uninsured cascade from rule family 2 takes over.</p>
+        <div class="source-row">
+          <span class="label">Sources:</span>
+          <button class="source-link" data-source="chi-unified-policy">CHI Unified Policy</button>
+          <button class="source-link" data-source="hajj-umrah-policy">Hajj/Umrah scheme</button>
+          <button class="source-link" data-source="visitor-insurance">Visitor insurance</button>
+          <button class="source-link" data-source="domestic-worker-insurance">Domestic worker insurance</button>
+        </div>
+      </article>
+      <article class="card highlight">
+        <h3>Why this matters</h3>
+        <p>NPHIES — KSA's national FHIR-based eligibility exchange — does <strong>not</strong> return a primary/secondary indicator when a patient has multiple coverages. <code>Coverage.order</code> is unconstrained. Hospitals and TPAs make the call ad-hoc. This service makes it consistent, auditable, and citation-backed.</p>
+        <div class="source-row">
+          <span class="label">Source:</span>
+          <button class="source-link" data-source="nphies-ig">NPHIES Healthcare Financial Services IG</button>
+        </div>
+      </article>
+    </div>
+
+    <h3 class="subhead" style="margin-top:2rem;">How the algorithm composes the rules — decision flow</h3>
+    <p class="lede">The five rule families execute as a layered cascade. The first family that yields a verdict wins. <strong>Diplomatic mission staff short-circuit at the top</strong> (Vienna Convention exemption, never enter the CCHI cascade). Verbatim Annex 66 mechanics surfaced in the second-pass extraction.</p>
+
+    <div class="flow">
+
+      <div class="flow-layer l-zero">
+        <div class="flow-header">
+          <strong>RF-0 · short-circuit</strong>
+          <h4>Diplomatic / IO exemption</h4>
+        </div>
+        <p class="flow-summary">Per Vienna Convention 1961 Arts. 23/33/34, diplomatic mission staff and accredited international-organisation staff are exempt from KSA mandatory CCHI. They never enter the cascade.</p>
+        <div class="flow-branches">
+          <div class="flow-branch">
+            <span class="cond">if <code>beneficiary.class ∈ {DIPLOMATIC_MISSION, INTL_ORGANIZATION}</code></span>
+            <span class="verdict">→ Embassy direct / IO insurer / Self-pay</span>
+          </div>
+          <div class="flow-branch cit">VCDR 1961 Arts. 23, 33, 34</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓<span class="fall-label">if not exempt</span></div>
+
+      <div class="flow-layer l-one">
+        <div class="flow-header">
+          <strong>RF-1 · highest precedence</strong>
+          <h4>Statutory carve-outs</h4>
+        </div>
+        <p class="flow-summary">Statute makes a specific payer the sole primary, regardless of any private insurance.</p>
+        <div class="flow-branches">
+          <div class="flow-branch">
+            <span class="cond">if <code>case.type == work_injury</code> AND beneficiary GOSI-registered</span>
+            <span class="verdict">→ GOSI Occupational Hazards</span>
+          </div>
+          <div class="flow-branch cit">SIL M/273 Arts. 28/30/31/32 + EBP §3.A.7 (Q1.1 ANSWERED)</div>
+          <div class="flow-branch">
+            <span class="cond">if <code>case.type == rta</code> AND bodily injury AND Najm report present</span>
+            <span class="verdict">→ MTPL of at-fault driver (CCHI subrogation)</span>
+          </div>
+          <div class="flow-branch cit">Unified MTPL Policy Arts. 3/4/6 + Visitor Insurance Art. 6 (subrogation analogue)</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓<span class="fall-label">if not statutory carve-out</span></div>
+
+      <div class="flow-layer l-two">
+        <div class="flow-header">
+          <strong>RF-2 · orthogonal override</strong>
+          <h4>Emergency cascade (corrected per Annex 66)</h4>
+        </div>
+        <p class="flow-summary">Treat-first obligation always applies (Annex 66 Art. 1). Within 24 hours, private hospital notifies the MoH-appointed TPA via <code>purchasingprogram.com.sa</code>; TPA decides between transfer or state-funded continuation.</p>
+        <div class="flow-branches">
+          <div class="flow-branch">
+            <span class="cond">if Saudi with CCHI AND policy cap exhausted (or service excluded)</span>
+            <span class="verdict">→ MoH-funded continuation via TPA</span>
+          </div>
+          <div class="flow-branch cit">Annex 66 Art. 5(a)/(b) — closest published COB cascade</div>
+          <div class="flow-branch">
+            <span class="cond">if patient has CCHI</span>
+            <span class="verdict">→ CCHI insurer (copay waived for urgent levels)</span>
+          </div>
+          <div class="flow-branch cit">Annex 66 Art. 1 + CCHI Urgent Circular §6</div>
+          <div class="flow-branch">
+            <span class="cond">if uninsured AND in Annex-66-eligible category</span>
+            <span class="verdict">→ State via TPA</span>
+          </div>
+          <div class="flow-branch cit">Annex 66 Arts. 1/3/4 — TPA-mediated state-funded backstop</div>
+          <div class="flow-branch">
+            <span class="cond">if uninsured non-Saudi worker</span>
+            <span class="verdict">→ Employer (statutory duty to insure)</span>
+          </div>
+          <div class="flow-branch cit">Cooperative Health Insurance Law M/10 Arts. 2-3</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓<span class="fall-label">if not emergency</span></div>
+
+      <div class="flow-layer l-three">
+        <div class="flow-header">
+          <strong>RF-3 · facility-driven</strong>
+          <h4>Closed-system providers</h4>
+        </div>
+        <p class="flow-summary">NGHA, MSD, MoI Medical, SAMSO, RCJY pay only at their own facilities. University Medical Cities (KAUH, KSUMC, KFSHRC) are open referral receivers — multi-payer, not closed.</p>
+        <div class="flow-branches">
+          <div class="flow-branch">
+            <span class="cond">if facility ∈ closed-system AND beneficiary eligible for that system</span>
+            <span class="verdict">→ that closed system pays</span>
+          </div>
+          <div class="flow-branch amb">
+            <span class="cond">if eligible-for-closed-system but at a non-system facility</span>
+            <span class="verdict">→ AMBIGUOUS (Q3.4) · falls through to RF-2 if emergency</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓<span class="fall-label">if no closed-system match</span></div>
+
+      <div class="flow-layer l-four">
+        <div class="flow-header">
+          <strong>RF-4 + RF-5 · default</strong>
+          <h4>Anti-duplication assignment + private cover</h4>
+        </div>
+        <p class="flow-summary">For routine care after the above. Husband-employer rule is interpretive (CCHI FAQ #37, not the Beneficiaries Policy itself — verified by deep-mine). Visitor Insurance Art. 6 is the only published COB pay-and-subrogate clause.</p>
+        <div class="flow-branches">
+          <div class="flow-branch">
+            <span class="cond">if exactly one CCHI coverage</span>
+            <span class="verdict">→ that insurer</span>
+          </div>
+          <div class="flow-branch">
+            <span class="cond">if multiple CCHI coverages → apply CHI FAQ #37 husband-employer rule</span>
+            <span class="verdict">→ assigned insurer (medium confidence)</span>
+          </div>
+          <div class="flow-branch amb">
+            <span class="cond">if multi-CCHI not resolved by assignment (e.g., personal + group)</span>
+            <span class="verdict">→ AMBIGUOUS (Q5.1) · human review</span>
+          </div>
+          <div class="flow-branch">
+            <span class="cond">if special-case scheme active (Visitor / Hajj / Domestic Worker)</span>
+            <span class="verdict">→ that scheme</span>
+          </div>
+          <div class="flow-branch cit">Visitor Insurance Art. 6 = pay-and-subrogate if other coverage exists</div>
+          <div class="flow-branch">
+            <span class="cond">if uninsured (no special case)</span>
+            <span class="verdict">→ apply RF-2 emergency cascade if applicable, else out-of-pocket</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="coverage">
+  <div class="container">
+    <h2>Research coverage map</h2>
+    <p class="lede">Where the research stands today: KPIs at the top, per-rule-family coverage cards in the middle (color-coded), and the five high-risk gaps still open at the bottom.</p>
+
+    <div class="coverage-kpis" role="list">
+      <div class="kpi green" role="listitem">
+        <div class="kpi-num">16 / 16</div>
+        <div class="kpi-label">Priority PDFs extracted</div>
+        <div class="kpi-bar"><div class="kpi-fill" style="width:100%;background:var(--success);"></div></div>
+      </div>
+      <div class="kpi green" role="listitem">
+        <div class="kpi-num">30+</div>
+        <div class="kpi-label">Verbatim citations captured from primary sources</div>
+        <div class="kpi-bar"><div class="kpi-fill" style="width:90%;background:var(--success);"></div></div>
+      </div>
+      <div class="kpi yellow" role="listitem">
+        <div class="kpi-num">2 / 30</div>
+        <div class="kpi-label">Questions answered (Q1.1 via EBP §3.A.7; Q2 via Annex 66 Art. 3)</div>
+        <div class="kpi-bar"><div class="kpi-fill" style="width:6.6%;background:var(--warning);"></div></div>
+      </div>
+      <div class="kpi green" role="listitem">
+        <div class="kpi-num">25</div>
+        <div class="kpi-label">Worked-example scenarios authored (5 deliberately ambiguous)</div>
+        <div class="kpi-bar"><div class="kpi-fill" style="width:100%;background:var(--success);"></div></div>
+      </div>
+      <div class="kpi red" role="listitem">
+        <div class="kpi-num">0 / 4</div>
+        <div class="kpi-label">Regulator confirmations received (CHI · IA · NPHIES · SDAIA)</div>
+        <div class="kpi-bar"><div class="kpi-fill" style="width:0%;background:var(--danger);"></div></div>
+      </div>
+    </div>
+
+    <h3 class="subhead">Coverage by rule family / question group</h3>
+    <div class="coverage-legend">
+      <span class="legend-item"><span class="legend-swatch good"></span>Well-covered (primary sources cited; key questions answered)</span>
+      <span class="legend-item"><span class="legend-swatch partial"></span>Partial (sources extracted; questions still open)</span>
+      <span class="legend-item"><span class="legend-swatch gap"></span>Gap (no primary text; depends on regulator response)</span>
+    </div>
+    <div class="coverage-grid">
+
+      <article class="coverage-card status-good">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-1</span>
+          <span class="status done">Well-covered</span>
+        </div>
+        <div class="cov-title">Statutory carve-outs</div>
+        <div class="cov-metrics">
+          <span class="metric-good">6 sources</span>
+          <span class="metric-good">12+ quotes</span>
+          <span class="metric-warn">1 / 6 Q answered</span>
+        </div>
+        <div class="cov-detail">GOSI SIL M/273 Arts. 28/30/31/32/33 + MTPL Arts. 3/4/6/Appendix A + EBP §3.A.7 (work-injury exclusion). <strong>Q1.1 ANSWERED</strong>; Q1.2 PARTIAL via SIL Art. 31(2). Q1.3–1.6 still open.</div>
+      </article>
+
+      <article class="coverage-card status-good">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-2</span>
+          <span class="status done">Well-covered</span>
+        </div>
+        <div class="cov-title">Emergency override</div>
+        <div class="cov-metrics">
+          <span class="metric-good">4 sources</span>
+          <span class="metric-good">10+ quotes</span>
+          <span class="metric-warn">1 / 4 Q answered</span>
+          <span class="metric-warn">1 high-risk lead</span>
+        </div>
+        <div class="cov-detail">Annex 66 Arts. 1/3/4/5 verbatim (re-extracted 3 May 2026 with pymupdf). 24-hr rule located, Saudi-CCHI cap-exhausted cascade discovered, TPA mechanism documented. Health Law M/11 §5.E, Urgent Circular §6 verbatim. Lead: <strong>Q2.1</strong> Service Procurement Mechanism Circular 274877-1439H referenced in Annex 66 Art. 11 — the actual tariff schedule we still need.</div>
+      </article>
+
+      <article class="coverage-card status-partial">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-3</span>
+          <span class="status partial">Partial</span>
+        </div>
+        <div class="cov-title">Facility-driven (closed systems)</div>
+        <div class="cov-metrics">
+          <span class="metric-warn">5 entities</span>
+          <span class="metric-warn">convention only</span>
+          <span class="metric-gap">0 / 4 Q answered</span>
+          <span class="metric-gap">1 high-risk</span>
+        </div>
+        <div class="cov-detail">NGHA, MSD, MoI Medical, SAMSO, RCJY catalogued from each entity's public site. The closed-system rule is convention, not codified — so we lack a primary citation. Gap: <strong>Q3.4</strong> emergency-at-private-hospital is the most likely IDC dispute case.</div>
+      </article>
+
+      <article class="coverage-card status-partial">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-4</span>
+          <span class="status partial">Partial</span>
+        </div>
+        <div class="cov-title">Beneficiary-class assignment</div>
+        <div class="cov-metrics">
+          <span class="metric-good">2 sources</span>
+          <span class="metric-good">5 quotes</span>
+          <span class="metric-gap">0 / 4 Q answered</span>
+        </div>
+        <div class="cov-detail">CHI Beneficiaries Policy + Employer's Commitment Policy fetched in full. Verbatim Dependent definition captured. Gap: husband-employer rule articles need Arabic translator (T4); Q4.1–4.4 (transition window, divorced parents, disabled adults, husband-uninsured) all open pending CHI letter Q5–Q8.</div>
+      </article>
+
+      <article class="coverage-card status-partial">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-5</span>
+          <span class="status partial">Partial</span>
+        </div>
+        <div class="cov-title">Default to private cover</div>
+        <div class="cov-metrics">
+          <span class="metric-good">5 sources</span>
+          <span class="metric-good">8+ quotes</span>
+          <span class="metric-gap">0 / 5 Q answered</span>
+          <span class="metric-gap">2 high-risk</span>
+        </div>
+        <div class="cov-detail">Updated EBP (108 pp), Visitor Insurance, Hajj/Umrah scheme, Domestic Worker Insurance all fetched. <strong>Visitor Article 6</strong> is the only published COB clause in KSA cooperative regulation. Gaps: <strong>Q5.4 + Q5.5</strong> NPHIES sandbox + multi-coverage Coverage.order semantics.</div>
+      </article>
+
+      <article class="coverage-card status-gap">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-6</span>
+          <span class="status pending">Gap</span>
+        </div>
+        <div class="cov-title">Cross-cutting / regulatory horizon</div>
+        <div class="cov-metrics">
+          <span class="metric-gap">0 sources</span>
+          <span class="metric-gap">0 quotes</span>
+          <span class="metric-gap">0 / 4 Q answered</span>
+          <span class="metric-gap">1 high-risk</span>
+        </div>
+        <div class="cov-detail">Insurance Authority post-March-2024 regulations, Daman / Unified Mandatory Insurance, draft Insurance Law, IDC precedents — all monitored but no primary text retrieved. <strong>Q6.1–6.4</strong> entirely depend on the IA letter (T7) and ongoing watch (T13).</div>
+      </article>
+
+      <article class="coverage-card status-partial">
+        <div class="cov-header">
+          <span class="cov-rfid">RF-7</span>
+          <span class="status partial">Partial</span>
+        </div>
+        <div class="cov-title">PDPL constraints (data residency)</div>
+        <div class="cov-metrics">
+          <span class="metric-good">3 sources</span>
+          <span class="metric-warn">limited quotes</span>
+          <span class="metric-gap">0 / 3 Q answered</span>
+        </div>
+        <div class="cov-detail">PDPL (RD M/19 + M/148), SDAIA Cross-Border Transfer Regulation (11 pp), Risk Assessment Guideline (16 pp) — all extracted. Gap: Q7.1–7.3 (adequacy list, DPIA template, consent withdrawal SLA) need an SDAIA written response (T9).</div>
+      </article>
+
+    </div>
+
+    <h3 class="subhead">Five high-risk questions still open</h3>
+    <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:0.85rem;">These are the gaps most likely to materially change a routing verdict. Each is documented in <code>docs/research/second-pass-tasks.md</code>; addressed in the regulator letters T6–T8.</p>
+    <div class="gap-callout">
+      <div class="gap-item">
+        <span class="gap-id">Q2.1</span>
+        <span>The exact MoH-approved tariffs schedule for emergency reimbursement at non-network providers. <strong>Lead found</strong>: Annex 66 Art. 11 references "Service Procurement Mechanism Circular No. 274877-1439H of 30/10/2017G" — needs retrieval. Asked in CHI letter Q2.</span>
+      </div>
+      <div class="gap-item">
+        <span class="gap-id">Q3.4</span>
+        <span>When a closed-system beneficiary (NGHA / MSD / MoI / SAMSO) presents at a <em>private</em> hospital with an emergency, who actually pays? Convention vs codification — most likely IDC dispute case.</span>
+      </div>
+      <div class="gap-item">
+        <span class="gap-id">Q5.4</span>
+        <span>Are there NPHIES technical bulletins post-IG v1.0.0 that constrain <code>Coverage.order</code> in multi-coverage <code>CoverageEligibilityResponse</code>?</span>
+      </div>
+      <div class="gap-item">
+        <span class="gap-id">Q5.5</span>
+        <span>Is there an NPHIES sandbox available to test multi-coverage scenarios? Gates the integration phase.</span>
+      </div>
+      <div class="gap-item">
+        <span class="gap-id">Q6.1</span>
+        <span>Has the Insurance Authority issued any post-March-2024 regulation addressing COB? Could replace large parts of our composed algorithm if so.</span>
+      </div>
+    </div>
+
+    <h3 class="subhead">Research artefacts &amp; deeper docs</h3>
+    <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:0.85rem;">Direct links to the supporting documents in the repo. All are markdown — open them on GitHub or in your editor.</p>
+    <div class="quicklinks">
+      <a class="quicklink" href="tester.html" style="border-left-color:var(--accent);">
+        <strong style="color:var(--accent);">⚡ Interactive tester</strong>
+        <span>Load any of the 25 worked scenarios, tweak inputs, run the algorithm in your browser, see verdict + reasoning trace + PASS/DIFFERS vs expected. JS implementation mirrors the documented pseudocode.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/coordination-of-benefits.md" target="_blank" rel="noopener">
+        <strong>Coordination of Benefits doc</strong>
+        <span>The load-bearing routing algorithm — 5 rule families, full pseudocode, citations table, critical risks. Updated 2026-05-03.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/scenarios.md" target="_blank" rel="noopener">
+        <strong>25 worked-example scenarios</strong>
+        <span>YAML golden-test corpus for the engine. X-001 to X-025; 5 deliberately ambiguous, exercising the high-risk open questions. Coverage matrix audit included.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/second-pass-tasks.md" target="_blank" rel="noopener">
+        <strong>Second-pass tasks &amp; questions</strong>
+        <span>14 tasks, 30 questions with risk grading, candidate sources, and required evidence form per question.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/your-action-items.md" target="_blank" rel="noopener">
+        <strong>Your action items</strong>
+        <span>5 user tasks remaining (T6 / T7 / T8 / T4 / T9) with full step-by-step packets and ready-to-send drafts.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/regulator-letters-arabic.md" target="_blank" rel="noopener">
+        <strong>Arabic regulator letters</strong>
+        <span>Working drafts of CHI + IA letters in formal Arabic. Recommend Arabic legal translator review (T4) before formal dispatch.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/watch-list.md" target="_blank" rel="noopener">
+        <strong>Quarterly watch list</strong>
+        <span>Regulatory horizon monitoring: IA / Daman / CHI / NPHIES / SDAIA / IDC / GOSI. Pasteable checklist.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/tree/main/docs/research/raw" target="_blank" rel="noopener">
+        <strong>Raw research files (8)</strong>
+        <span>Verbatim research thread outputs preserved with citations: 4 first-pass cluster reports + Annex 66 readable + university medical cities + diplomatic + CHI tier framework.</span>
+      </a>
+      <a class="quicklink" href="https://github.com/SaifDalli2/coverage-router-ksa/tree/main/tools/extracted" target="_blank" rel="noopener">
+        <strong>Extracted primary text (16 PDFs)</strong>
+        <span>Full text from each priority PDF, ready for grep / quote / translator handoff.</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="progress">
+  <div class="container">
+    <h2>Research progress</h2>
+    <p class="lede">First-pass research complete. <span class="status done">Researched</span> means primary sources cited. <span class="status partial">Partial</span> means key documents identified but not all retrieved. <span class="status pending">Pending</span> means not yet started.</p>
+
+    <h3 class="subhead">Regulators</h3>
+    <div class="progress-table">
+      <div class="progress-row">
+        <div class="name">CCHI / CHI<small>Council of Health Insurance — Unified Policy, EBP, Beneficiaries Policy</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Insurance Authority (IA)<small>New regulator since 4 March 2024 — replacing SAMA's insurance functions</small></div>
+        <span class="status partial">Partial</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">SDAIA / PDPL<small>Personal Data Protection Law — RD M/19 (2021), amended M/148 (2023)</small></div>
+        <span class="status done">Researched</span>
+      </div>
+    </div>
+
+    <h3 class="subhead">Statutory primary payers</h3>
+    <div class="progress-table">
+      <div class="progress-row">
+        <div class="name">GOSI Occupational Hazards<small>Social Insurance Law M/273 (Jul 2024) — work-injury carve-out</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Najm / MTPL<small>Unified Compulsory Motor Insurance Policy — RTA bodily injury</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">MoH Emergency Decree<small>Health Law M/11 + Annex 66 + CCHI Urgent Circular</small></div>
+        <span class="status done">Researched</span>
+      </div>
+    </div>
+
+    <h3 class="subhead">Government coverage systems</h3>
+    <div class="progress-table">
+      <div class="progress-row">
+        <div class="name">Ministry of Health (MoH)<small>Provider model; Saudis free; non-Saudis emergency-only</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">MoI Medical Services<small>Police, civil defense, border guard, traffic — hybrid model</small></div>
+        <span class="status partial">Partial</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">MSD (Ministry of Defense)<small>Military personnel + dependents — predominantly closed</small></div>
+        <span class="status partial">Partial</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">NGHA<small>National Guard Health Affairs — strictly closed system</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">SAMSO / JHAH<small>Saudi Aramco — self-funded plan registered with CHI</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">SRCA<small>Red Crescent — pre-hospital EMS, government-funded</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Royal Commission Medical (Jubail / Yanbu)<small>RC industrial cities — primarily closed</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">University Medical Cities<small>KAUH, KSUMC, KFSHRC — coverage rules as employers + referral receivers</small></div>
+        <span class="status pending">Pending</span>
+      </div>
+    </div>
+
+    <h3 class="subhead">NPHIES &amp; private market</h3>
+    <div class="progress-table">
+      <div class="progress-row">
+        <div class="name">NPHIES<small>FHIR R4 IG v1.0.0 — Coverage / CoverageEligibility profiles. No COB ranking field.</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Private cooperative insurers (7 of ~9)<small>Tawuniya, Bupa Arabia, MedGulf, AXA, Walaa, Allianz SF, Malath</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Hajj / Umrah pilgrim insurance<small>SAR 100K cap, 90-day validity, underwritten by Tawuniya</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Visitor / Tourist insurance<small>Bundled with e-visa; verification portal exists</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Domestic worker insurance<small>Two parallel mandates: contract + compulsory health</small></div>
+        <span class="status done">Researched</span>
+      </div>
+      <div class="progress-row">
+        <div class="name">Diplomatic personnel<small>Reciprocal arrangements vary by country</small></div>
+        <span class="status pending">Pending</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap" class="alt">
+  <div class="container">
+    <h2>Project roadmap</h2>
+    <p class="lede">Where we are and what's next. <strong>Click any milestone</strong> to open its detailed plan.</p>
+    <button class="action-banner" data-action-modal="user-tasks" type="button" aria-label="Open: 5 user action items remaining for second-pass research">
+      <span class="flag-pill">⚑ Action required</span>
+      <strong>5 tasks remain — second-pass PDF fetch is now complete</strong>
+      <span>T3 (PDFs) ✓ done — 16/16 priority sources extracted. Still needed: send 2 regulator letters (T6/T7), engage NPHIES (T8), Arabic translator (T4), SDAIA inquiry (T9). Click for the step-by-step plan with links and ready-to-send drafts.</span>
+    </button>
+    <div class="timeline">
+      <button class="step done" data-roadmap="arch-decisions" type="button" aria-label="Open detail: Architecture decisions locked">
+        <strong>Architecture decisions locked</strong>
+        <span>ADR-001 (tech stack) · ADR-002 (decision-tree model) · ADR-003 (service boundaries)</span>
+        <span class="open-hint">View ADR summaries</span>
+      </button>
+      <button class="step done" data-roadmap="first-pass" type="button" aria-label="Open detail: First-pass policy research">
+        <strong>First-pass policy research complete</strong>
+        <span>Catalog populated with primary-source citations. Coordination of Benefits algorithm derived from five rule families. Gaps documented.</span>
+        <span class="open-hint">View findings &amp; gaps</span>
+      </button>
+      <button class="step now" data-roadmap="second-pass" type="button" aria-label="Open detail: Second-pass research plan">
+        <strong>Second-pass research</strong>
+        <span>Re-attempt failed PDF fetches from a KSA-resident network. Translate Arabic primary articles. Engage CHI / IA for written confirmation. Build a worked-example library (~25 patient scenarios) for golden tests.</span>
+        <span class="action-flag" data-action-modal="user-tasks">5 actions remain · T3 ✓</span>
+        <span class="open-hint">View task &amp; question inventory</span>
+      </button>
+      <button class="step" data-roadmap="questionnaire" type="button" aria-label="Open detail: v1 questionnaire and decision tree">
+        <strong>Author v1 questionnaire + decision tree</strong>
+        <span>JSON tree validated against schema; reviewed by policy team like code.</span>
+        <span class="open-hint">View planned approach</span>
+      </button>
+      <button class="step" data-roadmap="fastapi" type="button" aria-label="Open detail: FastAPI scaffolding">
+        <strong>Scaffold FastAPI service</strong>
+        <span>Modular monolith. Auto-generated OpenAPI 3.1. PostgreSQL + Redis. OAuth2 / JWT.</span>
+        <span class="open-hint">View tech stack &amp; service map</span>
+      </button>
+      <button class="step" data-roadmap="fhir-nphies" type="button" aria-label="Open detail: FHIR mapping and NPHIES sandbox">
+        <strong>Integration: FHIR mapping &amp; NPHIES sandbox</strong>
+        <span>HL7 FHIR R4 boundary for CoverageEligibility resources. NPHIES sandbox integration.</span>
+        <span class="open-hint">View integration plan</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="container">
+    <h2>Tech choices</h2>
+    <p class="lede">Greenfield. No code yet — these are the locked architectural decisions.</p>
+    <div class="chips">
+      <span class="chip"><strong>Python 3.12</strong></span>
+      <span class="chip"><strong>FastAPI</strong> · auto-OpenAPI</span>
+      <span class="chip"><strong>PostgreSQL 16</strong> · JSONB policies</span>
+      <span class="chip"><strong>Redis 7</strong> · cache + rate limit</span>
+      <span class="chip"><strong>OAuth2 + JWT</strong> · scoped per consumer</span>
+      <span class="chip"><strong>HL7 FHIR R4</strong> · NPHIES interop</span>
+      <span class="chip"><strong>JSON decision trees</strong> · versioned, auditable</span>
+      <span class="chip"><strong>PDPL-aligned</strong> · KSA-resident hosting</span>
+      <span class="chip"><strong>Docker</strong> · cloud-agnostic</span>
+      <span class="chip"><strong>pytest + schemathesis</strong> · contract tests</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div><strong style="color:white;">coverage-router-ksa</strong> · Pre-alpha · Last research: 3 May 2026 · 16/16 priority PDFs · Q1.1 + Q2 ANSWERED · Annex 66 readable</div>
+    <div>Detail in <code>docs/coordination-of-benefits.md</code></div>
+  </div>
+</footer>
+
+<!-- ─── Modal ──────────────────────────────────────────────────────────── -->
+<div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title-region">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-panel" tabindex="-1">
+    <button class="modal-close" type="button" aria-label="Close" data-close="1">×</button>
+    <div class="modal-content" id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ─── Source data — verbatim quotes where extracted; URL + note otherwise ───
+  const SOURCES = {
+
+    'gosi-m273': {
+      title: 'Social Insurance Law',
+      decree: 'Royal Decree M/273 dated 26/12/1445H (2 July 2024)',
+      meta_extra: 'Supersedes the earlier M/33 of 1421H',
+      note: 'Discovered during second-pass extraction (3 May 2026): the law in force is M/273, not M/33. Article numbers shifted — work-injury definition is now Art. 30, not Art. 27.',
+      quotes: [
+        { article: 'Article 28 — Mandatory scope',
+          text: 'Application of the occupational hazards and additional compensations branch shall be mandatory on the following categories: (a) All employees who work in the Kingdom. (b) All workers who work in the Kingdom.' },
+        { article: 'Article 30(1) — Definition of work injury',
+          text: 'A work injury shall include any accident that occurs to a contributor during the performance of the duties of his work or by reason thereof. It shall also include any accident that occurs to a contributor during his regular commute between his place of residence and his place of employment, or between his place of employment and the place where he usually eats or prays. The same shall apply to accidents that occur to a contributor during his travel to perform a task assigned to him by the employer.' },
+        { article: 'Article 31(1) — Compensations',
+          text: 'A contributor who sustains a work injury shall be entitled to receive the following compensations: (a) Medical care as required by his condition. (b) Daily allowances for temporary disability if he sustains a work injury that renders him temporarily unable to work. (c) Monthly disability benefits and lump-sum compensations for permanent total or partial disability resulting from an injury.' },
+        { article: 'Article 31(2) — Registration condition',
+          text: 'The compensations referred to in paragraph (1) of this Article shall only be payable if the injury occurs after completing the procedures for registering the contributor with the Organization, or within the time limit specified in the Regulations for an employer to register his contributors or the time limit specified in the Regulations for a contributor to register himself if the employer refuses or delays registration.' },
+        { article: 'Article 32(4) — Where care is delivered',
+          text: 'Medical care shall be provided by the hospitals, medical centers, and clinics specified by the Organization.' }
+      ],
+      url: 'https://misa.gov.sa/app/uploads/2025/07/Social-Insurance-Law.pdf',
+      extracted: 'tools/extracted/gosi-social-insurance-law-m273.txt'
+    },
+
+    'cchi-ebp-exclusion': {
+      title: 'CCHI Updated EBP — Work-injury exclusion',
+      decree: 'CCHI Updated Essential Benefit Package, effective 1 October 2022',
+      meta_extra: 'Verbatim text fetched 2026-05-03 (108 pages) — closes Q1.1',
+      note: 'CONFIRMED: the EBP Controls and Exclusions section explicitly excludes work-related injuries from CCHI cooperative cover. This is the citation that makes GOSI the SOLE primary payer for in-scope work injuries (a CARVE-OUT, not a COB-secondary relationship).',
+      quotes: [
+        { article: 'Chapter 3 — Controls and Exclusions, Section A, Item 7 (verbatim)',
+          text: 'This policy will not cover claims resulting from … Any illness or injury arising directly from the profession of the Insured.' },
+        { article: 'Chapter 3 — Section A, Items 1-2 (emergency carve-out)',
+          text: 'Even excluded conditions remain covered for emergency stabilisation: complications from self-inflicted injury and complications from intentional substance abuse are excluded EXCEPT "the costs of treating emergency cases (life-threatening injuries) as described by the Private Health Institutions Law and Regulations approved by the Ministry of Health, which determines how to dispatch emergency cases."' }
+      ],
+      url: 'https://www.chi.gov.sa/en/beneficiary/healthinsurancepolicy/Updated%20Essential%20Benefit%20Package%20%20(%20effective%201%20October%202022).pdf',
+      extracted: 'tools/extracted/chi-updated-ebp-policy.txt'
+    },
+
+    'mtpl-policy': {
+      title: 'Unified Compulsory Motor Insurance Policy',
+      decree: 'SAMA Governor Decision No. 2/S/444 dated 23/6/1444H, under authority of the Cooperative Insurance Companies Control Law (RD M/32 of 1424H)',
+      note: 'Verbatim text retrievable from rulebook.sama.gov.sa; not yet pulled into local extraction. Key article numbers and aggregate liability cap (SAR 10M; SAR 10K cap when MoH bills MTPL) confirmed by first-pass research.',
+      quotes: [
+        { article: 'Article Three — Indemnification', text: '(Paraphrased from the Policy text:) The insurer shall indemnify the Third Party for all amounts that the Insured, Driver or the person responsible for the accident is committed to pay — explicitly including death or physical injuries inside or outside the Vehicle.' },
+        { article: 'Article Four — Liability cap', text: 'SAR 10,000,000 aggregate liability limit per event/lifetime of the policy.' },
+        { article: 'Article Six — Documentation', text: 'Liability and fraud determination rest on documentation from the authorised entity to attend accident scenes (Najm or Muroor).' },
+        { article: 'Appendix A — Bifurcated medical limits', text: 'SAR 10,000 cap when bills are submitted by an MoH facility; up to SAR 10,000,000 for non-MoH facilities.' }
+      ],
+      url: 'https://rulebook.sama.gov.sa/en/unified-compulsory-motor-insurance-policy'
+    },
+
+    'najm': {
+      title: 'Najm — Post-accident procedures',
+      note: 'Operational guidance (not statutory text). Najm/Muroor accident report is the operative liability-determination document for MTPL claims. Najm itself directs callers to use Muroor or Red Crescent for any injury accident.',
+      url: 'https://najm.sa/sites/en/services/post-accident-procedures'
+    },
+
+    'health-law-m11': {
+      title: 'Saudi Health Law (Implementing Regulations)',
+      decree: 'Royal Decree M/11 dated 23/3/1423H (4/6/2002 G); Implementing Regulations issued by Min. of Health Resolution No. (69181/30) dated 15/06/1424H',
+      meta_extra: 'Published in Umm Al-Qura Gazette issue 3956, 01/07/1424H',
+      quotes: [
+        { article: 'Article 5(E) — Healthcare in cases of accidents (verbatim)',
+          text: 'All public and private health institutions shall abide by the regulations and instructions thereof in terms of providing emergency treatment to the injured upon arrival, and they may be transferred to another treatment center after providing the necessary emergency treatment thereto.' },
+        { article: 'Article 2 — Aim of the Law',
+          text: 'This Law aims at ensuring the provision and regulation of comprehensive and integrated Healthcare for all the population in a fair and accessible manner.' }
+      ],
+      url: 'https://www.moh.gov.sa/en/Ministry/Rules/Documents/002.pdf',
+      extracted: 'tools/extracted/moh-health-law-m11.txt'
+    },
+
+    'moh-annex-66': {
+      title: 'MoH Annex 66 — Rules for Treatment of Emergency Cases',
+      decree: 'MoH document 0066 / Annex 66 to Article 16/3, Edition 4 (Arabic only)',
+      note: 'PDF fetched and locally extracted, but pdfplumber\'s bidi handling reverses Arabic letter order — text is unreadable as-is. Re-extraction with pymupdf (AGPL, local research only) is logged as task T1a. Definition of emergency (per first-pass paraphrase): "a condition resulting from an injury or illness that may threaten the life of the patient or one of his limbs or his internal or external organs."',
+      url: 'https://www.moh.gov.sa/eServices/Licences/Documents/0066.pdf',
+      extracted: 'tools/extracted/moh-annex-66-emergency-rules.txt',
+      pending_task: 'T1a'
+    },
+
+    'cchi-urgent-circular': {
+      title: 'CCHI Urgent Circular',
+      decree: 'Reference 1733/1439/3531/, dated 17/11/1439H (30/07/2018G), Secretary-General Muhammad bin Suleiman Al-Hussein',
+      note: 'Verbatim text fetched 2026-05-03 (after VPN disabled). IMPORTANT CORRECTION: the Urgent Circular is about co-payment caps and form updates, NOT the "24-hour notification at MoH tariffs" rule the first-pass research had attributed to it. The relevant emergency provision is Section Sixth — co-payment is exempt for the three urgent levels. The "24-hour" rule likely lives in the Unified Policy itself (still pending — task T2).',
+      quotes: [
+        { article: 'First — Co-payment caps',
+          text: 'Mandatory Provider Network (MPN): 0–20% max SAR 75. Outside Hospital Network (OHN): 0–20% max SAR 300. Outside Complex Network (OCN): 0–20% max SAR 100.' },
+        { article: 'Sixth — Urgent cases co-payment exemption (verbatim)',
+          text: 'The endured rate (co-payment) shall not be collected from the insured in urgent cases of (1- Urgent resuscitation, 2- Emergency, 3- Urgent) levels of urgent medical care levels.' },
+        { article: 'Seventh — Free follow-up rule',
+          text: 'Healthcare service providers shall provide free follow up to the patient within at least 14 days for the same case diagnosed in the first check-up (per Art. 4/7 of the Executive Regulations of the Private Health Institutions Law, Min. Decree 1019377 of 28/05/1439H).' }
+      ],
+      url: 'https://www.chi.gov.sa/en/knowledge-center/resolutionscirculars/Urgent%20Circulation%20To%20All%20Qualified%20Companies%20and%20Accredited%20Healthcare%20Service%20Providers.pdf',
+      extracted: 'tools/extracted/chi-urgent-circular-emergency.txt'
+    },
+
+    'ngha-closed': {
+      title: 'NGHA — Ministry of National Guard Health Affairs',
+      note: 'Strictly closed system. Eligibility limited to SANG personnel (military + civilian, active + retired), eligible dependents, and KSAU-HS students. NGHA does NOT reimburse private hospital bills. ED walk-ins outside the eligible group are chargeable per ED protocol. The MNGHA Medical Eligibility detail page is geofenced outside KSA.',
+      url: 'https://ngha.med.sa/English/PATIENTS/MEDICALELIGIBILITY/Pages/default.aspx'
+    },
+
+    'msd-closed': {
+      title: 'MSD — Medical Services Department, Ministry of Defense',
+      note: 'Predominantly closed system. Covers active military, MoD civilians, retirees, and dependents. Routine private-sector reimbursement is not a feature; external referrals exist mostly to other MSD or specialty centers like KFSHRC.',
+      url: 'https://www.msd.gov.sa'
+    },
+
+    'moi-medical': {
+      title: 'MoI Medical Services',
+      note: 'Hybrid model. Owns its own facilities (Security Forces Hospital Riyadh / Makkah / Dammam) AND funds external referrals to MoH or private under its referral system. A self-presented MoI beneficiary at a private hospital without a referral pays out-of-pocket. Specific dependent age/scope rules are not publicly published.',
+      url: 'https://my.gov.sa/ar/agencies/17306'
+    },
+
+    'samso-jhah': {
+      title: 'SAMSO / Johns Hopkins Aramco Healthcare',
+      note: 'Saudi Aramco Medical Services Organization — operates JHAH Dhahran and clinics in Al-Hasa, Abqaiq, Ras Tanura, \'Udhailiyah. Functions as a self-funded employer plan registered with CHI. Hybrid: in-network at JHAH facilities; contracted external for unavailable services. Aramco employees do not separately need CCHI policies for in-network care.',
+      url: 'https://www.jhah.com'
+    },
+
+    'rcjy-medical': {
+      title: 'Royal Commission for Jubail and Yanbu Medical Services',
+      decree: 'Established by Royal Decree M/75 of 1395H (1975)',
+      note: 'Primarily closed system within RC industrial cities. Acts as the geographic public-sector option (analogous to MoH) for residents of Jubail, Yanbu, Ras Al-Khair. Refers out for unavailable services. Does not reimburse private hospital bills.',
+      url: 'https://www.rcjy.gov.sa/en/care'
+    },
+
+    'chi-beneficiaries': {
+      title: 'CCHI Beneficiaries of Health Insurance Coverage Policy',
+      decree: 'Issued by the Council of Health Insurance (document ref CCHI-08-PR-02-1/0)',
+      meta_extra: 'Verbatim text fetched 2026-05-03 (11 pages, bilingual Arabic/English)',
+      note: 'Anti-duplication assignment rule (NOT a COB cascade). 23 articles covering coverage commencement, dependent definitions, employer obligations, HIDP data submission, and termination procedures.',
+      quotes: [
+        { article: 'Definitions — Dependent (verbatim)',
+          text: 'Dependent: husband or wife and sons till the age of 25 and non-married daughters, in addition to orphans whose fostered with beneficiaries families.' },
+        { article: 'Article 4 — Commencement of Coverage',
+          text: 'Employer shall provide health insurance to beneficiaries immediately after establishing the contractual relationship between the employer and Saudi employees. For non-Saudis from the date of transferring the sponsorship, or from the date of entering the Kingdom — giving that within (10) working days.' },
+        { article: 'Article 5 — Continuation of Coverage',
+          text: 'If a person subject to the cooperative health insurance law moves to another employer, the new employer shall arrange for health insurance coverage for that person from the date the person commences work; this is for Saudis, and from the date of transferring the sponsorship for non-Saudis.' },
+        { article: 'Article 16 — Uploading Data to the Developed Policies System',
+          text: 'After verifying the payment of insurance premium, the insurance company shall upload immediately the data of employer and beneficiaries to HIDP, within maximum 48 hours.' }
+      ],
+      url: 'https://www.chi.gov.sa/en/knowledge-center/lawsregulations/Beneficiaries%20of%20Health%20Insurance%20Coverage%20Policy.pdf',
+      extracted: 'tools/extracted/chi-beneficiaries-policy.txt'
+    },
+
+    'chi-unified-policy': {
+      title: 'CCHI Unified Cooperative Health Insurance Policy',
+      decree: 'Ministerial Decision No. R/1/18/3 of 12 Jumada Al Awwal 1439H (29 Jan 2018), effective 1 July 2018',
+      note: 'Sum insured under the 2022 Basic Health Insurance Policy: SAR 1,000,000 (up from SAR 500,000). Five tiers: VIP, A+, A, B, C. Verbatim text fetch pending (chi.gov.sa geofenced — task T3).',
+      url: 'https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/Pages/unified-policy.aspx',
+      pending_task: 'T2 + T3'
+    },
+
+    'hajj-umrah-policy': {
+      title: 'CCHI Pilgrim Insurance Policy (Hajj &amp; Umrah)',
+      decree: 'Launched 2019 under Vision 2030 Pilgrim Experience Program',
+      note: 'Mandatory comprehensive policy auto-bundled with Hajj or Umrah entry visa; valid up to 90 days from entry. Underwritten by Tawuniya under agreement with the Ministry of Hajj and Umrah; policy defined by CHI. Coverage cap: SAR 100,000 per pilgrim. Includes ER, hospital admission, accidents/sudden illness, flight delay/cancellation, death and repatriation of remains.',
+      url: 'https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/Pages/pilgrims-policy.aspx'
+    },
+
+    'visitor-insurance': {
+      title: 'CCHI Visitor / Tourist Insurance Policy',
+      decree: 'Mandatory bundled with tourist e-visa, visit visa, Hajj/Umrah visa',
+      meta_extra: 'Verbatim text fetched 2026-05-03 (18 pages)',
+      note: 'Tourist e-visa premium bundled into the SAR 535 visa fee; Tawuniya is Ministry of Tourism\'s underwriting partner. CRITICAL FINDING: Article 6 below is the SINGLE explicit Coordination of Benefits clause we have found in any KSA primary cooperative-insurance regulation — the visitor insurer pays first and subrogates against any other plan or insurance. This pay-and-subrogate model is the legally-recognized inter-insurer recovery mechanism in KSA.',
+      quotes: [
+        { article: 'Article 6 — Non duplication of benefits (verbatim COB clause)',
+          text: 'In case of a claim for recoverable expenses due under this policy for an insured who is also covered for the same expenses under another plan or scheme or other insurance or the like, the company shall be liable for the coverage of such expenses and shall subrogate that insured in his claim against third parties for payment of their proportionate share of such claim.' }
+      ],
+      url: 'https://www.chi.gov.sa/en/aboutchi/Documents/visitorsEn.pdf',
+      extracted: 'tools/extracted/chi-visitors-insurance-policy.txt'
+    },
+
+    'domestic-worker-insurance': {
+      title: 'Domestic Worker Insurance (two parallel mandates)',
+      decree: 'Contract insurance: Cabinet Resolution 591 (25 May 2021), effective 1 Feb 2024 via Musaned. Compulsory health: phased in by CHI + IA from July 2024.',
+      note: 'Health insurance currently mandatory where employer has more than 4 domestic workers (intent to expand). Policy template at chi.gov.sa Rules/InsurancePolicies/. Liability flow: employer/sponsor is the policyholder.',
+      url: 'https://chi.gov.sa/en/Rules/InsurancePolicies/DOMESTIC%20WORKER%20INSURANCE%20POLICY.pdf'
+    },
+
+    'nphies-ig': {
+      title: 'NPHIES Healthcare Financial Services IG',
+      decree: 'Edition 1, v1.0.0 — based on HL7 FHIR R4.0.1 (package nphies-fs#1.0.0)',
+      meta_extra: 'Operated by CHI + NHIC under SDAIA. Mandatory for all CHI-licensed payers, TPAs, and accredited providers since phased rollout from September 2021.',
+      note: 'Critical finding: the NphiesCoverage profile inherits the base FHIR Coverage.order element but does NOT constrain it. CoverageEligibilityResponse.insurance is 0..* but contains no explicit primary/secondary ranking field, no order mechanism, and no documented COB precedence rules. The profile.priority field is FHIR ProcessPriorityCodes (normal/stat/deferred), NOT coverage ordering. This is the operational gap our service is designed to fill.',
+      url: 'https://portal.nphies.sa/ig/'
+    }
+  };
+
+  // ─── Roadmap detail data ───
+  const ROADMAP = {
+
+    'arch-decisions': {
+      title: 'Architecture decisions locked',
+      status: 'done',
+      meta: '2026-05-02 · Three ADRs in <code>docs/architecture/</code>',
+      body: `
+        <h4>ADR-001 — Tech Stack</h4>
+        <ul>
+          <li><strong>Python 3.12 + FastAPI</strong> — auto-generates OpenAPI 3.1; Pydantic for runtime validation; async for I/O-bound workload.</li>
+          <li><strong>JSON-defined decision trees</strong> — versioned, auditable, editable by non-engineers via PR.</li>
+          <li><strong>PostgreSQL 16</strong> (JSONB for policies + audit) + <strong>Redis 7</strong> (cache, rate limit, idempotency).</li>
+          <li><strong>OAuth2 + JWT</strong> with per-consumer scopes (<code>cases:evaluate</code>, <code>policies:read</code>, <code>admin:trees</code>, <code>audit:read</code>).</li>
+          <li><strong>HL7 FHIR R4-aware</strong> at the boundary — accepts and emits Coverage / CoverageEligibilityRequest / Response.</li>
+          <li><strong>PDPL-aligned</strong> — append-only audit, PII minimisation (hashes by default), KSA-resident hosting.</li>
+        </ul>
+        <h4>ADR-002 — Decision-tree data model</h4>
+        <ul>
+          <li>Versioned JSON DAG with three node types: <code>question</code>, <code>predicate</code>, <code>terminal</code>.</li>
+          <li>Small predicate DSL: <code>eq, neq, gt/gte/lt/lte, in, between, exists, starts_with, matches, and/or/not</code> — deliberately limited to keep evaluations pure and replayable.</li>
+          <li>Each evaluation produces an immutable audit record with the path taken and the policies cited.</li>
+          <li>Two evaluation modes: single-shot (full payload) and interactive (session-based question-by-question).</li>
+        </ul>
+        <h4>ADR-003 — Service boundaries</h4>
+        <ul>
+          <li><strong>Modular monolith for v1</strong> with explicit module boundaries (policy_registry, questionnaire, decision_engine, case_audit, consumers, interop_fhir).</li>
+          <li>Modules talk via typed interfaces; no cross-module DB joins.</li>
+          <li>Split criteria documented for later (different load profile, independent scaling, second team ownership, compliance isolation).</li>
+        </ul>`
+    },
+
+    'first-pass': {
+      title: 'First-pass policy research complete',
+      status: 'done',
+      meta: '2026-05-02 · 4 parallel research threads · catalog + COB algorithm derived',
+      body: `
+        <h4>Headline finding</h4>
+        <div class="quote">
+          KSA has <strong>no published Coordination of Benefits cascade</strong>. CHI/CCHI's Unified Policy contains no explicit COB article. NPHIES does not return a primary/secondary indicator. The Insurance Authority has not published a COB addendum. The KSA regulatory architecture <strong>assumes single-source coverage per beneficiary</strong>.
+          <span class="citation">Validated across regulators / statutory overrides / government coverage / NPHIES + private market threads</span>
+        </div>
+        <h4>Composed solution</h4>
+        <p>Five distinct rule families assembled into a deterministic algorithm — see the "Five rule families" section above and <code>docs/coordination-of-benefits.md</code>.</p>
+        <h4>Documented gaps (closed in second pass)</h4>
+        <ul>
+          <li>Multiple CCHI PDFs timed out via WebFetch — needs re-fetch from KSA-resident network (T3).</li>
+          <li>Arabic-only documents need verbatim translation into citations (T4).</li>
+          <li>No regulator has signed off on the algorithm — formal CHI / IA engagement required (T6/T7).</li>
+          <li>NPHIES sandbox testing of multi-coverage <code>CoverageEligibilityResponse</code> behaviour required (T8).</li>
+        </ul>
+        <h4>Artifacts</h4>
+        <ul>
+          <li><code>docs/research/raw/01-regulators.md</code></li>
+          <li><code>docs/research/raw/02-statutory-overrides.md</code></li>
+          <li><code>docs/research/raw/03-government-coverage.md</code></li>
+          <li><code>docs/research/raw/04-nphies-tpas-special-cases.md</code></li>
+        </ul>`
+    },
+
+    'second-pass': {
+      title: 'Second-pass research',
+      status: 'now',
+      meta: 'In progress · 14 tasks · 30 questions · Detail in <code>docs/research/second-pass-tasks.md</code>',
+      body: `
+        <p>The second pass is specified at task-and-question granularity in <code>docs/research/second-pass-tasks.md</code>. Each task carries inputs, outputs, acceptance criteria, and concrete steps; each question carries risk grading, candidate sources, and required evidence form.</p>
+
+        <h4>Headline corrections surfaced 2–3 May 2026</h4>
+        <div class="note"><strong>(1) Social Insurance Law:</strong> the law in force is <strong>Royal Decree M/273 of 26/12/1445H (July 2024)</strong>, NOT the M/33 of 1421H first-pass research had cited. Work-injury definition is now <strong>Art. 30</strong>, not Art. 27. <strong>(2) Visitor Insurance Article 6 IS a published COB cascade:</strong> pay-and-subrogate model — the only explicit COB clause in any KSA primary cooperative-insurance regulation. Headline finding nuanced. <strong>(3) Q1.1 ANSWERED:</strong> CCHI Updated EBP Chapter 3 Section A Item 7 explicitly excludes work injuries from cooperative cover (<em>"Any illness or injury arising directly from the profession of the Insured"</em>) — the GOSI carve-out is enforced by the EBP exclusion, not by GOSI's regulation. <strong>(4) CCHI Urgent Circular correction:</strong> the actual content is co-payment caps + UCAF/DCAF forms, NOT the "24-hour notification" rule first-pass had attributed to it; that rule must live elsewhere (likely in the Unified Policy itself, still pending).</div>
+
+        <h4>Tasks at a glance</h4>
+        <table>
+          <thead><tr><th>ID</th><th>Title</th><th>Pri.</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><code class="id">T1</code></td><td>Re-fetch primary PDFs</td><td>P0</td><td><span class="status done">DONE 16/16</span></td></tr>
+            <tr><td><code class="id">T1a</code></td><td>Re-extract Arabic PDFs with pymupdf</td><td>P0</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T2</code></td><td>Discover unknown PDF URLs</td><td>P1</td><td><span class="status partial">PARTIAL — Unified Policy still pending</span></td></tr>
+            <tr><td><code class="id">T3</code></td><td>Hand-download geofenced PDFs</td><td>P0</td><td><span class="status done">DONE — VPN disabled, all reachable</span></td></tr>
+            <tr><td><code class="id">T4</code></td><td>Verbatim translation of Arabic primary articles</td><td>P1</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T5</code></td><td>Build worked-example library (25 of 25 in <code>docs/research/scenarios.md</code>)</td><td>P0</td><td><span class="status done">DONE</span></td></tr>
+            <tr><td><code class="id">T6</code></td><td>Written request to CHI (draft letter ready)</td><td>P0</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T7</code></td><td>Written request to Insurance Authority (draft ready)</td><td>P1</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T8</code></td><td>NPHIES technical engagement (sandbox + Coverage.order)</td><td>P1</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T9</code></td><td>SDAIA / PDPL clarification</td><td>P2</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T10</code></td><td>Enumerate full CHI-licensed insurer list</td><td>P2</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T11</code></td><td>Research University Medical Cities</td><td>P2</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T12</code></td><td>Research diplomatic personnel coverage</td><td>P3</td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">T13</code></td><td>Watch list (quarterly checklist in <code>docs/research/watch-list.md</code>)</td><td>P3</td><td><span class="status done">DONE</span></td></tr>
+          </tbody>
+        </table>
+
+        <h4>Question status — 1 answered, 29 open</h4>
+        <table>
+          <thead><tr><th>ID</th><th>Question</th><th>Risk</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><code class="id">Q1.1</code></td><td>Does GOSI's regulation bar private insurer as secondary?</td><td><span class="risk risk-low">Low</span></td><td><span class="status done">ANSWERED via EBP Ch.3 §A.7</span></td></tr>
+            <tr><td><code class="id">Q1.2</code></td><td>Who pays for work-injury to unregistered worker?</td><td><span class="risk risk-med">Med</span></td><td><span class="status partial">PARTIAL via SIL Art.31(2)</span></td></tr>
+            <tr><td><code class="id">Q2.1</code></td><td>Exact MoH-approved tariffs schedule for emergency</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">Q3.4</code></td><td>Closed-system beneficiary in emergency at private hospital</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">Q5.4</code></td><td>Post-IG-v1.0.0 NPHIES bulletins on Coverage.order</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">Q5.5</code></td><td>NPHIES sandbox for multi-coverage testing</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">Q6.1</code></td><td>Post-March-2024 IA regulation addressing COB?</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
+          </tbody>
+        </table>
+        <p style="font-size: 0.86rem; color: var(--text-muted);">Full inventory (Q1.1 – Q7.3, with risk gradings, candidate sources, and evidence form needed) in <code>docs/research/second-pass-tasks.md</code>.</p>
+
+        <h4>Concrete deliverables embedded in the spec</h4>
+        <ul>
+          <li><strong>Draft letter to CHI</strong> with 8 numbered questions cross-referenced to Q-IDs (Q1.1 ✓ now answered, Q3.1, Q3.4, Q4.1–Q4.4, Q5.1) — ready to translate to Arabic and send (Q1.1 can be removed since answered).</li>
+          <li><strong>Draft letter to Insurance Authority</strong> with 6 numbered questions on MTPL / COB / Daman / new draft Insurance Law.</li>
+          <li><strong>12 worked patient scenarios</strong> (X-001 to X-012) fully specified with input case shape, expected verdict, citations, and reasoning trace — including the genuinely ambiguous edge case X-010 (NGHA-eligible person in emergency at private hospital).</li>
+          <li><strong>YAML schema</strong> for the remaining ~13 worked examples.</li>
+        </ul>
+
+        <h4>What's still missing despite 16/16 fetched</h4>
+        <ul>
+          <li><strong>The 24-hour emergency notification rule</strong> — first-pass had attributed it to the CCHI Urgent Circular; verbatim extraction proved that wrong. Likely lives in the Unified Cooperative Health Insurance Policy itself, which we have an index page for but not a direct PDF URL (T2).</li>
+          <li><strong>The husband-employer assignment rule</strong> (Q4.1) and divorced-parents rule (Q4.2) — likely in later articles of the bilingual Beneficiaries Policy; needs Arabic translator (T4) for clean quoting.</li>
+          <li><strong>Regulator written confirmations</strong> — the algorithm is still our interpretation. T6 / T7 / T8 / T9 letters drafted but not yet sent.</li>
+        </ul>
+
+        <p><a class="source-url" href="https://github.com/SaifDalli2/coverage-router-ksa/blob/main/docs/research/second-pass-tasks.md">View full second-pass-tasks.md on GitHub</a></p>`
+    },
+
+    'questionnaire': {
+      title: 'Author v1 questionnaire + decision tree',
+      status: 'pending',
+      meta: 'Blocked by: T4 (verbatim citations), T5 (worked examples), partially T6/T7 (regulator confirmations)',
+      body: `
+        <h4>Approach</h4>
+        <ul>
+          <li>Tree authored as JSON validated against <code>docs/decision-tree-schema.md</code>.</li>
+          <li>Reviewed in PR like code; policy team owns the tree, engineering owns the evaluator.</li>
+          <li>Initial tree consumes the 25-scenario worked-example library as golden tests — every scenario must produce its expected verdict.</li>
+        </ul>
+        <h4>Open design questions</h4>
+        <ul>
+          <li>Should single-shot mode partially-evaluate and return <code>missing_inputs</code>, or hard-fail with an "use interactive flow" pointer? (Currently planned: partial with structured missing-inputs hint.)</li>
+          <li>Bilingual prompts (Ar / En) — ship both at v1, or En-first with Ar in v1.1?</li>
+          <li>Tree authoring UI — defer until policy team requests it; v1 edits via PR.</li>
+        </ul>`
+    },
+
+    'fastapi': {
+      title: 'Scaffold FastAPI service',
+      status: 'pending',
+      meta: 'Modular monolith per ADR-003. Single deployable, single PostgreSQL, single Redis.',
+      body: `
+        <h4>Module map</h4>
+        <ul>
+          <li><code>app/api/public/</code> — consumer-facing endpoints (cases, questionnaire, policies)</li>
+          <li><code>app/api/admin/</code> — admin endpoints (tree authoring, policy curation)</li>
+          <li><code>app/api/webhooks/</code> — outbound delivery</li>
+          <li><code>app/modules/policy_registry/</code> — read-mostly catalog of source policies + citations</li>
+          <li><code>app/modules/questionnaire/</code> — question definitions, session state, interactive flow</li>
+          <li><code>app/modules/decision_engine/</code> — tree storage, evaluator, version selection</li>
+          <li><code>app/modules/case_audit/</code> — append-only audit log</li>
+          <li><code>app/modules/consumers/</code> — OAuth2 clients, scopes, rate-limit config</li>
+          <li><code>app/modules/interop_fhir/</code> — FHIR ↔ internal-model translation</li>
+          <li><code>app/infra/</code> — db, cache, auth, telemetry, config</li>
+        </ul>
+        <h4>API surface</h4>
+        <ul>
+          <li><code>POST /v1/cases/evaluate</code> — single-shot evaluation</li>
+          <li><code>POST /v1/questionnaire/sessions</code> — start interactive session</li>
+          <li><code>POST /v1/questionnaire/sessions/{id}/answer</code> — incremental answers</li>
+          <li><code>GET /v1/policies</code> — policy catalog browse</li>
+          <li><code>GET /v1/cases/{audit_id}</code> — audit retrieval</li>
+          <li><code>POST /v1/admin/trees</code> — publish new tree version</li>
+        </ul>
+        <p>Full sketch in <code>docs/api-design.md</code>. Auto-generated OpenAPI spec at <code>/openapi.json</code>; Swagger UI at <code>/docs</code> in non-prod.</p>`
+    },
+
+    'fhir-nphies': {
+      title: 'Integration: FHIR mapping &amp; NPHIES sandbox',
+      status: 'pending',
+      meta: 'Blocked by: T8 (NPHIES sandbox access + Coverage.order semantics)',
+      body: `
+        <h4>FHIR boundary</h4>
+        <ul>
+          <li>Accept HL7 FHIR R4 <code>CoverageEligibilityRequest</code> at <code>POST /v1/fhir/CoverageEligibilityRequest</code>; map to internal <code>case</code> model; evaluate; return <code>CoverageEligibilityResponse</code>.</li>
+          <li>Accept and emit <code>Coverage</code> resources for consumer integration.</li>
+          <li>Use the Python <code>fhir.resources</code> library for parse/serialise.</li>
+        </ul>
+        <h4>NPHIES integration</h4>
+        <ul>
+          <li>Sandbox onboarding (T8 in second-pass).</li>
+          <li>Profile against the NphiesCoverage / NphiesCoverageEligibilityRequest / NphiesCoverageEligibilityResponse profiles in the IG.</li>
+          <li>Test multi-coverage scenarios; document NPHIES's empirical Coverage.order behaviour vs the unconstrained spec (Q5.4).</li>
+        </ul>
+        <h4>Decision: in-scope for v1?</h4>
+        <p>FHIR boundary acceptance is in scope (additive surface, low cost). Full NPHIES production-grade certification likely a v1.1 milestone — gated by Insurance Authority + NHIC requirements, which themselves may be evolving (Q6.1).</p>`
+    }
+  };
+
+  // ─── Your Action Items — full data with steps, links, ready-to-send drafts ───
+  const ACTION_ITEMS_INTRO = `
+    <h3 class="modal-title">Your action items — second-pass research</h3>
+    <div class="modal-meta">5 tasks remain (T3 ✓ done) · Full doc: <code>docs/research/your-action-items.md</code></div>
+    <p>Each item below is collapsible: tap to expand. Steps are in plain language; all links are clickable; letter and email drafts are inline (copy-paste ready). When you finish a task, reply with the short tag listed at the bottom of that item.</p>
+
+    <h4>Inventory at-a-glance</h4>
+    <table>
+      <thead><tr><th>ID</th><th>Title</th><th>Pri.</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code class="id">T3</code></td><td>Download geofenced PDFs (16/16 fetched)</td><td><span class="priority-pill p0">P0</span></td><td><span class="status done">DONE</span></td></tr>
+        <tr><td><code class="id">T6</code></td><td>Letter to CHI</td><td><span class="priority-pill p0">P0</span></td><td><span class="status pending">2 h</span></td></tr>
+        <tr><td><code class="id">T7</code></td><td>Letter to Insurance Authority</td><td><span class="priority-pill p1">P1</span></td><td><span class="status pending">2 h</span></td></tr>
+        <tr><td><code class="id">T8</code></td><td>NPHIES vendor onboarding</td><td><span class="priority-pill p1">P1</span></td><td><span class="status pending">30 min</span></td></tr>
+        <tr><td><code class="id">T4</code></td><td>Engage Arabic legal translator</td><td><span class="priority-pill p1">P1</span></td><td><span class="status pending">1–2 wk</span></td></tr>
+        <tr><td><code class="id">T9</code></td><td>SDAIA / National Data Office inquiry</td><td><span class="priority-pill p2">P2</span></td><td><span class="status pending">30 min</span></td></tr>
+      </tbody>
+    </table>
+  `;
+
+  const ACTION_ITEMS = [
+    {
+      id: 'T3', title: 'Download geofenced PDFs', priority: 'p0', time: 'DONE 2026-05-03',
+      body: `
+        <div class="note" style="background:rgba(47,158,107,0.10);border-left-color:var(--success);">
+          <strong>✓ This task is now complete.</strong> After you disabled the VPN, the fetcher reached all 9 originally-blocked sources. Of those, 6 succeeded directly; the remaining 3 had stale URLs which were re-discovered via web search. Net: <strong>16 of 16 priority PDFs extracted</strong> (4 originally + 6 after VPN off + 5 after URL fixes + 1 IDC retry). Triggered Q1.1 ANSWERED via the EBP Chapter 3 Section A Item 7 work-injury exclusion.
+        </div>
+        <h4>What was fetched</h4>
+        <ul>
+          <li>CCHI EBP Tiers Booklet (15 pp) + <strong>Updated EBP Policy</strong> (108 pp) — Chapter 3 work-injury exclusion <strong>answers Q1.1</strong></li>
+          <li>CCHI Health Benefits Schedule (12 pp), Claims Mgmt Companies Regulation (14 pp)</li>
+          <li>CCHI Urgent Circular (3 pp) — <strong>correction</strong>: actual content is co-payment caps, not the 24-hr notification rule</li>
+          <li>CCHI Visitors Insurance (18 pp) — <strong>major finding</strong>: Article 6 IS a published COB pay-and-subrogate clause</li>
+          <li>CCHI Domestic Worker Insurance (16 pp), Employer's Commitment (13 pp), Beneficiaries Policy (11 pp) with Dependent definition verbatim</li>
+          <li>SDAIA Cross-Border Transfer Regulation (11 pp) + Risk Assessment Guideline (16 pp)</li>
+          <li>IDC Working Rules (1 p Arabic; needs T1a re-extraction with pymupdf for clean quoting)</li>
+        </ul>
+        <h4>Still pending — was attributed to T3 but actually needs T2 (URL discovery)</h4>
+        <ul>
+          <li><strong>CCHI Unified Cooperative Health Insurance Policy</strong> — index page known (chi.gov.sa/en/knowledge-center/health-insurance-policies/Pages/unified-policy.aspx) but no direct PDF URL captured. Likely contains the missing 24-hr notification rule. If you're still on KSA network, visit the index page in a browser, find the PDF link, and reply with the URL.</li>
+        </ul>
+        <h4>The original 9 URLs (for reference / re-fetch)</h4>
+        <table>
+          <thead><tr><th>#</th><th>Source</th><th>Save as</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><a href="https://www.chi.gov.sa/en/beneficiary/healthinsurancepolicy/EBP_Booklet_5_Tiers%20Benefit%20Package%20for%20Private%20Health%20Insurance%20Beneficiaries_EN.pdf" target="_blank" rel="noopener">CCHI EBP Tiers Booklet</a></td><td><code>chi-ebp-tiers-booklet.pdf</code></td></tr>
+            <tr><td>2</td><td><a href="https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/unified%20policy/Health%20Benefits%20Schedule.pdf" target="_blank" rel="noopener">CCHI Health Benefits Schedule</a></td><td><code>chi-health-benefits-schedule.pdf</code></td></tr>
+            <tr><td>3</td><td><a href="https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/unified%20policy/Regulation%20of%20qualification%20of%20claims%20management%20companies.pdf" target="_blank" rel="noopener">CCHI Claims Mgmt Companies Regulation</a></td><td><code>chi-claims-mgmt-companies-regulation.pdf</code></td></tr>
+            <tr><td>4</td><td><a href="https://www.chi.gov.sa/en/knowledge-center/resolutionscirculars/Urgent%20Circulation%20To%20All%20Qualified%20Companies%20and%20Accredited%20Healthcare%20Service%20Providers.pdf" target="_blank" rel="noopener">CCHI Urgent Circular (emergency cases)</a></td><td><code>chi-urgent-circular-emergency.pdf</code></td></tr>
+            <tr><td>5</td><td><a href="https://www.chi.gov.sa/en/aboutchi/Documents/visitorsEn.pdf" target="_blank" rel="noopener">CCHI Visitors Insurance Policy</a></td><td><code>chi-visitors-insurance-policy.pdf</code></td></tr>
+            <tr><td>6</td><td><a href="https://chi.gov.sa/en/Rules/InsurancePolicies/DOMESTIC%20WORKER%20INSURANCE%20POLICY.pdf" target="_blank" rel="noopener">CCHI Domestic Worker Insurance Policy</a></td><td><code>chi-domestic-worker-insurance-policy.pdf</code></td></tr>
+            <tr><td>7</td><td><a href="https://istitlaa.ncc.gov.sa/en/health/cchi/employers/Documents/Employers'%20Commitment%20Policy.pdf" target="_blank" rel="noopener">CCHI Employer's Commitment Policy</a></td><td><code>chi-employers-commitment-policy.pdf</code></td></tr>
+            <tr><td>8</td><td><a href="https://www.idc.gov.sa/en-us/RulesandRegulations1/Working%20Rules%20and%20Procedures%20of%20the%20Insurance%20Disputes%20and%20Violations%20Settlement%20Committees.pdf" target="_blank" rel="noopener">IDC Working Rules</a></td><td><code>idc-working-rules.pdf</code></td></tr>
+            <tr><td>9</td><td><a href="https://dgp.sdaia.gov.sa/wps/wcm/connect/e5bbede0-1119-4f70-b4ef-f043ce58d780/Regulation+on+Personal+Data+Transfer+Outside+the+Kingdom..pdf" target="_blank" rel="noopener">SDAIA Cross-Border Transfer Regulation</a></td><td><code>sdaia-cross-border-transfer-regulation.pdf</code></td></tr>
+          </tbody>
+        </table>
+        <h4>While on the KSA network, also (T2 + T10)</h4>
+        <ul>
+          <li>Visit <a href="https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/Pages/unified-policy.aspx" target="_blank" rel="noopener">CCHI Unified Policy index</a> → find the PDF link → save as <code>chi-unified-policy.pdf</code></li>
+          <li>Visit <a href="https://qanoniah.com/en/File/DmWqyAxNgpoPl0moP26zvBXaE-Beneficiaries+of+Health+Insurance+Coverage+Policy" target="_blank" rel="noopener">Beneficiaries Policy mirror</a> → save as <code>chi-beneficiaries-policy.pdf</code></li>
+          <li>Visit <a href="https://www.chi.gov.sa/en/ServicesDirectory/" target="_blank" rel="noopener">CHI Service Directory</a> → find the Accredited Payers list → screenshot or copy the full insurer list with license numbers</li>
+        </ul>
+        <h4>When done</h4>
+        <p>Reply: <strong>"T3 done."</strong></p>`
+    },
+
+    {
+      id: 'T6', title: 'Letter to CHI / Council of Health Insurance', priority: 'p0', time: '2 hours',
+      body: `
+        <h4>Why this matters</h4>
+        <p>Without CHI's written confirmation, our COB algorithm is <em>our interpretation</em> of primary sources, not a regulator-blessed rule set. For a service hospitals will rely on, that interpretation needs validation.</p>
+        <h4>Steps</h4>
+        <ol>
+          <li>Take the English draft below; translate to Arabic (or hire a translator — see T4).</li>
+          <li>Print on your company's letterhead.</li>
+          <li>Sign in ink.</li>
+          <li>Send via Aramex/DHL with tracking, addressed to: <strong>Director-General of Policy &amp; Regulation, Council of Health Insurance, Riyadh</strong>. Verify exact street address on <a href="https://www.chi.gov.sa/en/contact" target="_blank" rel="noopener">chi.gov.sa/en/contact</a> (from a KSA network).</li>
+          <li>Backup: also submit the same text via the contact form on the CHI contact page.</li>
+          <li>Follow up by phone after 14 calendar days if no response.</li>
+          <li>When you receive a reply, forward it to me. Reply <strong>"T6 sent."</strong> after dispatch so I can log the date.</li>
+        </ol>
+        <h4>Letter draft (revised 2026-05-03 — ready to translate)</h4>
+        <div class="note">Changes since 2026-05-02 draft: removed old Q1 (work-injury — Q1.1 now ANSWERED via EBP §3.A.7). Added new Q1 (Visitor Insurance Article 6 applicability) and Q2 (where the 24-hr emergency rule actually lives). Tightened Q7 (adult dependents) using the verbatim Beneficiaries Policy Dependent definition.</div>
+        <pre class="letter-draft">[Your letterhead]
+[Date]
+
+To: Director-General of Policy &amp; Regulation
+Council of Health Insurance (CHI)
+Riyadh, Kingdom of Saudi Arabia
+
+Subject: Request for written guidance on Coordination of Benefits
+         in multi-coverage scenarios
+
+Dear Sir / Madam,
+
+We are developing an information system to assist KSA hospitals in
+identifying the liable insurance entity for each medical case at the
+point of admission. The system is grounded in primary regulatory
+sources, including the Unified Cooperative Health Insurance Policy,
+the Beneficiaries of Health Insurance Coverage Policy, the Updated
+Essential Benefits Package (effective 1 October 2022), the CCHI
+Visitor Insurance Policy, and the CCHI Urgent Circular Ref.
+1733/1439/3531/ on emergency cases.
+
+In studying these sources we have identified nine specific points on
+which we would value the Council's written guidance. Our intent is
+to ensure that the routing decisions made by hospitals using our
+system align with CHI's regulatory expectations.
+
+The questions are:
+
+1. CCHI Visitor Insurance Policy Article 6 ("Non duplication of
+   benefits") establishes a pay-first-and-subrogate model for
+   visitor coverage where the insured is also covered for the same
+   expenses under another plan or insurance. Does this same model
+   apply by analogy to multi-coverage scenarios in the general
+   cooperative regime — for example where a beneficiary holds both
+   an employer group policy and an individual policy — or is it
+   specific to visitor insurance? If it applies generally, what is
+   the citation?
+
+2. MoH Annex 66 (document 0066) Article 3 establishes a 24-hour
+   notification requirement to a Ministry-of-Health-appointed
+   Claims Management Company (TPA) for emergency cases received at
+   private hospitals without referral, with the TPA deciding
+   between transfer to a government hospital and state-funded
+   continuation at the private hospital. Article 11 references
+   "Service Procurement Mechanism Circular No. 274877-1439H of
+   30/10/2017G" as the operative procurement / tariff schedule,
+   but we have not been able to locate that document publicly.
+   Could the Council direct us to an authoritative source for that
+   circular (or its successor), and confirm that this is also the
+   tariff reference used when CCHI insurers settle out-of-network
+   emergency claims?
+
+3. For beneficiaries eligible for closed-system coverage (Ministry
+   of Defense Medical Services, Ministry of Interior Medical
+   Services, Ministry of National Guard Health Affairs), are there
+   any memoranda of understanding with CHI or with private insurers
+   permitting reimbursement of emergency-care bills incurred at non-
+   system facilities? If yes, what are the operational triggers?
+
+4. When a beneficiary eligible for closed-system coverage presents
+   with an emergency at a private (non-system) hospital, who is the
+   primary payer for the emergency stabilisation episode? Is the
+   patient's CCHI cover (where present) the primary payer at MoH
+   tariffs, or does the closed-system payer reimburse the private
+   facility directly?
+
+5. Under the Beneficiaries of Health Insurance Coverage Policy,
+   when a child is recorded against both parents' employer policies
+   during a transition window (for example, immediately after a
+   change of marital status or employment), how should hospitals
+   and insurers resolve which policy is the policy of record at the
+   date of service? Is the rule strictly temporal, or does the
+   husband-employer primacy rule apply ab initio?
+
+6. For divorced parents, which parent's employer policy covers the
+   children for the purposes of the Beneficiaries Policy?
+
+7. The Beneficiaries Policy defines a Dependent as "husband or wife
+   and sons till the age of 25 and non-married daughters, in
+   addition to orphans whose fostered with beneficiaries families".
+   For adult dependents who exceed the age of 25 but are recognised
+   as disabled or unable to support themselves, who decides
+   eligibility — the employer, the insurer, or CHI — and what
+   evidence is required?
+
+8. Where the Beneficiaries Policy designates the husband's
+   employer's policy as primary but the husband is unemployed or
+   uninsured, does the wife's employer's policy become primary
+   automatically, or must the husband's status be formally declared
+   first? If a declaration is required, where is the form lodged?
+
+9. Where a beneficiary holds two simultaneously active CCHI-
+   licensed policies that are not resolved by the husband/wife
+   assignment rule (for example, an individual policy plus an
+   employer group policy), which policy is the primary payer? Is
+   there a published rule, or does CHI rely on insurer-level
+   coordination?
+
+For each item above, we would be grateful for either a citation to
+the relevant article / circular or, where the rule is interpretive,
+a written statement of CHI's current position.
+
+We would be happy to attend the Council in person to discuss any
+of these items.
+
+Thank you for your time and consideration.
+
+Yours faithfully,
+
+[Your name]
+[Your role]
+[Company / project name]
+[Phone]
+[Email]</pre>
+        <details class="task-card" style="margin-top:1rem;">
+          <summary>
+            <span>المسودة العربية · Arabic version (tap to expand)</span>
+            <span class="summary-meta"><span class="toggle">+</span></span>
+          </summary>
+          <div class="task-body">
+            <p style="font-size:0.86rem;color:var(--text-muted);">Working draft (2026-05-03). Recommended workflow: send the Arabic letter on letterhead and the English text in the email body / cover note. Have the Arabic reviewed by a qualified Arabic legal translator (engage via task T4) before formal dispatch. Full doc: <code>docs/research/regulator-letters-arabic.md</code>.</p>
+            <pre class="letter-draft letter-draft-rtl">[ترويسة الشركة]
+[التاريخ]
+
+سعادة المدير العام لإدارة السياسات والتنظيم
+مجلس الضمان الصحي التعاوني
+الرياض — المملكة العربية السعودية
+
+الموضوع: طلب توجيهات مكتوبة بخصوص تنسيق المنافع في حالات تعدد التغطيات التأمينية
+
+السلام عليكم ورحمة الله وبركاته،
+
+نعمل حالياً على تطوير نظام معلوماتي يساعد المستشفيات في المملكة العربية السعودية على تحديد جهة التأمين المسؤولة عن كل حالة طبية وقت دخول المريض إلى المستشفى. ويستند هذا النظام إلى مصادر تنظيمية أوّلية تشمل: وثيقة الضمان الصحي التعاوني الموحَّدة، وسياسة تغطية مستفيدي الضمان الصحي، وحزمة المنافع الأساسية المحدَّثة (السارية اعتباراً من 1 أكتوبر 2022م)، ووثيقة تأمين الزوار، والتعميم العاجل الصادر من المجلس برقم 1733/1439/3531/ بشأن الحالات الإسعافية.
+
+وقد رصدنا أثناء دراسة هذه المصادر تسعَ نقاطٍ محدَّدةٍ نطلب من معاليكم التكرُّم بإصدار توجيهات مكتوبة بشأنها، وذلك حرصاً منَّا على أن تكون قرارات التوجيه التي تتَّخذها المستشفيات باستخدام نظامنا متوافقةً مع التوقُّعات التنظيمية للمجلس.
+
+والأسئلة هي:
+
+١. تنصُّ المادة (6) "عدم ازدواج المنافع" من وثيقة تأمين الزوار الصادرة من المجلس على نموذج «الدفع أوَّلاً ثم الرجوع بالحلول» لتغطية الزوار في الحالات التي يكون فيها المؤمَّن له مغطًّى عن النفقات نفسها بموجب خطة أو نظام أو تأمين آخر. فهل ينطبق هذا النموذج بالقياس على حالات تعدُّد التغطيات في النظام التعاوني العام — كما لو كان للمستفيد وثيقة جماعية من ربِّ العمل ووثيقة فردية في الوقت ذاته — أم أنَّ تطبيقه مقصور على تأمين الزوار؟ وإن كان ينطبق عموماً، فما هو المرجع التنظيمي؟
+
+٢. تنصُّ المادة (3) من الملحق رقم 66 (الوثيقة رقم 0066) من قواعد علاج الحالات الإسعافية الصادرة عن وزارة الصحة على إلزام المستشفى الخاص بإبلاغ شركة إدارة المطالبات (TPA) المعيَّنة من قِبل وزارة الصحة خلال (24) ساعة من استقبال الحالة الحرجة، وتقرِّر هذه الشركة بين النقل إلى مستشفى حكومي أو تحمُّل نفقات العلاج في المستشفى الخاص. كما تُشير المادة (11) إلى «التعميم رقم 274877-1439هـ بتاريخ 30/10/2017م لآلية شراء الخدمة الطبية» باعتباره الإطار الإجرائي والتسعيري المعمول به، إلَّا أنَّنا لم نتمكَّن من الوصول إلى نصِّ هذا التعميم في المصادر العامة. فهلاَّ تكرَّمتم بإرشادنا إلى مصدر معتمد لهذا التعميم (أو الذي يحلُّ محلَّه)، وبتأكيد ما إذا كان هو نفسه المرجع التسعيري الذي تستند إليه شركات التأمين الصحي التعاوني في تسوية مطالبات العلاج الإسعافي خارج الشبكة؟
+
+٣. بالنسبة للمستفيدين الذين يحقُّ لهم التغطية ضمن الأنظمة الصحية المغلقة (الخدمات الطبية لوزارة الدفاع، والخدمات الطبية لوزارة الداخلية، والشؤون الصحية بوزارة الحرس الوطني)، هل توجد مذكِّرات تفاهم بين هذه الجهات والمجلس أو بينها وبين شركات التأمين الخاصة تسمح بردِّ قيمة فواتير العلاج الإسعافي المُتكبَّدة في منشآت من خارج هذه الأنظمة؟ وإذا وُجدت، فما هي شروط تفعيلها؟
+
+٤. عند توجُّه مستفيد من فئة التغطية المغلقة إلى مستشفى خاص (من خارج النظام) في حالة إسعافية، فمن هي الجهة الأولى المسؤولة عن سداد تكاليف مرحلة الاستقرار العلاجي؟ هل تكون التغطية التعاونية للمريض (في حال وجودها) هي الدافعة الأولى وفق تسعيرة وزارة الصحة؟ أم أنَّ النظام الصحي المغلق يقوم بسداد فاتورة المنشأة الخاصة مباشرة؟
+
+٥. وفق سياسة تغطية مستفيدي الضمان الصحي، عندما يكون أحد الأبناء مسجَّلاً ضمن وثيقتَي تأمين ربِّ عمل كلٍّ من الوالدَين خلال فترة انتقالية (مثلاً مباشرةً بعد تغيُّر الحالة الاجتماعية أو الوظيفية)، كيف ينبغي للمستشفيات وشركات التأمين تحديد الوثيقة المعتمدة في تاريخ تقديم الخدمة؟ هل القاعدة زمنية بحتة، أم أنَّ قاعدة أولوية ربِّ عمل الزوج تنطبق منذ البداية؟
+
+٦. في حالة الوالدَين المنفصلَيْن، أيٌّ من وثيقتَي تأمين ربِّ عمل أحدهما تشمل الأبناء وفق سياسة تغطية المستفيدين؟
+
+٧. تُعرِّف سياسة تغطية المستفيدين «المعال» بأنه: «الزوج أو الزوجة، والأولاد الذكور حتى سنِّ الخامسة والعشرين، والبنات غير المتزوِّجات، إضافة إلى الأيتام المحتضنين لدى الأسر الكافلة المستفيدة من التأمين الصحي الإلزامي». فبالنسبة للمعالين البالغين الذين تجاوزوا سنَّ الخامسة والعشرين والمسجَّلين مع ذلك بصفة معاقين أو غير قادرين على إعالة أنفسهم، فمن الجهة المخوَّلة بتقرير أهليَّتهم — ربُّ العمل، أم شركة التأمين، أم المجلس — وما هي المستندات المطلوبة لإثبات ذلك؟
+
+٨. عندما تُحدِّد سياسة تغطية المستفيدين أنَّ وثيقة ربِّ عمل الزوج هي الوثيقة الرئيسة، ولكنَّ الزوج عاطل عن العمل أو غير مؤمَّن عليه، فهل تنتقل المسؤولية تلقائياً إلى وثيقة ربِّ عمل الزوجة؟ أم يجب على الزوج تقديم إقرار رسمي بعدم العمل أوَّلاً؟ وإذا كان الإقرار مطلوباً، فأين يُودَع نموذجه؟
+
+٩. في حال وجود وثيقتَي تأمين تعاوني فعَّالتَيْن في آنٍ واحدٍ لمستفيد واحد، ولا تنطبق عليهما قاعدة توزيع الزوج/الزوجة (مثلاً وثيقة فردية إلى جانب وثيقة جماعية من ربِّ العمل)، فأيُّ الوثيقتَيْن تكون الرئيسة؟ هل توجد قاعدة منشورة، أم يعتمد المجلس على التنسيق المباشر بين شركات التأمين؟
+
+نتطلَّع إلى تكرُّمكم بإفادتنا، فيما يخصُّ كلَّ بندٍ من البنود أعلاه، إمَّا بمرجع المادة أو التعميم ذي الصلة، أو ببيان مكتوب لموقف المجلس الراهن في الحالات التي يكون فيها الحكم تفسيرياً.
+
+ويسعدنا الحضور إلى مقرِّ المجلس شخصياً لمناقشة أيٍّ من هذه البنود.
+
+شاكرين لمعاليكم حسن تعاونكم،
+وتفضَّلوا بقبول وافر التحية والتقدير.
+
+[الاسم]
+[المسمَّى الوظيفي]
+[اسم الشركة / المشروع]
+[الهاتف]
+[البريد الإلكتروني]</pre>
+          </div>
+        </details>
+        <h4>Email-form alternative</h4>
+        <p><strong>To:</strong> the email shown on <a href="https://www.chi.gov.sa/en/contact" target="_blank" rel="noopener">chi.gov.sa/en/contact</a> (verify; do not guess)<br>
+        <strong>Subject:</strong> <code>Request for written guidance on Coordination of Benefits in multi-coverage scenarios</code><br>
+        <strong>Body:</strong> the letter text above, removing the postal address block.</p>
+        <p><strong>Estimated time:</strong> 2 hours · <strong>Expected response:</strong> 4–8 weeks.</p>`
+    },
+
+    {
+      id: 'T7', title: 'Letter to Insurance Authority', priority: 'p1', time: '2 hours',
+      body: `
+        <h4>Why this matters</h4>
+        <p>The IA replaced SAMA's insurance regulatory functions on 4 March 2024. If they have issued any post-March-2024 COB guidance — or if the new draft Insurance Law contains COB provisions — that fundamentally affects our algorithm.</p>
+        <h4>Steps</h4>
+        <ol>
+          <li>Same procedure as T6 — translate to Arabic, letterhead, sign, send via courier.</li>
+          <li>Address: <strong>Insurance Authority, Riyadh</strong> — verify exact address on <a href="https://ia.gov.sa" target="_blank" rel="noopener">ia.gov.sa</a> (from KSA network).</li>
+          <li>Subject: <code>Request for guidance on motor third-party liability interaction with cooperative health insurance, and on any post-March-2024 IA regulation on coordination of benefits</code></li>
+          <li>Reply <strong>"T7 sent."</strong> after dispatch.</li>
+        </ol>
+        <h4>Letter draft (English — ready to translate)</h4>
+        <pre class="letter-draft">[Your letterhead]
+[Date]
+
+To: Director-General — Health Insurance Supervision
+Insurance Authority (IA)
+Riyadh, Kingdom of Saudi Arabia
+
+Subject: Request for guidance on motor third-party liability
+         interaction with cooperative health insurance, and on any
+         post-March-2024 IA regulation on coordination of benefits
+
+Dear Sir / Madam,
+
+We are developing an information system to identify the liable
+insurance entity for medical cases at KSA hospitals. The system rests
+on primary sources including the Unified Compulsory Motor Insurance
+Policy (SAMA Governor Decision 2/S/444 of 1444H) and the Cooperative
+Insurance Companies Control Law (Royal Decree M/32 of 1424H).
+
+We respectfully request the IA's written guidance on the following
+points:
+
+1. Where a road traffic accident report from Najm or Muroor assigns
+   shared fault between drivers (for example 30/70), how is the
+   medical liability for the injured party's treatment costs
+   apportioned between the at-fault driver's MTPL insurer and the
+   injured party's cooperative health insurer? Is there published
+   guidance, or is the apportionment determined case-by-case by the
+   Insurance Disputes Committee?
+
+2. Pending the issuance of an authorised accident report by Najm or
+   Muroor, who is the interim payer for the injured party's
+   stabilisation and continuing care at a private hospital? In current
+   practice the cooperative health insurer pays first and subrogates
+   against the MTPL insurer once the report is finalised — this
+   mirrors the pay-and-subrogate model formalised in CCHI Visitor
+   Insurance Policy Article 6 ("Non duplication of benefits"). Is the
+   cooperative insurer's subrogation right against the MTPL insurer
+   formalised in any IA / SAMA circular or in the Implementing
+   Regulation of the Cooperative Insurance Companies Control Law?
+
+3. Where an at-fault driver in a road traffic accident is uninsured
+   (no MTPL), is there a backstop fund that compensates the injured
+   party's medical costs?
+
+4. Has the Insurance Authority issued any regulation, circular, or
+   technical bulletin since 4 March 2024 that addresses Coordination
+   of Benefits in multi-coverage health-insurance scenarios?
+
+5. What is the current status of the Daman / Unified Mandatory
+   Insurance program announced in 2024, and does its design include
+   a formal coordination-of-benefits cascade that would supersede
+   the existing CHI single-source assumption?
+
+6. The draft Insurance Law widely discussed in 2024 — does it contain
+   provisions addressing coordination of benefits between cooperative
+   health insurers, statutory primary payers (GOSI, MTPL), and
+   government coverage systems?
+
+For each item, a citation to a specific article or circular is
+preferred; where guidance is interpretive, a written statement is
+welcomed.
+
+Thank you for your time.
+
+Yours faithfully,
+
+[Your name]
+[Your role]
+[Company / project name]</pre>
+        <details class="task-card" style="margin-top:1rem;">
+          <summary>
+            <span>المسودة العربية · Arabic version (tap to expand)</span>
+            <span class="summary-meta"><span class="toggle">+</span></span>
+          </summary>
+          <div class="task-body">
+            <p style="font-size:0.86rem;color:var(--text-muted);">Working draft (2026-05-03). Same workflow as the CHI letter — Arabic on letterhead, English in cover note. Have the Arabic reviewed by a qualified Arabic legal translator (engage via task T4) before formal dispatch. Full doc: <code>docs/research/regulator-letters-arabic.md</code>.</p>
+            <pre class="letter-draft letter-draft-rtl">[ترويسة الشركة]
+[التاريخ]
+
+سعادة المدير العام لإدارة الإشراف على التأمين الصحي
+هيئة التأمين
+الرياض — المملكة العربية السعودية
+
+الموضوع: طلب توجيهات بخصوص تداخل المسؤولية الطبية في تأمين المركبات الإلزامي مع التأمين الصحي التعاوني، وبشأن أيِّ تنظيم صادر من الهيئة بعد مارس 2024 يتعلَّق بتنسيق المنافع
+
+السلام عليكم ورحمة الله وبركاته،
+
+نعمل حالياً على تطوير نظام معلوماتي لتحديد جهة التأمين المسؤولة عن كلِّ حالة طبية في المستشفيات السعودية. ويستند النظام إلى مصادر تنظيمية أوَّلية تشمل: وثيقة التأمين الإلزامي الموحَّدة على المركبات (قرار محافظ مؤسسة النقد العربي السعودي رقم 2/س/444 وتاريخ 23/6/1444هـ)، ونظام مراقبة شركات التأمين التعاوني (المرسوم الملكي رقم م/32 لعام 1424هـ).
+
+ونتشرَّف بطلب توجيهات الهيئة المكتوبة بخصوص النقاط التالية:
+
+١. في حوادث المرور التي يصدر فيها تقرير «نجم» أو «المرور» بتحميل الخطأ بنسبٍ متفاوتةٍ بين السائقين (مثلاً 30/70)، كيف تُوزَّع المسؤولية الطبية عن تكاليف علاج المصاب بين شركة تأمين المركبة الإلزامي للسائق المخطئ وشركة التأمين الصحي التعاوني للمصاب؟ هل توجد توجيهات منشورة، أم يُفصَل في التوزيع حالةً بحالة من قِبَل لجنة الفصل في المنازعات التأمينية؟
+
+٢. ريثما يصدر تقرير «نجم» أو «المرور» المعتمد، من هي الجهة الدافعة المؤقَّتة لتكاليف استقرار حالة المصاب واستمرار رعايته في مستشفى خاص؟ في الممارسة الراهنة، تقوم شركة التأمين الصحي التعاوني بالسداد أوَّلاً ثم الرجوع بالحلول على شركة تأمين المركبات الإلزامي بعد صدور التقرير — وهو نموذج مماثل لنموذج «الدفع ثم الرجوع بالحلول» الوارد رسمياً في المادة (6) "عدم ازدواج المنافع" من وثيقة تأمين الزوار الصادرة من مجلس الضمان الصحي التعاوني. فهل حقُّ الرجوع بالحلول لشركة التأمين الصحي على شركة تأمين المركبات منصوصٌ عليه في تعميم صادر من الهيئة أو مؤسسة النقد، أو في اللائحة التنفيذية لنظام مراقبة شركات التأمين التعاوني؟
+
+٣. في حال كان السائق المخطئ غير مؤمَّن عليه (لا يحمل تأمين مركبة إلزامي)، هل يوجد صندوق احتياطي يُعوِّض التكاليف الطبية للمصاب؟
+
+٤. هل أصدرت هيئة التأمين منذ 4 مارس 2024 أيَّ تنظيم أو تعميم أو نشرة فنية تتناول موضوع تنسيق المنافع في حالات تعدُّد التغطيات في التأمين الصحي؟
+
+٥. ما هو الوضع الحالي لبرنامج «ضمان» / التأمين الإلزامي الموحَّد المُعلَن عنه في عام 2024، وهل يتضمَّن تصميمه تسلسلاً رسمياً لتنسيق المنافع يُلغي افتراض المصدر الواحد للتغطية المعمول به حالياً في مجلس الضمان الصحي التعاوني؟
+
+٦. مشروع نظام التأمين الذي نوقش على نطاق واسع خلال عام 2024 — هل يتضمَّن أحكاماً تتعلَّق بتنسيق المنافع بين شركات التأمين الصحي التعاوني، والجهات الدافعة الأولى بحكم النظام (المؤسسة العامة للتأمينات الاجتماعية، وتأمين المركبات الإلزامي)، وأنظمة التغطية الحكومية؟
+
+نطلب لكلِّ بندٍ من البنود أعلاه إمَّا الإشارة إلى المادة أو التعميم ذي الصلة، أو بيان مكتوب في الحالات التي يكون فيها الحكم تفسيرياً.
+
+شاكرين لمعاليكم حسن تعاونكم،
+وتفضَّلوا بقبول وافر التحية والتقدير.
+
+[الاسم]
+[المسمَّى الوظيفي]
+[اسم الشركة / المشروع]</pre>
+          </div>
+        </details>
+        <p><strong>Estimated time:</strong> 2 hours · <strong>Expected response:</strong> 4–8 weeks.</p>`
+    },
+
+    {
+      id: 'T8', title: 'NPHIES vendor onboarding', priority: 'p1', time: '30 min to submit; 1–4 wk for response',
+      body: `
+        <h4>Why this matters</h4>
+        <p>NPHIES is the operational eligibility / claims platform every CHI-licensed payer and accredited provider uses. We need (a) confirmation of whether multi-coverage <code>CoverageEligibilityResponse</code> carries any primary/secondary indicator we missed, and (b) eventually integrate as a routing service.</p>
+        <h4>Steps</h4>
+        <ol>
+          <li>Visit <a href="https://nphies.sa" target="_blank" rel="noopener">nphies.sa</a> from a KSA network.</li>
+          <li>Find the "Become a Partner" / "Onboarding" / "Vendor Registration" page. If you can't locate it, use <a href="https://nphies.sa/contact" target="_blank" rel="noopener">nphies.sa/contact</a>.</li>
+          <li>Submit a registration request with your company's <strong>Commercial Registration (CR)</strong> number, identifying integration type as "decision-support / non-claims-processing" and requesting sandbox access.</li>
+          <li>Reply <strong>"T8 submitted."</strong> with the date sent. Follow up after 7 days if no response.</li>
+        </ol>
+        <h4>Email-form template (if you prefer email)</h4>
+        <p><strong>To:</strong> the address listed on <a href="https://nphies.sa/contact" target="_blank" rel="noopener">nphies.sa/contact</a> (verify; do not guess)<br>
+        <strong>Subject:</strong> <code>Sandbox access request — coverage-router-ksa eligibility routing service</code></p>
+        <pre class="letter-draft">Dear NPHIES Team,
+
+We are developing a decision-support service that identifies the
+liable insurance entity for medical cases in KSA. Our service consumes
+NPHIES eligibility responses (CoverageEligibilityRequest / Response)
+but does not itself process claims.
+
+We would like to request:
+
+1. Sandbox / non-production access to test multi-coverage scenarios
+   against NphiesCoverageEligibilityResponse. Specifically, we want
+   to observe how the platform handles a request for a beneficiary
+   with two or more active Coverage resources — whether
+   Coverage.order is populated, and whether any primary/secondary
+   indicator is returned that is not currently documented in the
+   IG v1.0.0.
+
+2. Any technical bulletins or addenda issued since the Healthcare
+   Financial Services IG v1.0.0 publication that constrain or
+   clarify Coverage.order semantics or multi-coverage handling.
+
+3. Guidance on the partner-onboarding path for an integration of
+   this kind (decision-support, non-claims-processing).
+
+Our company details:
+
+- Company name: [your company]
+- Commercial Registration: [CR number]
+- Contact: [name, phone, email]
+
+Thank you for your time.
+
+Yours faithfully,
+[Your name]
+[Your role]</pre>
+        <p><strong>Estimated time:</strong> 30 min to submit · <strong>Expected response:</strong> 1–4 weeks.</p>`
+    },
+
+    {
+      id: 'T4', title: 'Engage Arabic legal translator', priority: 'p1', time: '1–2 weeks turnaround',
+      body: `
+        <h4>Why this matters</h4>
+        <p>Several primary sources (MoH Annex 66, CCHI Beneficiaries Policy, Cabinet Resolution 591) are Arabic-only. Our COB doc currently relies on paraphrases. For production-grade citations, we need verbatim Arabic + faithful English alongside, with translator attribution.</p>
+        <h4>Steps</h4>
+        <ol>
+          <li>Find a certified Arabic legal translator (typical KSA rates: SAR 100–300/page). Options:
+            <ul>
+              <li>Local Riyadh firms — Al-Mansoor Translation, Saudi Translation Office, etc.</li>
+              <li>International services — Stepes, Lionbridge, OneHourTranslation (more expensive)</li>
+              <li>Vetted freelancers via ProZ.com or TranslatorsCafe</li>
+            </ul>
+          </li>
+          <li>Hand them the package below (article list + the existing extracted text files where applicable).</li>
+          <li>Receive translations back; drop them into a new file <code>docs/research/translations.md</code> following the format spec below.</li>
+          <li>Reply <strong>"T4 done — translations in [path]"</strong> and I'll integrate them into the COB doc.</li>
+        </ol>
+        <h4>Articles to translate (priority order)</h4>
+        <table>
+          <thead><tr><th>Source</th><th>Articles</th></tr></thead>
+          <tbody>
+            <tr><td><strong>MoH Annex 66</strong> (give them the original PDF — local extract is bidi-reversed)</td><td>Full text — 3 pages</td></tr>
+            <tr><td><strong>CCHI Beneficiaries Policy</strong> (after T3)</td><td>Husband-employer rule + dependent definitions (age, parents, students, disabled)</td></tr>
+            <tr><td><strong>CCHI Urgent Circular</strong> (after T3)</td><td>Full text — emergency cases &amp; 24-hour rule</td></tr>
+            <tr><td><strong>GOSI SIL M/273</strong></td><td>Verify English already in <code>tools/extracted/</code> against Arabic gazette for Arts. 28, 30, 31, 32, 33, 35</td></tr>
+            <tr><td><strong>Cooperative Health Insurance Law M/10</strong></td><td>Arts. 1, 2, 3, 7, 8, 14, 15</td></tr>
+            <tr><td><strong>PDPL — RD M/19 + RD M/148</strong></td><td>Arts. 1, 5, 6, 25, 29</td></tr>
+            <tr><td><strong>Cabinet Resolution 591</strong> (25 May 2021)</td><td>Domestic worker contract insurance — full text</td></tr>
+          </tbody>
+        </table>
+        <h4>Output format spec</h4>
+        <p>For each article, ask the translator to produce:</p>
+        <ol>
+          <li>The verbatim Arabic block (copy-paste from primary, not summarised).</li>
+          <li>A faithful English translation alongside.</li>
+          <li>Translator name and date.</li>
+        </ol>
+        <p><strong>Estimated cost:</strong> SAR 1,500–4,000 depending on volume.</p>`
+    },
+
+    {
+      id: 'T9', title: 'SDAIA / National Data Office written request', priority: 'p2', time: '30 min',
+      body: `
+        <h4>Why this matters</h4>
+        <p>PDPL governs every aspect of how we handle health data. Implementation specifics (DPIA template, adequacy list, consent withdrawal SLA) shape our persistence and consent flows.</p>
+        <h4>Steps</h4>
+        <ol>
+          <li>Visit <a href="https://dgp.sdaia.gov.sa" target="_blank" rel="noopener">dgp.sdaia.gov.sa</a> — National Data Governance Platform.</li>
+          <li>Find the contact / inquiry form (or use <a href="https://sdaia.gov.sa/en/SDAIA/about/Pages/RegulationsAndPolicies.aspx" target="_blank" rel="noopener">SDAIA contact</a>).</li>
+          <li>Submit the inquiry text below.</li>
+          <li>Reply <strong>"T9 submitted."</strong></li>
+        </ol>
+        <h4>Inquiry text (copy-paste)</h4>
+        <pre class="letter-draft">Subject: PDPL implementation guidance for a healthcare routing service
+
+We are developing a healthcare-data processing system in KSA and
+would value the National Data Office's written guidance on the
+following PDPL implementation specifics:
+
+1. Article 29 — adequacy determination of recipient jurisdictions
+   for cross-border transfer of personal data: is there a published
+   list of jurisdictions deemed adequate, and where can it be
+   accessed?
+
+2. For health data processing by a routing-decision service, what
+   specific Data Protection Impact Assessment (DPIA) template or
+   requirements apply? Is there an SDAIA-published template?
+
+3. Consent withdrawal under Article 6: must withdrawal mechanisms
+   be in-band (within the data controller's service), or are
+   external withdrawal mechanisms acceptable? Is there a defined
+   SLA for processing a withdrawal request?
+
+Company: [your company]
+Contact: [name, email, phone]
+
+Thank you.</pre>
+        <p><strong>Estimated time:</strong> 30 min · <strong>Expected response:</strong> 2–4 weeks.</p>`
+    }
+  ];
+
+  function renderActionItems() {
+    let html = ACTION_ITEMS_INTRO;
+    html += '<h4 style="margin-top:1.5rem;">Detailed packets — tap to expand</h4>';
+    ACTION_ITEMS.forEach((item, i) => {
+      html += `
+        <details class="task-card"${i === 0 ? ' open' : ''}>
+          <summary>
+            <span><code class="id">${item.id}</code> · ${item.title}</span>
+            <span class="summary-meta">
+              <span class="priority-pill ${item.priority}">${item.priority.toUpperCase()}</span>
+              <span style="font-size:0.78rem;color:var(--text-muted);">${item.time}</span>
+              <span class="toggle">+</span>
+            </span>
+          </summary>
+          <div class="task-body">${item.body}</div>
+        </details>`;
+    });
+    html += `
+      <h4 style="margin-top:1.75rem;">What I'll do (no action needed from you)</h4>
+      <table>
+        <thead><tr><th>ID</th><th>What I'll do</th><th>Trigger</th></tr></thead>
+        <tbody>
+          <tr><td><code class="id">T1a</code></td><td>Install pymupdf, re-extract MoH Annex 66 with proper Arabic</td><td>Reply: <strong>"go T1a"</strong></td></tr>
+          <tr><td><code class="id">T5</code></td><td>Author the remaining ~13 worked-example scenarios</td><td>Reply: <strong>"go T5"</strong></td></tr>
+          <tr><td><code class="id">T11</code></td><td>Research University Medical Cities (KAUH, KSUMC, KFSHRC)</td><td>Reply: <strong>"go T11"</strong></td></tr>
+          <tr><td><code class="id">T12</code></td><td>Research diplomatic personnel coverage</td><td>Reply: <strong>"go T12"</strong></td></tr>
+          <tr><td><code class="id">T13</code></td><td>Set up a quarterly check for Daman / new IA regs / draft Insurance Law</td><td>Reply: <strong>"schedule T13"</strong></td></tr>
+          <tr><td><code class="id">T1</code></td><td>Re-run fetch_and_extract.py to verify all 13 sources</td><td>Auto-triggered when you reply <strong>"T3 done"</strong></td></tr>
+        </tbody>
+      </table>`;
+    return html;
+  }
+
+  // ─── Modal plumbing ───
+  const modal = document.getElementById('modal');
+  const content = document.getElementById('modal-content');
+  let lastFocus = null;
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderSource(id) {
+    const s = SOURCES[id];
+    if (!s) return `<h3 class="modal-title">Source not found</h3><p>No data registered for source id <code>${escapeHtml(id)}</code>.</p>`;
+    let html = `<h3 class="modal-title">${s.title}</h3>`;
+    let metaParts = [];
+    if (s.decree) metaParts.push(s.decree);
+    if (s.meta_extra) metaParts.push(s.meta_extra);
+    if (s.pending_task) metaParts.push(`<span class="risk risk-med">Pending task ${s.pending_task}</span>`);
+    if (metaParts.length) html += `<div class="modal-meta">${metaParts.join(' · ')}</div>`;
+    if (s.note) html += `<div class="note">${s.note}</div>`;
+    if (s.quotes && s.quotes.length) {
+      html += '<h4>Verbatim quotations</h4>';
+      s.quotes.forEach(q => {
+        html += `<div class="quote">${q.text}<span class="citation">${q.article}</span></div>`;
+      });
+    } else if (!s.note) {
+      html += '<p><em>Verbatim quotation not yet captured. See linked URL or pending task.</em></p>';
+    }
+    if (s.url) {
+      html += `<h4>Primary source</h4>`;
+      html += `<a class="source-url" href="${s.url}" target="_blank" rel="noopener">${s.url}</a>`;
+    }
+    if (s.extracted) {
+      html += `<div class="extracted-link">Locally extracted text: <code>${s.extracted}</code></div>`;
+    }
+    return html;
+  }
+
+  function renderRoadmap(id) {
+    const r = ROADMAP[id];
+    if (!r) return `<h3 class="modal-title">Detail not found</h3>`;
+    let html = `<h3 class="modal-title">${r.title}</h3>`;
+    if (r.meta) html += `<div class="modal-meta">${r.meta}</div>`;
+    html += r.body;
+    return html;
+  }
+
+  function openModal(html) {
+    lastFocus = document.activeElement;
+    content.innerHTML = html;
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    // focus the close button so ESC works immediately and screen readers land in the dialog
+    setTimeout(() => modal.querySelector('.modal-close').focus(), 50);
+  }
+
+  function closeModal() {
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    content.innerHTML = '';
+    if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+  }
+
+  document.addEventListener('click', (e) => {
+    // Action-items trigger MUST come first — the inline flag is nested inside the step button,
+    // so we need to intercept before the step-button handler fires.
+    const actionTrigger = e.target.closest('[data-action-modal="user-tasks"]');
+    if (actionTrigger) {
+      e.preventDefault();
+      e.stopPropagation();
+      openModal(renderActionItems());
+      return;
+    }
+    const sourceBtn = e.target.closest('.source-link[data-source]');
+    if (sourceBtn) {
+      e.preventDefault();
+      openModal(renderSource(sourceBtn.dataset.source));
+      return;
+    }
+    const stepBtn = e.target.closest('.step[data-roadmap]');
+    if (stepBtn) {
+      e.preventDefault();
+      openModal(renderRoadmap(stepBtn.dataset.roadmap));
+      return;
+    }
+    if (e.target.closest('[data-close]')) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+      closeModal();
+    }
+  });
+
+  // Trap focus within modal panel when open (basic)
+  modal.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || modal.getAttribute('aria-hidden') !== 'false') return;
+    const focusables = modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  });
+})();
+</script>
+
+</body>
+</html>
