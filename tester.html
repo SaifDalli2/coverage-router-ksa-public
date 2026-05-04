@@ -122,10 +122,10 @@
   .layout {
     display: grid;
     gap: 1rem;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   @media (min-width: 960px) {
-    .layout { grid-template-columns: 1fr 1fr; }
+    .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }
 
   .panel {
@@ -221,14 +221,14 @@
   }
   .field {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.25rem;
     margin-bottom: 0.55rem;
   }
   @media (min-width: 480px) {
     .field-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 0.55rem;
     }
   }
@@ -267,7 +267,7 @@
   }
   .cchi-row {
     display: grid;
-    grid-template-columns: 1fr 70px 90px 30px;
+    grid-template-columns: minmax(0, 1fr) 70px 90px 30px;
     gap: 0.4rem;
     align-items: center;
     background: var(--surface-alt);
@@ -372,9 +372,13 @@
   }
   .layout, .panel, main { min-width: 0; }
   /* Prevent any input from overflowing its container */
-  input, select, textarea, button { max-width: 100%; }
+  input, select, textarea, button { max-width: 100%; box-sizing: border-box; }
+  .field input[type="text"], .field input[type="number"], .field select { width: 100%; }
+  .preset-row { min-width: 0; }
   .preset-row select { min-width: 0; }
+  .cchi-row { min-width: 0; }
   .cchi-row > * { min-width: 0; }
+  .cchi-row select { width: 100%; }
   .verdict.high .liable { color: var(--success); }
   .verdict.medium .liable { color: #a07b00; }
   .verdict.low .liable { color: var(--danger); }
@@ -542,7 +546,7 @@
   /* Reflow CCHI row on very narrow screens — tier + cap-exhausted side-by-side under insurer */
   @media (max-width: 439px) {
     .cchi-row {
-      grid-template-columns: 1fr 1fr 32px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px;
       grid-template-areas:
         "insurer  insurer  rm"
         "tier     exh      rm";
