@@ -228,7 +228,18 @@
   .verdict .liable {
     font-size: 1.2rem; font-weight: 700;
     margin-bottom: 0.4rem;
+    overflow-wrap: anywhere;
   }
+  .verdict .meta strong, .verdict .meta span,
+  .citation-list li, .trace-list li, .trace-list li .why,
+  .out-section, .open-questions {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .layout, .panel, main { min-width: 0; }
+  input, select, textarea, button { max-width: 100%; }
+  .preset-row select { min-width: 0; }
+  .cchi-row > * { min-width: 0; }
   .verdict.high .liable { color: var(--success); }
   .verdict.medium .liable { color: #a07b00; }
   .verdict.low .liable { color: var(--danger); }
@@ -342,15 +353,13 @@
       background: rgba(255,255,255,0.96);
       -webkit-backdrop-filter: saturate(180%) blur(10px);
       backdrop-filter: saturate(180%) blur(10px);
-      margin: 1.1rem -1.15rem -1.1rem;
-      padding: 0.7rem 1.15rem calc(0.7rem + env(safe-area-inset-bottom));
+      margin: 1.1rem 0 0;
+      padding: 0.7rem 0 calc(0.7rem + env(safe-area-inset-bottom));
       border-top: 1px solid var(--border);
-      box-shadow: 0 -4px 14px rgba(0,0,0,0.06);
       z-index: 30;
     }
     main { padding-bottom: 1.5rem; }
-    .panel { padding-bottom: 1.4rem; }
-    .panel { scroll-margin-top: 70px; }
+    .panel { padding-bottom: 1.4rem; scroll-margin-top: 70px; }
   }
 
   @media (max-width: 520px) {
