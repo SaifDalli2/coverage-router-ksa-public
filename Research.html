@@ -1084,22 +1084,35 @@
   }
   .flow-branch {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.5rem;
     align-items: baseline;
     padding: 0.4rem 0.6rem;
     background: var(--surface-alt);
     border-radius: 6px;
     font-size: 0.85rem;
+    min-width: 0;
+  }
+  /* On narrow screens the verdict text was overflowing because of
+     white-space:nowrap + a single 1fr column; stack the rows instead. */
+  @media (max-width: 640px) {
+    .flow-branch {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem;
+    }
   }
   .flow-branch .cond {
     color: var(--text);
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .flow-branch .cond code {
     font-size: 0.85em;
     background: rgba(0,0,0,0.04);
     padding: 1px 4px;
     border-radius: 3px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .flow-branch .arrow {
     color: var(--text-muted);
@@ -1108,9 +1121,23 @@
   .flow-branch .verdict {
     color: var(--primary);
     font-weight: 600;
-    white-space: nowrap;
     text-align: right;
+    overflow-wrap: anywhere;
+    min-width: 0;
   }
+  @media (min-width: 641px) {
+    .flow-branch .verdict { white-space: normal; }
+  }
+  @media (max-width: 640px) {
+    .flow-branch .verdict { text-align: left; }
+  }
+  .flow-branch.cit {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Belt-and-suspenders: keep the flow container from being pushed wider
+     by any descendant content. */
+  .flow, .flow-layer, .flow-branches { min-width: 0; }
+  body { overflow-x: hidden; }
   .flow-branch.amb { background: rgba(184,73,58,0.05); }
   .flow-branch.amb .verdict { color: var(--danger); }
   .flow-branch.cit {
