@@ -59,6 +59,29 @@
   }
   header.topbar nav a:hover { color: var(--primary); }
   header.topbar nav a.active { color: var(--primary); font-weight: 600; }
+  header.topbar nav a.lang-switch {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.15s;
+  }
+  header.topbar nav a.lang-switch:hover, header.topbar nav a.lang-switch:focus-visible {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    outline: none;
+  }
+  @media (max-width: 480px) {
+    header.topbar nav a:not(.lang-switch):not(.active) { display: none; }
+    header.topbar nav { gap: 0.6rem; }
+  }
 
   section.intro {
     padding: 1.75rem 0 1.25rem;
@@ -408,8 +431,8 @@
     <nav>
       <a href="Research.ar.html">الأبحاث</a>
       <a href="tester.ar.html" class="active">المُختبِر</a>
-      <a href="tester.html" lang="en">English</a>
       <a href="https://github.com/SaifDalli2/coverage-router-ksa" target="_blank" rel="noopener">GitHub</a>
+      <a href="tester.html" class="lang-switch" lang="en">English</a>
     </nav>
   </div>
 </header>

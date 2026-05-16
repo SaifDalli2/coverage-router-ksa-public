@@ -76,6 +76,30 @@
   }
   nav.topnav a:hover { color: var(--primary); }
   @media (min-width: 720px) { nav.topnav ul { display: flex; } }
+  nav.topnav .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+  }
+  nav.topnav a.lang-switch {
+    display: inline-block;
+    padding: 0.32rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    transition: all 0.15s;
+  }
+  nav.topnav a.lang-switch:hover, nav.topnav a.lang-switch:focus-visible {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    outline: none;
+  }
 
   /* Hero */
   header.hero {
@@ -219,12 +243,183 @@
     font-size: 0.95rem;
     line-height: 1.75;
   }
-  .card .source {
+  .card .source-row {
     margin-top: 0.85rem;
     padding-top: 0.75rem;
     border-top: 1px dashed var(--border);
     font-size: 0.82rem;
     color: var(--text-muted);
+    line-height: 2;
+  }
+  .card .source-row .label {
+    margin-left: 0.35rem;
+  }
+  /* Backwards-compat alias if any plain .source tags still appear */
+  .card .source { margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); font-size: 0.82rem; color: var(--text-muted); }
+
+  .source-link {
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 100px;
+    padding: 0.18rem 0.65rem 0.22rem;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--primary);
+    cursor: pointer;
+    margin: 0 0 0.18rem 0.18rem;
+    transition: all 0.15s;
+    line-height: 1.3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    text-decoration: none;
+  }
+  .source-link:hover, .source-link:focus {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    border-style: solid;
+    outline: none;
+  }
+  .source-link::after { content: "‹"; font-size: 1em; line-height: 1; transform: translateY(-1px); }
+
+  /* Modal */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: none;
+    align-items: stretch; justify-content: center;
+  }
+  .modal[aria-hidden="false"] { display: flex; }
+  .modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(15, 22, 30, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  .modal-panel {
+    position: relative;
+    background: var(--surface);
+    width: 100%;
+    max-width: 760px;
+    max-height: 100%;
+    overflow-y: auto;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.20);
+    -webkit-overflow-scrolling: touch;
+    animation: modalSlideUp 0.22s ease-out;
+  }
+  @media (min-width: 720px) {
+    .modal { align-items: center; padding: 1.5rem; }
+    .modal-panel { max-height: 90vh; border-radius: var(--radius); animation: modalFadeIn 0.18s ease-out; }
+  }
+  @media (prefers-reduced-motion: reduce) { .modal-panel { animation: none; } }
+  @keyframes modalSlideUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal-close {
+    position: absolute; top: 0.85rem; left: 0.85rem;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--text-muted);
+    z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--border); color: var(--text); }
+  .modal-content { padding: 2rem 1.5rem 2rem; }
+  @media (min-width: 720px) { .modal-content { padding: 2.25rem 2rem 2rem; } }
+  .modal-content h3.modal-title {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.2rem, 3vw, 1.4rem);
+    letter-spacing: -0.01em;
+    padding-left: 2.5rem;
+  }
+  .modal-content .modal-meta {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+  .modal-content h4 {
+    margin: 1.5rem 0 0.65rem;
+    font-size: 0.95rem;
+  }
+  .modal-content h4:first-of-type { margin-top: 1rem; }
+  .modal-content p { margin: 0 0 0.85rem; font-size: 0.95rem; }
+  .modal-content .quote {
+    background: var(--surface-alt);
+    border-right: 3px solid var(--primary);
+    padding: 0.85rem 1rem;
+    margin: 0.5rem 0 0.85rem;
+    border-radius: 4px 0 0 4px;
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+  .modal-content .quote.ltr {
+    direction: ltr;
+    text-align: left;
+    border-right: none;
+    border-left: 3px solid var(--primary);
+    border-radius: 0 4px 4px 0;
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  .modal-content .quote .citation {
+    display: block;
+    margin-top: 0.55rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .modal-content .source-url {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-top: 0.4rem;
+    word-break: break-all;
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+  .modal-content .source-url:hover { background: var(--primary); color: white; }
+  .modal-content .source-url::before { content: "↗"; margin-left: 0.15rem; }
+  .modal-content .extracted-link {
+    display: block;
+    margin-top: 0.65rem;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+  }
+  .modal-content .extracted-link code {
+    background: var(--surface-alt);
+    padding: 2px 6px;
+    border-radius: 3px;
+    word-break: break-all;
+  }
+  .modal-content .note {
+    background: var(--accent-light);
+    border-right: 3px solid var(--accent);
+    padding: 0.65rem 0.9rem;
+    border-radius: 4px 0 0 4px;
+    font-size: 0.92rem;
+    margin: 0.6rem 0 1rem;
   }
 
   /* Status pills */
@@ -413,14 +608,16 @@
 <nav class="topnav" aria-label="primary">
   <div class="container">
     <div class="brand">موجِّه التغطية التأمينية</div>
-    <ul>
-      <li><a href="#problem">المشكلة</a></li>
-      <li><a href="#rules">عائلات القواعد</a></li>
-      <li><a href="#coverage">خريطة التغطية</a></li>
-      <li><a href="#roadmap">خارطة الطريق</a></li>
-      <li><a href="tester.ar.html" style="color:var(--primary);font-weight:600;">→ المُختبِر</a></li>
-      <li><a href="Research.html" lang="en">English</a></li>
-    </ul>
+    <div class="nav-right">
+      <ul>
+        <li><a href="#problem">المشكلة</a></li>
+        <li><a href="#rules">عائلات القواعد</a></li>
+        <li><a href="#coverage">خريطة التغطية</a></li>
+        <li><a href="#roadmap">خارطة الطريق</a></li>
+        <li><a href="tester.ar.html" style="color:var(--primary);font-weight:600;">→ المُختبِر</a></li>
+      </ul>
+      <a href="Research.html" class="lang-switch" lang="en">English</a>
+    </div>
   </div>
 </nav>
 
@@ -458,31 +655,62 @@
       <article class="card l-one">
         <h3><span class="num">١</span> الاستثناءات النظامية</h3>
         <p><strong>الأعلى أسبقيةً.</strong> إصابات العمل ← المؤسسة العامة للتأمينات الاجتماعية / فرع الأخطار المهنية (نظام التأمينات الاجتماعية، مرسوم ملكي رقم م/273 وتاريخ 1445/12/26هـ، المواد 28، 30، 31، 32). إصابة جسدية بسبب حادث مروري ← التأمين الإلزامي على مركبة المخطئ (وثيقة التأمين الإلزامي الموحَّدة على المركبات). استثناء إصابات العمل من حزمة المنافع الأساسية أُكِّد حرفيًا في الفصل 3، القسم أ، البند 7 — وهو ما يُغلق السؤال Q1.1.</p>
-        <div class="source">المصادر: gosi.gov.sa · rulebook.sama.gov.sa · chi.gov.sa</div>
+        <div class="source-row">
+          <span class="label">المصادر:</span>
+          <button class="source-link" data-source="gosi-m273">نظام التأمينات الاجتماعية م/273</button>
+          <button class="source-link" data-source="mtpl-policy">وثيقة التأمين الإلزامي على المركبات</button>
+          <button class="source-link" data-source="najm">إجراءات «نجم»</button>
+          <button class="source-link" data-source="cchi-ebp-exclusion">استثناء حزمة المنافع</button>
+        </div>
       </article>
       <article class="card l-two">
         <h3><span class="num">٢</span> أولوية الحالات الإسعافية</h3>
         <p><strong>متعارضة مع الجميع.</strong> يجب على المستشفى — عام أو خاص — استقبال الحالة وتقديم العلاج الإسعافي بدون أيِّ مطالبة مالية مسبقة (نظام الصحة م/11، الملحق رقم 66 المادة 1 — حرفيًا). وخلال 24 ساعة من استقبال الحالة الحرجة، يُبلِغ المستشفى الخاص شركة إدارة المطالبات (TPA) المعيَّنة من وزارة الصحة عبر بوَّابة purchasingprogram.com.sa، فتقرِّر الشركة بين النقل إلى مستشفى حكومي أو تحمُّل النفقة على نفقة الوزارة (المادة 3 من الملحق 66). بالنسبة للسعوديين الذين استنفدوا حدّ التأمين أو في حال استثناء الخدمة، تتوفَّر آلية استكمال على نفقة وزارة الصحة (المادة 5 — أقرب تسلسل تنسيق منافع منشور).</p>
-        <div class="source">المصادر: نظام الصحة م/11 المادة 5(هـ) · الملحق 66 · التعميم العاجل من المجلس برقم 1733/1439/3531 (إعفاء المشاركة في الدفع للحالات الإسعافية)</div>
+        <div class="source-row">
+          <span class="label">المصادر:</span>
+          <button class="source-link" data-source="health-law-m11">نظام الصحة م/11</button>
+          <button class="source-link" data-source="moh-annex-66">الملحق رقم 66</button>
+          <button class="source-link" data-source="cchi-urgent-circular">التعميم العاجل من المجلس</button>
+        </div>
       </article>
       <article class="card l-three">
         <h3><span class="num">٣</span> التوجيه حسب المنشأة</h3>
         <p>الأنظمة الصحية المغلقة — الشؤون الصحية بوزارة الحرس الوطني (NGHA)، والخدمات الطبية لوزارة الدفاع (MSD)، والخدمات الطبية لوزارة الداخلية، وأرامكو/SAMSO، والهيئة الملكية للجبيل وينبع — تدفع فقط في منشآتها الخاصَّة. لا تُسدِّد فواتير المستشفيات الخاصَّة الأخرى. أمَّا المدن الطبية الجامعية (KAUH، KSUMC، KFSHRC) فهي مستقبلات إحالة مفتوحة، متعدِّدة الجهات الدافعة.</p>
-        <div class="source">المصادر: ngha.med.sa · msd.gov.sa · jhah.com</div>
+        <div class="source-row">
+          <span class="label">المصادر:</span>
+          <button class="source-link" data-source="ngha-closed">الحرس الوطني (NGHA)</button>
+          <button class="source-link" data-source="msd-closed">الدفاع (MSD)</button>
+          <button class="source-link" data-source="moi-medical">الداخلية</button>
+          <button class="source-link" data-source="samso-jhah">أرامكو / SAMSO</button>
+          <button class="source-link" data-source="rcjy-medical">الهيئة الملكية</button>
+        </div>
       </article>
       <article class="card l-four">
         <h3><span class="num">٤</span> تخصيص فئة المستفيد</h3>
         <p>سياسة تغطية المستفيدين الصادرة عن المجلس هي قاعدة <strong>منع الازدواج</strong>، وليست تسلسلًا تنسيقيًا. الافتراض: تأمين الأبناء يكون من خلال جهة عمل الأب. وثيقة تأمين موحَّدة لكلِّ صاحب عمل. تُحدِّد القاعدة جهة المسؤولية، لكنَّها لا تُحدِّد كيفية اقتسام الفاتورة بين شركتَيْ تأمين فعَّالتَين في آنٍ واحد. تعريف «المعال» محفوظ حرفيًا: «الزوج أو الزوجة، والأولاد الذكور حتى سنِّ الخامسة والعشرين، والبنات غير المتزوِّجات، إضافةً إلى الأيتام المحتضنين لدى الأسر الكافلة المستفيدة من التأمين الصحي الإلزامي».</p>
-        <div class="source">المصدر: سياسة تغطية مستفيدي التأمين الصحي · CCHI-08-PR-02-1/0</div>
+        <div class="source-row">
+          <span class="label">المصدر:</span>
+          <button class="source-link" data-source="chi-beneficiaries">سياسة تغطية المستفيدين</button>
+        </div>
       </article>
       <article class="card l-five">
         <h3><span class="num">٥</span> التعاوني كحالة افتراضية</h3>
         <p>ما تبقَّى بعد ما سبق: الزيارات الاعتيادية ← شركة التأمين الصحي التعاوني الرئيسة. تنطبق الأنظمة الخاصَّة (تأمين الحجَّاج والمعتمرين، وتأمين الزوار، وتأمين العمالة المنزلية) إذا كانت فعَّالة. <strong>المادة (6) من وثيقة تأمين الزوار</strong> هي البند الوحيد الصريح لتنسيق المنافع في تنظيم التأمين التعاوني السعودي — نموذج «الدفع ثم الرجوع بالحلول».</p>
-        <div class="source">المصادر: وثيقة الضمان الصحي التعاوني الموحَّدة · سياسة الزوار · سياسة العمالة المنزلية · سياسة الحجَّاج والمعتمرين</div>
+        <div class="source-row">
+          <span class="label">المصادر:</span>
+          <button class="source-link" data-source="chi-unified-policy">وثيقة الضمان الصحي التعاوني الموحَّدة</button>
+          <button class="source-link" data-source="hajj-umrah-policy">سياسة الحجَّاج والمعتمرين</button>
+          <button class="source-link" data-source="visitor-insurance">سياسة تأمين الزوار</button>
+          <button class="source-link" data-source="domestic-worker-insurance">سياسة العمالة المنزلية</button>
+        </div>
       </article>
       <article class="card highlight">
         <h3>لماذا هذا مهم</h3>
         <p>منصَّة «نفيس» — منصَّة الخدمات الإلكترونية الوطنية لتبادل المعلومات الصحية المبنيَّة على معيار FHIR — <strong>لا</strong> تُرجع مؤشِّرًا للأولوية بين التغطيات عند تعدُّدها. حقل <code>Coverage.order</code> غير مُقيَّد. المستشفيات وشركات إدارة المطالبات تُقرِّر بالاجتهاد. هذه الخدمة تجعل القرار متَّسقًا وقابلاً للتدقيق ومُسنَدًا بالاستشهادات.</p>
+        <div class="source-row">
+          <span class="label">المصدر:</span>
+          <button class="source-link" data-source="nphies-ig">دليل تطبيق «نفيس» للخدمات المالية</button>
+        </div>
       </article>
     </div>
   </div>
@@ -599,6 +827,279 @@
     <div>المستودع المصدري: <a href="https://github.com/SaifDalli2/coverage-router-ksa">SaifDalli2/coverage-router-ksa</a></div>
   </div>
 </footer>
+
+<div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-panel" tabindex="-1">
+    <button class="modal-close" type="button" aria-label="إغلاق" data-close="1">×</button>
+    <div class="modal-content" id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SOURCES = {
+
+    'gosi-m273': {
+      title: 'نظام التأمينات الاجتماعية',
+      decree: 'المرسوم الملكي م/273 وتاريخ 26/12/1445هـ (2 يوليو 2024م)',
+      meta_extra: 'يَنسَخ المرسوم الملكي م/33 لعام 1421هـ',
+      note: 'اكتُشِف خلال الاستخراج الثاني (3 مايو 2026م): النظام الساري هو م/273، لا م/33. تَغيَّرت أرقام المواد — تعريف إصابة العمل أصبح المادة 30 بدلاً من المادة 27.',
+      quotes: [
+        { article: 'المادة 28 — النطاق الإلزامي', text: 'يَسري تطبيق فرع الأخطار المهنية والتعويضات الإضافية وجوبًا على الفئات التالية: (أ) جميع العاملين بصفة موظفين في المملكة. (ب) جميع العاملين بصفة عمَّال في المملكة.' },
+        { article: 'المادة 30(1) — تعريف إصابة العمل', text: 'تشمل إصابة العمل أيَّ حادث يقع للمشترك أثناء تأدية واجبات عمله أو بسببها. وتشمل أيضًا أيَّ حادث يقع للمشترك أثناء انتقاله الاعتيادي بين محلِّ إقامته ومحلِّ عمله، أو بين محلِّ عمله والمكان الذي يتناول فيه طعامه أو يؤدِّي فيه صلاته عادة، وكذلك الحوادث التي تقع للمشترك أثناء تنقُّله لأداء مهمَّة كلَّفه بها صاحب العمل.' },
+        { article: 'المادة 31(1) — التعويضات', text: 'يستحقُّ المشترك الذي يصاب بإصابة عمل التعويضات التالية: (أ) العناية الطبية اللازمة لحالته. (ب) بدلات يومية عن العجز المؤقَّت. (ج) عوائد شهرية وتعويضات مقطوعة عن العجز الدائم الكلِّيِّ أو الجزئيِّ.' },
+        { article: 'المادة 31(2) — شرط التسجيل', text: 'لا تُستحقُّ التعويضات إلَّا إذا وقعت الإصابة بعد إتمام إجراءات اشتراك المشترك لدى المؤسسة، أو في المهلة المحدَّدة باللائحة لتسجيل المشترك من قِبَل صاحب العمل، أو لتسجيل المشترك نفسه عند امتناع صاحب العمل أو تأخُّره عن التسجيل.' },
+        { article: 'المادة 32(4) — مقدِّم العلاج', text: 'تُقدَّم العناية الطبية في المستشفيات والمراكز الطبية والعيادات التي تحدِّدها المؤسسة.' }
+      ],
+      url: 'https://misa.gov.sa/app/uploads/2025/07/Social-Insurance-Law.pdf',
+      extracted: 'tools/extracted/gosi-social-insurance-law-m273.txt'
+    },
+
+    'cchi-ebp-exclusion': {
+      title: 'استثناء إصابات العمل من حزمة المنافع الأساسية المُحدَّثة',
+      decree: 'حزمة المنافع الأساسية المُحدَّثة الصادرة عن مجلس الضمان الصحي التعاوني، السارية اعتبارًا من 1 أكتوبر 2022م',
+      meta_extra: 'النص الحرفي مُستَخرَج 3 مايو 2026م (108 صفحة) — يُغلِق السؤال Q1.1',
+      note: 'مؤكَّد: قسم «الضوابط والاستثناءات» في حزمة المنافع يَستثني صراحةً الإصابات المهنية من تغطية التأمين الصحي التعاوني. هذا هو الاستشهاد الذي يجعل المؤسسة العامة للتأمينات الاجتماعية هي الجهة الدافعة <strong>الوحيدة</strong> لإصابات العمل المشمولة (استثناء كامل، لا تنسيق ثانوي).',
+      quotes: [
+        { article: 'الفصل 3 — الضوابط والاستثناءات، القسم (أ)، البند 7 (حرفيًا — النصُّ الإنجليزي)',
+          text: 'This policy will not cover claims resulting from … Any illness or injury arising directly from the profession of the Insured.',
+          ltr: true },
+        { article: 'الفصل 3 — القسم (أ)، البندان 1-2 (الإعفاء للحالات الإسعافية)',
+          text: 'حتى الحالات المُستثناة تبقى مُغطَّاة لمرحلة الاستقرار الإسعافي: مضاعفات الإصابة الذاتية ومضاعفات إساءة استعمال المواد المُستثناة، ولكن «باستثناء تكاليف علاج الحالات الإسعافية (الإصابات المُهدِّدة للحياة) كما ورد في نظام المؤسسات الصحية الخاصَّة ولائحته التنفيذية الصادرة عن وزارة الصحة، التي تُحدِّد آلية التعامل مع الحالات الإسعافية».' }
+      ],
+      url: 'https://www.chi.gov.sa/en/beneficiary/healthinsurancepolicy/Updated%20Essential%20Benefit%20Package%20%20(%20effective%201%20October%202022).pdf',
+      extracted: 'tools/extracted/chi-updated-ebp-policy.txt'
+    },
+
+    'mtpl-policy': {
+      title: 'وثيقة التأمين الإلزامي الموحَّدة على المركبات',
+      decree: 'قرار محافظ مؤسسة النقد العربي السعودي رقم 2/س/444 وتاريخ 23/6/1444هـ',
+      note: 'النصُّ الحرفي متوفِّر على rulebook.sama.gov.sa؛ لم يُسحَب بعد إلى الاستخراج المحلِّيِّ. أرقام المواد الرئيسة وحدُّ المسؤولية التراكميُّ (10 ملايين ريال — 10 آلاف ريال سقف عند المطالبات المُقدَّمة لمستشفى وزارة الصحة) مؤكَّدة من البحث الأوَّل.',
+      quotes: [
+        { article: 'المادة الثالثة — التعويض', text: 'تُلزَم شركة التأمين بتعويض الطرف الثالث عن كافَّة المبالغ التي يكون المؤمَّن له أو السائق أو المسؤول عن الحادث ملزمًا بدفعها — بما في ذلك الوفاة أو الإصابات الجسدية داخل المركبة أو خارجها.' },
+        { article: 'المادة الرابعة — حدُّ المسؤولية', text: 'حدٌّ تراكميٌّ للمسؤولية قدره عشرة ملايين ريال سعوديٍّ عن كلِّ حادث / مدى صلاحية الوثيقة.' },
+        { article: 'المادة السادسة — التوثيق', text: 'تستند مسؤولية الشركة وتحديد الغشِّ إلى التوثيق الصادر عن الجهة المخوَّلة بالحضور إلى مكان الحادث (نجم أو المرور).' },
+        { article: 'الملحق أ — حدود طبِّية مزدوجة', text: 'سقف 10,000 ريال عند تقديم المطالبة لمستشفى تابع لوزارة الصحة؛ ما يصل إلى 10,000,000 ريال للمنشآت من خارج الوزارة.' }
+      ],
+      url: 'https://rulebook.sama.gov.sa/en/unified-compulsory-motor-insurance-policy'
+    },
+
+    'najm': {
+      title: 'إجراءات «نجم» بعد الحادث',
+      note: 'توجيه تشغيليٌّ (لا نصَّ نظاميٌّ). تقرير «نجم» / المرور هو الوثيقة الفاصلة في تحديد المسؤولية لمطالبات التأمين الإلزامي على المركبات. «نجم» نفسها تُوجِّه المتَّصلين إلى «المرور» أو «الهلال الأحمر» في حال وجود إصابة جسدية — تطبيق نجم لا يُستخدَم لحوادث الإصابات الجسدية.',
+      url: 'https://najm.sa/sites/en/services/post-accident-procedures'
+    },
+
+    'health-law-m11': {
+      title: 'نظام الصحة — اللائحة التنفيذية',
+      decree: 'المرسوم الملكي م/11 وتاريخ 23/3/1423هـ (4/6/2002م)؛ اللائحة التنفيذية بقرار وزير الصحة رقم 69181/30 وتاريخ 15/06/1424هـ',
+      meta_extra: 'نُشر في الجريدة الرسمية «أم القرى»، العدد 3956 بتاريخ 01/07/1424هـ',
+      quotes: [
+        { article: 'المادة 5(هـ) — الرعاية الصحية في حالات الحوادث (حرفيًا — النصُّ الإنجليزي)',
+          text: 'All public and private health institutions shall abide by the regulations and instructions thereof in terms of providing emergency treatment to the injured upon arrival, and they may be transferred to another treatment center after providing the necessary emergency treatment thereto.',
+          ltr: true },
+        { article: 'المادة 2 — هدف النظام (حرفيًا)',
+          text: 'This Law aims at ensuring the provision and regulation of comprehensive and integrated Healthcare for all the population in a fair and accessible manner.',
+          ltr: true }
+      ],
+      url: 'https://www.moh.gov.sa/en/Ministry/Rules/Documents/002.pdf',
+      extracted: 'tools/extracted/moh-health-law-m11.txt'
+    },
+
+    'moh-annex-66': {
+      title: 'الملحق رقم 66 من وزارة الصحة — قواعد علاج الحالات الإسعافية',
+      decree: 'الوثيقة رقم 0066 / الملحق رقم 66 للمادة 16/3، الإصدار 4',
+      meta_extra: 'استُخرِجت كنصٍّ عربيٍّ سليم 3 مايو 2026م باستخدام pymupdf — تتضمَّن قاعدة الـ24 ساعة وتسلسل المادة 5',
+      note: 'كانت أوَّل الأبحاث قد عزَت قاعدة الإبلاغ خلال 24 ساعة إلى التعميم العاجل للمجلس، لكنَّ الاستخراج الحرفيَّ أثبت أنَّها تقع فعليًّا في الملحق رقم 66 المادة 3 (إبلاغ شركة إدارة المطالبات المعيَّنة من وزارة الصحة، وليس شركة تأمين المريض).',
+      quotes: [
+        { article: 'المادة 1 — التزام العلاج أوَّلًا',
+          text: 'يلتزم المستشفى الخاص باستقبال الحالة وتقديم العلاج الإسعافي لها سواء قدمت الحالة الإسعافية إلى المستشفى الخاص من تلقاء نفسها أو بصحبة أحد أفراد المجتمع أو عبر مسعفي هيئة الهلال الأحمر السعودي، على أن تلتزم كافة المؤسسات الصحية الخاصة المعدة للعلاج باستقبال جميع الحالات الإسعافية التي تصل إليها وتقديم العلاج الإسعافي لها لحين استقرار الحالة بغض النظر عن الجنسية أو جهة العمل، ودون مطالبة مالية مسبقة (قبل تقديم العلاج).' },
+        { article: 'المادة 3 — قاعدة الإبلاغ خلال 24 ساعة',
+          text: 'يقوم المستشفى الخاص خلال 24 ساعة من استقبال الحالة الحرجة بإبلاغ شركة إدارة المطالبات (TPA) التي عيَّنتها وزارة الصحة لإدارة هذا النوع من الحالات والتعاملات مع القطاع الخاص — من خلال الآلية المخصَّصة لذلك — لنقلها إلى أحد المستشفيات الحكومية أو لتحمُّل نفقات العلاج (حسب الحالة)، وذلك بعد التأكُّد من أهلية المريض للعلاج بناءً على معايير الأهلية الطبية والديموغرافية.' },
+        { article: 'المادة 5 — تسلسل استنفاد الحدِّ للسعوديين',
+          text: 'بالنسبة للسعوديين الذين لديهم تأمين في القطاع الخاص، توافق شركة [إدارة المطالبات] على استكمال تغطيتهم العلاجية على نفقة وزارة الصحة في المستشفيات الخاصَّة في حال: (أ) تم استنفاذ الحدِّ الائتمانيِّ الأعلى لوثيقة التأمين، شرط حصول شركة إدارة المطالبات على ما يُثبِت ذلك من شركة التأمين المؤمَّن لديه. (ب) في حال كانت الخدمة الطبية من استثناءات وثيقة التأمين.' }
+      ],
+      url: 'https://www.moh.gov.sa/eServices/Licences/Documents/0066.pdf',
+      extracted: 'tools/extracted/moh-annex-66-emergency-rules.ar.txt'
+    },
+
+    'cchi-urgent-circular': {
+      title: 'التعميم العاجل من المجلس',
+      decree: 'الرقم المرجعيُّ 1733/1439/3531/ بتاريخ 17/11/1439هـ (30/07/2018م)، الأمين العام محمد بن سليمان الحسين',
+      meta_extra: 'النصُّ الحرفيُّ مُستَخرَج 3 مايو 2026م',
+      note: '<strong>تصحيح:</strong> أحكام التعميم العاجل الفعليَّة تتعلَّق بحدود المشاركة في الدفع وتحديثات نماذج UCAF/DCAF، <strong>لا</strong> «قاعدة الإبلاغ خلال 24 ساعة وفق تسعيرة وزارة الصحة» التي عزاها البحث الأوَّل خطأً إليه. القاعدة ذات الصلة بالحالات الإسعافية الواردة هنا هي البند سادسًا فقط — إعفاء المشاركة في الدفع لمستويات العاجلة الثلاثة.',
+      quotes: [
+        { article: 'أوَّلًا — حدود نسبة التحمُّل',
+          text: 'شبكة مقدِّمي الخدمة الإلزامية (MPN): 0–20% بحدٍّ أقصى 75 ريالًا. خارج شبكة المستشفيات (OHN): 0–20% بحدٍّ أقصى 300 ريال. خارج شبكة المجمَّعات (OCN): 0–20% بحدٍّ أقصى 100 ريال.' },
+        { article: 'سادسًا — إعفاء المشاركة في الدفع للحالات العاجلة (حرفيًا)',
+          text: 'لا تُحصَّل نسبة التحمُّل (المشاركة في الدفع) من المؤمَّن له في الحالات العاجلة من مستويات (1 - الإنعاش العاجل، 2 - الطوارئ، 3 - العاجلة) من مستويات الرعاية الطبية العاجلة.' }
+      ],
+      url: 'https://www.chi.gov.sa/en/knowledge-center/resolutionscirculars/Urgent%20Circulation%20To%20All%20Qualified%20Companies%20and%20Accredited%20Healthcare%20Service%20Providers.pdf',
+      extracted: 'tools/extracted/chi-urgent-circular-emergency.txt'
+    },
+
+    'ngha-closed': {
+      title: 'الشؤون الصحية بوزارة الحرس الوطني (NGHA)',
+      note: 'نظام مغلق تمامًا. الأهلية محصورة في منسوبي الحرس الوطني السعودي (عسكريين ومدنيِّين، عاملين ومتقاعدين)، والمعالين المؤهَّلين، وطلَّاب جامعة الملك سعود بن عبدالعزيز للعلوم الصحية. <strong>لا تُسدِّد NGHA فواتير المستشفيات الخاصَّة الخارجية</strong>. الزيارات الإسعافية لغير المؤهَّلين تُحاسَب وفق بروتوكول قسم الطوارئ.',
+      url: 'https://ngha.med.sa/English/PATIENTS/MEDICALELIGIBILITY/Pages/default.aspx'
+    },
+
+    'msd-closed': {
+      title: 'الخدمات الطبية لوزارة الدفاع (MSD)',
+      note: 'نظام مغلق في معظمه. يُغطِّي المنسوبين العسكريين العاملين، ومدنيِّي وزارة الدفاع، والمتقاعدين، والمعالين. السداد للقطاع الخاص ليس سمة من سماته؛ الإحالات الخارجية تكون غالبًا إلى منشآت دفاعية أخرى أو إلى مراكز تخصُّصية مثل مستشفى الملك فيصل التخصُّصي.',
+      url: 'https://www.msd.gov.sa'
+    },
+
+    'moi-medical': {
+      title: 'الخدمات الطبية لوزارة الداخلية',
+      note: 'نموذج هجين. تمتلك الوزارة منشآتها الخاصَّة (مستشفى قوى الأمن في الرياض ومكَّة والدمَّام) كقناة افتراضية. للخدمات غير المتوفِّرة داخليًّا، تُموِّل الوزارة إحالات خارجية إلى وزارة الصحة أو منشآت خاصَّة عبر نظام الإحالة. توجُّه المستفيد بمفرده إلى مستشفى خاص بدون إحالة يُسدَّد من الجيب. ضوابط أهلية المعالين بالعمر وغير ذلك ليست منشورة علنيًّا.',
+      url: 'https://my.gov.sa/ar/agencies/17306'
+    },
+
+    'samso-jhah': {
+      title: 'الخدمات الطبية لأرامكو (SAMSO) / مستشفى جونز هوبكنز أرامكو',
+      note: 'منظَّمة الخدمات الطبية لشركة أرامكو السعودية — تُدير مستشفى جونز هوبكنز أرامكو الصحي في الظهران وعيادات في الأحساء وأبقيق ورأس تنُّورة والعُضَيلية. تَعمل كخطَّة صاحب عمل ممولة ذاتيًّا ومسجَّلة لدى المجلس. نموذج هجين: داخل الشبكة لدى منشآت JHAH؛ خارج الشبكة بعقود محدَّدة للخدمات غير المتوفِّرة. موظَّفو أرامكو لا يحتاجون إلى وثائق التأمين الصحي التعاوني العامَّة للرعاية داخل الشبكة.',
+      url: 'https://www.jhah.com'
+    },
+
+    'rcjy-medical': {
+      title: 'الخدمات الطبية للهيئة الملكية للجبيل وينبع',
+      decree: 'أُسِّست بالمرسوم الملكي م/75 لعام 1395هـ (1975م)',
+      note: 'نظام مغلق في معظمه ضمن المدن الصناعية للهيئة الملكية. تَعمل كخيار قطاع عام جغرافيٍّ (نظير وزارة الصحة) لسكَّان الجبيل وينبع ورأس الخير. تُحال الخدمات غير المتوفِّرة إلى الخارج. لا تُسدِّد فواتير المستشفيات الخاصَّة الخارجية.',
+      url: 'https://www.rcjy.gov.sa/en/care'
+    },
+
+    'chi-beneficiaries': {
+      title: 'سياسة تغطية مستفيدي التأمين الصحي',
+      decree: 'الصادرة عن مجلس الضمان الصحي التعاوني (المرجع CCHI-08-PR-02-1/0)',
+      meta_extra: 'النصُّ الحرفيُّ مُستَخرَج 3 مايو 2026م (11 صفحة، ثنائيُّ اللغة)',
+      note: 'قاعدة منع الازدواج (لا تسلسل تنسيق منافع). 23 مادة تُغطِّي بدء التغطية، تعريف المعال، التزامات صاحب العمل، رفع البيانات إلى نظام إصدار الوثائق المطوَّر (HIDP)، وإجراءات الإنهاء.',
+      quotes: [
+        { article: 'التعريفات — المُعال (حرفيًا)',
+          text: 'المُعال (التابع): الزوج أو الزوجة، والأولاد الذكور حتى سنِّ الخامسة والعشرين، والبنات غير المتزوِّجات، إضافةً إلى الأيتام المحتضنين لدى الأسر الكافلة المستفيدة من التأمين الصحي الإلزامي.' },
+        { article: 'المادة 4 — بداية التغطية',
+          text: 'يلتزم صاحب العمل بتوفير التأمين الصحي للمستفيدين مباشرة عند نشوء العلاقة التعاقدية بين صاحب العمل واللاعمل اللاسعودي، وتبدأ التغطية التأمينية لغير السعوديين من تاريخ انتقال الكفالة أو من تاريخ دخول المملكة — على أن يتمَّ ذلك خلال 10 أيَّام عمل من دخول المملكة.' },
+        { article: 'المادة 16 — رفع البيانات إلى نظام الوثائق المطوَّر',
+          text: 'بعد تحقُّق شركة التأمين من استلام القسط التأميني، تلتزم برفع بيانات حامل الوثيقة والمستفيدين على نظام إصدار الوثائق المطوَّر بشكل فوريٍّ وآنيٍّ، وذلك خلال مدَّة لا تتجاوز 48 ساعة.' }
+      ],
+      url: 'https://www.chi.gov.sa/en/knowledge-center/lawsregulations/Beneficiaries%20of%20Health%20Insurance%20Coverage%20Policy.pdf',
+      extracted: 'tools/extracted/chi-beneficiaries-policy.txt'
+    },
+
+    'chi-unified-policy': {
+      title: 'وثيقة الضمان الصحي التعاوني الموحَّدة',
+      decree: 'القرار الوزاريُّ ر/1/18/3 وتاريخ 12 جُمادى الأولى 1439هـ (29 يناير 2018م)، السارية اعتبارًا من 1 يوليو 2018م',
+      note: 'الحدُّ التراكميُّ للتأمين في «وثيقة التأمين الصحي الأساسية» لعام 2022 يبلغ 1,000,000 ريال (مُرتفِع من 500,000 ريال). خمس فئات: VIP، A+، A، B، C. النصُّ الحرفيُّ معلَّق (لم يُستَخرَج بعد — chi.gov.sa محجوب من الشبكات خارج المملكة).',
+      url: 'https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/Pages/unified-policy.aspx',
+      pending_task: 'T2 + T3'
+    },
+
+    'hajj-umrah-policy': {
+      title: 'سياسة تأمين الحجَّاج والمعتمرين الصادرة عن المجلس',
+      decree: 'أُطلِقت عام 2019م ضمن برنامج تجربة الحاجِّ في رؤية 2030',
+      note: 'وثيقة شاملة إلزامية مُدمَجة تلقائيًّا في تأشيرة دخول الحجِّ أو العمرة، ساريَّة لمدَّة تصل إلى 90 يومًا من تاريخ الدخول. مكتوبة من «التعاونية» بموجب اتفاقية مع وزارة الحجِّ والعمرة؛ السياسة مُعرَّفة من المجلس. سقف التغطية: 100,000 ريال لكلِّ حاجٍّ. تشمل الطوارئ، والدخول للمستشفى، والحوادث والمرض المفاجئ، وتأخير/إلغاء الرحلات، والوفاة وإعادة الجثمان، والتعويض عن الحوادث/الكوارث.',
+      url: 'https://www.chi.gov.sa/en/knowledge-center/health-insurance-policies/Pages/pilgrims-policy.aspx'
+    },
+
+    'visitor-insurance': {
+      title: 'سياسة تأمين الزوار / السائحين الصادرة عن المجلس',
+      decree: 'إلزامية مع تأشيرة السائح الإلكترونية، أو تأشيرة الزيارة، أو تأشيرة الحجِّ/العمرة',
+      meta_extra: 'النصُّ الحرفيُّ مُستَخرَج 3 مايو 2026م (18 صفحة)',
+      note: 'قسط تأشيرة السائح الإلكترونية مُضمَّن في رسم التأشيرة البالغ 535 ريالًا؛ «التعاونية» هي شريكة وزارة السياحة في الاكتتاب. <strong>الاكتشاف الحاسم: المادة 6 أدناه هي بند تنسيق المنافع الصريح <em>الوحيد</em> في أيِّ نظام تأمين تعاوني سعوديٍّ — شركة تأمين الزائر تدفع أوَّلًا وترجع بالحلول على أيِّ خطَّة أو تأمين آخر</strong>. هذا النموذج «الدفع ثم الرجوع بالحلول» هو الآلية القانونية المعروفة للاسترداد بين شركات التأمين في المملكة.',
+      quotes: [
+        { article: 'المادة 6 — عدم ازدواج المنافع (بند تنسيق منافع حرفيٌّ — النصُّ الإنجليزيُّ)',
+          text: 'In case of a claim for recoverable expenses due under this policy for an insured who is also covered for the same expenses under another plan or scheme or other insurance or the like, the company shall be liable for the coverage of such expenses and shall subrogate that insured in his claim against third parties for payment of their proportionate share of such claim.',
+          ltr: true }
+      ],
+      url: 'https://www.chi.gov.sa/en/aboutchi/Documents/visitorsEn.pdf',
+      extracted: 'tools/extracted/chi-visitors-insurance-policy.txt'
+    },
+
+    'domestic-worker-insurance': {
+      title: 'تأمين العمالة المنزلية (إلزامان متوازيان)',
+      decree: 'تأمين العقد: قرار مجلس الوزراء رقم 591 وتاريخ 25 مايو 2021م، سارٍ من 1 فبراير 2024م عبر منصَّة «مساند». التأمين الصحيُّ الإلزاميُّ: مُطبَّق على مراحل من المجلس وهيئة التأمين اعتبارًا من يوليو 2024م.',
+      note: 'التأمين الصحيُّ إلزاميٌّ حاليًّا حيثما يكون لدى صاحب العمل أكثر من 4 عمَّال منزليِّين (مع نيَّة التوسُّع). نموذج وثيقة على chi.gov.sa Rules/InsurancePolicies/. تدفُّق المسؤولية: صاحب العمل/الكفيل هو حامل الوثيقة.',
+      url: 'https://chi.gov.sa/en/Rules/InsurancePolicies/DOMESTIC%20WORKER%20INSURANCE%20POLICY.pdf'
+    },
+
+    'nphies-ig': {
+      title: 'دليل تطبيق «نفيس» للخدمات المالية الصحية',
+      decree: 'الإصدار الأوَّل، النسخة 1.0.0 — مبنيٌّ على معيار HL7 FHIR R4.0.1 (الحزمة nphies-fs#1.0.0)',
+      meta_extra: 'تُديره مجلس الضمان الصحي التعاوني والمركز الوطني لمعلومات الصحَّة (NHIC) تحت سدايا. إلزاميٌّ لجميع شركات التأمين والمستشفيات المعتمدة منذ بدء التطبيق على مراحل في سبتمبر 2021م.',
+      note: 'الاكتشاف الحاسم: ملفُّ NphiesCoverage الموصِّف يَرِث من حقل FHIR Coverage.order الأساسيِّ لكنَّه <strong>لا</strong> يُقيِّده. CoverageEligibilityResponse.insurance من النوع 0..* — يَسمَح بالاستجابة بعدَّة تغطيات، ولكن لا حقل صريحٌ لترتيب الأولوية، ولا آلية order مُوصَّفة، ولا قواعد منشورة لأسبقية تنسيق المنافع. حقل profile.priority في الطلب هو FHIR ProcessPriorityCodes (عاجل/طارئ/مؤجَّل — أولوية المعالجة)، <strong>وليس</strong> ترتيب التغطية. هذه هي الفجوة العمليَّة التي صُمِّمت خدمتنا لِسَدِّها.',
+      url: 'https://portal.nphies.sa/ig/'
+    }
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const modal = $('modal');
+  const content = $('modal-content');
+  let lastFocus = null;
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderSource(id) {
+    const s = SOURCES[id];
+    if (!s) return `<h3 class="modal-title">المصدر غير موجود</h3><p>لا توجد بيانات مسجَّلة للمعرِّف <code>${escapeHtml(id)}</code>.</p>`;
+    let html = `<h3 class="modal-title">${s.title}</h3>`;
+    const metaParts = [];
+    if (s.decree) metaParts.push(s.decree);
+    if (s.meta_extra) metaParts.push(s.meta_extra);
+    if (s.pending_task) metaParts.push(`<span style="background:rgba(216,165,32,0.16);color:#a07b00;padding:0.1rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:700;">مَهمَّة معلَّقة ${s.pending_task}</span>`);
+    if (metaParts.length) html += `<div class="modal-meta">${metaParts.join(' · ')}</div>`;
+    if (s.note) html += `<div class="note">${s.note}</div>`;
+    if (s.quotes && s.quotes.length) {
+      html += '<h4>اقتباسات حرفية</h4>';
+      s.quotes.forEach(q => {
+        const cls = q.ltr ? 'quote ltr' : 'quote';
+        html += `<div class="${cls}">${q.text}<span class="citation">${q.article}</span></div>`;
+      });
+    } else if (!s.note) {
+      html += '<p><em>لم تُسجَّل اقتباسات حرفية بعد. يُرجى مراجعة الرابط أدناه أو المهمَّة المُعلَّقة.</em></p>';
+    }
+    if (s.url) {
+      html += `<h4>المصدر الأوَّلي</h4>`;
+      html += `<a class="source-url" href="${s.url}" target="_blank" rel="noopener">${s.url}</a>`;
+    }
+    if (s.extracted) {
+      html += `<div class="extracted-link">النصُّ المُستَخرَج محلِّيًّا: <code>${s.extracted}</code></div>`;
+    }
+    return html;
+  }
+
+  function openModal(html) {
+    lastFocus = document.activeElement;
+    content.innerHTML = html;
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => modal.querySelector('.modal-close').focus(), 50);
+  }
+
+  function closeModal() {
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    content.innerHTML = '';
+    if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+  }
+
+  document.addEventListener('click', (e) => {
+    const sourceBtn = e.target.closest('.source-link[data-source]');
+    if (sourceBtn) {
+      e.preventDefault();
+      openModal(renderSource(sourceBtn.dataset.source));
+      return;
+    }
+    if (e.target.closest('[data-close]')) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+  });
+})();
+</script>
 
 </body>
 </html>

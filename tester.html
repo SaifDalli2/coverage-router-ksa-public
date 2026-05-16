@@ -85,6 +85,30 @@
   }
   header.topbar nav a:hover { color: var(--primary); }
   header.topbar nav a.active { color: var(--primary); font-weight: 600; }
+  header.topbar nav a.lang-switch {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: -apple-system, "Segoe UI", "Noto Sans Arabic", "SF Arabic", sans-serif;
+    transition: all 0.15s;
+  }
+  header.topbar nav a.lang-switch:hover, header.topbar nav a.lang-switch:focus-visible {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    outline: none;
+  }
+  /* On narrow phones hide non-essentials so the lang switcher always fits */
+  @media (max-width: 480px) {
+    header.topbar nav a:not(.lang-switch):not(.active) { display: none; }
+    header.topbar nav { gap: 0.6rem; }
+  }
 
   /* Hero */
   section.intro {
@@ -573,8 +597,8 @@
     <nav>
       <a href="Research.html">Research</a>
       <a href="tester.html" class="active">Tester</a>
-      <a href="tester.ar.html" lang="ar" style="font-family:'Noto Sans Arabic','SF Arabic',sans-serif;">العربية</a>
       <a href="https://github.com/SaifDalli2/coverage-router-ksa" target="_blank" rel="noopener">GitHub</a>
+      <a href="tester.ar.html" class="lang-switch" lang="ar">العربية</a>
     </nav>
   </div>
 </header>

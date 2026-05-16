@@ -84,6 +84,30 @@
   @media (min-width: 720px) {
     nav.topnav ul { display: flex; }
   }
+  nav.topnav .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+  }
+  nav.topnav a.lang-switch {
+    display: inline-block;
+    padding: 0.32rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: -apple-system, "Segoe UI", "Noto Sans Arabic", "SF Arabic", sans-serif;
+    transition: all 0.15s;
+  }
+  nav.topnav a.lang-switch:hover, nav.topnav a.lang-switch:focus-visible {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    outline: none;
+  }
 
   /* Hero */
   header.hero {
@@ -1158,16 +1182,18 @@
 <nav class="topnav" aria-label="primary">
   <div class="container">
     <div class="brand">coverage-router-ksa</div>
-    <ul>
-      <li><a href="#problem">Problem</a></li>
-      <li><a href="#rules">Rule families</a></li>
-      <li><a href="#coverage">Coverage map</a></li>
-      <li><a href="#progress">Research</a></li>
-      <li><a href="#roadmap">Roadmap</a></li>
-      <li><a href="#stack">Stack</a></li>
-      <li><a href="tester.html" style="color:var(--primary);font-weight:600;">Tester →</a></li>
-      <li><a href="Research.ar.html" lang="ar" style="font-family:'Noto Sans Arabic','SF Arabic',sans-serif;">العربية</a></li>
-    </ul>
+    <div class="nav-right">
+      <ul>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#rules">Rule families</a></li>
+        <li><a href="#coverage">Coverage map</a></li>
+        <li><a href="#progress">Research</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#stack">Stack</a></li>
+        <li><a href="tester.html" style="color:var(--primary);font-weight:600;">Tester →</a></li>
+      </ul>
+      <a href="Research.ar.html" class="lang-switch" lang="ar">العربية</a>
+    </div>
   </div>
 </nav>
 
