@@ -833,20 +833,18 @@
       </div>
     </section>
 
-    <!-- OUTPUT PANEL -->
+    <!-- VERDICT PANEL — pure API client; the backend is the single source of truth -->
     <section class="panel">
       <h2><span class="panel-num">2</span> Verdict</h2>
 
-      <!-- LIVE API BOX (above the in-browser results) -->
       <div class="api-box">
         <div class="api-box-head">
-          <strong>Live API</strong>
+          <strong>Decision service</strong>
           <code>POST /v1/cases/evaluate</code>
         </div>
-        <p class="api-hint">Calls the hosted decision service (the authoritative engine). To use a local backend instead, edit the URL (run <code>uvicorn app.main:app --reload --port 8010</code> first). Free-tier hosting may cold-start (~50s) on the first call.</p>
+        <p class="api-hint">Every verdict comes from the hosted backend — the routing logic lives only on the server. To point at a local backend, edit the URL (run <code>uvicorn app.main:app --reload --port 8010</code> first). Free-tier hosting may cold-start (~50s) on the first call.</p>
         <div class="api-row">
           <input id="api-base" type="text" spellcheck="false" value="https://coverage-router-ksa-api.onrender.com" aria-label="API base URL">
-          <button class="evaluate" id="api-eval-btn" type="button">Evaluate via API →</button>
         </div>
 
         <div class="api-subhead">Request body <span>(live — mirrors the form)</span></div>
@@ -854,15 +852,7 @@
 
         <div class="api-subhead">Response</div>
         <div id="api-response" class="api-output">
-          <div class="placeholder">Not called yet. Adjust the form (the request above updates live), then click <strong>Evaluate via API</strong>.</div>
-        </div>
-      </div>
-
-      <div class="output-label">In-browser engine <span>(offline reference)</span></div>
-      <div id="output">
-        <div class="placeholder">
-          <strong>No evaluation yet.</strong>
-          Select a preset scenario above and click Load (or fill the form manually), then click Evaluate. This reference engine runs in your browser.
+          <div class="placeholder">No verdict yet. Adjust the form (the request above updates live), then click <strong>Evaluate →</strong>.</div>
         </div>
       </div>
     </section>
@@ -873,293 +863,7 @@
 <script>
 (() => {
 
-  // ─── Algorithm constants ────────────────────────────────────────────────
-  const CLOSED_SYSTEMS = ['NGHA', 'MSD', 'MOI_MEDICAL', 'SAMSO', 'RCJY'];
-  const UNIVERSITY_OPEN = ['KFSHRC', 'KAUH', 'KSUMC'];
-
-  // Patient categories explicitly listed in MoH Annex 66 as eligible for
-  // state-funded TPA-mediated continuation at private hospitals.
-  function annex66_eligible(b) {
-    if (b.nationality === 'SA') return true;            // citizens
-    if (b.employment_sector === 'pilgrim') return true;  // Guests of the Most Merciful
-    if (b.employment_sector === 'domestic_worker') return true;
-    if (b.employment_sector === 'undocumented') return true;  // with documentation caveat
-    if (['BH','KW','OM','QA','AE'].includes(b.nationality)) return true;  // GCC nationals
-    return false;
-  }
-
-  // ─── The algorithm — mirrors docs/coordination-of-benefits.md pseudocode ──
-  function determineLiableCoverage(input) {
-    const { case_attrs, beneficiary, facility } = input;
-    const trace = [];
-
-    const note = (rule, matched, why) => trace.push({ rule, matched, why });
-
-    // RF-0 — Diplomatic / IO short-circuit
-    if (['DIPLOMATIC_MISSION', 'INTL_ORGANIZATION'].includes(beneficiary.class)) {
-      note('RF-0', true, `beneficiary.class == ${beneficiary.class} → CCHI cascade skipped`);
-      return {
-        liable_party: beneficiary.billing_mode || 'EMBASSY_DIRECT',
-        confidence: 'high',
-        rule_family: 'RF-0 (diplomatic short-circuit)',
-        citations: ['Vienna Convention on Diplomatic Relations 1961, Arts. 23, 33, 34'],
-        notes: 'Out of CCHI scope. Hospital reconciles via embassy or insurer afterward.',
-        trace
-      };
-    }
-    note('RF-0', false, 'Beneficiary is not diplomatic mission / IO staff');
-
-    // RF-1 — Statutory carve-outs with overlap handling.
-    // Commute accidents satisfy BOTH RF-1a (work injury per SIL Art. 30(1))
-    // AND RF-1b (RTA per Unified MTPL Policy Art. 3). Resolve explicitly.
-    const is_work_injury = case_attrs.type === 'work_injury'
-      || (case_attrs.commute_related && beneficiary.gosi_registered);
-    const is_rta_with_mtpl_claim = case_attrs.injury_kind === 'bodily'
-      && case_attrs.najm_report_id
-      && (case_attrs.type === 'rta' || case_attrs.commute_related);
-
-    if (is_work_injury && is_rta_with_mtpl_claim) {
-      // OVERLAP — commute accident with at-fault driver identified
-      note('RF-1 overlap', true, 'Commute accident: both work-injury (SIL Art. 30(1)) and RTA (MTPL Art. 3) apply');
-      const fallback = beneficiary.cchi_coverages && beneficiary.cchi_coverages[0]
-        ? `CCHI ${beneficiary.cchi_coverages[0].insurer.toUpperCase()} (interim until Najm report finalised)`
-        : null;
-      return {
-        liable_party: 'NAJM_MTPL — primary for medical bill (third-party tort)',
-        fallback_party: fallback,
-        parallel_claim: 'GOSI_OH — parallel claim for worker-specific compensation (disability allowance per SIL Art. 31(1)(b)/(c))',
-        confidence: 'medium',
-        rule_family: 'RF-1 overlap (commute accident — apportioned)',
-        citations: [
-          'Social Insurance Law M/273 Art. 30(1) — commute clause',
-          'Social Insurance Law M/273 Art. 31(1)(b)/(c) — worker-specific benefits',
-          'Unified Compulsory Motor Insurance Policy Arts. 3/4/6',
-          'CCHI Visitor Insurance Policy Art. 6 (subrogation analogue)'
-        ],
-        notes: 'MTPL primary for the medical bill; GOSI parallel-claim path for worker-specific compensation. Apportionment is interpretive — IA + CHI letters seek confirmation (Q1.x-commute).',
-        open_questions: ['Q1.x-commute'],
-        trace
-      };
-    }
-
-    // RF-1a — Work injury alone (no concurrent MTPL claim) → GOSI
-    if (is_work_injury) {
-      note('RF-1a', true, case_attrs.commute_related
-        ? 'Commute-related (SIL Art. 30(1)) AND no third-party MTPL claim'
-        : 'case.type == work_injury AND beneficiary.gosi_registered');
-      return {
-        liable_party: 'GOSI_OH',
-        confidence: 'high',
-        rule_family: 'RF-1a (statutory carve-out — work injury)',
-        citations: [
-          'Social Insurance Law M/273 of 1445H, Arts. 28, 30, 31, 32',
-          'CCHI Updated EBP, Chapter 3 §A, Item 7 (Q1.1 ANSWERED — work injury exclusion)'
-        ],
-        notes: 'Carve-out: EBP §3.A.7 explicitly excludes work injuries. GOSI-specified facilities only.',
-        trace
-      };
-    }
-    note('RF-1a', false, case_attrs.type === 'work_injury'
-      ? 'Work injury but beneficiary not GOSI-registered → falls through (Q1.2)'
-      : 'Not a work-injury case');
-
-    // RF-1b — RTA bodily injury with Najm report → MTPL primary
-    if (is_rta_with_mtpl_claim) {
-      note('RF-1b', true, 'RTA bodily injury + Najm report present');
-      const fallback = beneficiary.cchi_coverages && beneficiary.cchi_coverages[0]
-        ? `CCHI ${beneficiary.cchi_coverages[0].insurer.toUpperCase()} (interim payment + subrogation)`
-        : null;
-      return {
-        liable_party: 'NAJM_MTPL (at-fault driver\'s MTPL insurer)',
-        fallback_party: fallback,
-        confidence: 'high',
-        rule_family: 'RF-1b (statutory carve-out — MTPL)',
-        citations: [
-          'Unified Compulsory Motor Insurance Policy, Arts. 3, 4, 6 + Appendix A',
-          'CCHI Visitor Insurance Policy Article 6 (subrogation analogue)'
-        ],
-        trace
-      };
-    }
-    note('RF-1b', false, 'Not RTA / no bodily injury / no Najm report');
-
-    // RF-2 — Emergency override (corrected per Annex 66 verbatim)
-    if (case_attrs.is_emergency) {
-      note('RF-2', true, 'case.is_emergency → emergency cascade applies');
-      const has_cchi = beneficiary.cchi_coverages && beneficiary.cchi_coverages.length > 0;
-      const cchi = has_cchi ? beneficiary.cchi_coverages[0] : null;
-      const is_saudi = beneficiary.nationality === 'SA';
-
-      if (has_cchi && is_saudi && (case_attrs.cap_exhausted || case_attrs.service_excluded)) {
-        note('  RF-2 / Annex 66 Art. 5', true,
-          case_attrs.cap_exhausted ? 'Saudi + CCHI cap exhausted' : 'Saudi + CCHI service excluded');
-        return {
-          liable_party: 'MOH_TPA_CONTINUATION',
-          confidence: 'high',
-          rule_family: 'RF-2 (Saudi-CCHI cap-exhausted cascade)',
-          citations: [
-            `MoH Annex 66 Article 5${case_attrs.cap_exhausted ? '(a)' : '(b)'}`,
-            'Closest published COB cascade in KSA cooperative regulation'
-          ],
-          notes: 'TPA notified within 24h via purchasingprogram.com.sa; insurer documents cap consumption.',
-          trace
-        };
-      }
-
-      if (has_cchi) {
-        note('  RF-2 / insured branch', true, 'Beneficiary has CCHI coverage');
-        return {
-          liable_party: `CCHI ${cchi.insurer.toUpperCase()}${cchi.tier ? ' (tier ' + cchi.tier + ')' : ''}`,
-          confidence: 'high',
-          rule_family: 'RF-2 (insured emergency)',
-          citations: [
-            'MoH Annex 66 Article 1 (treat-first obligation, verbatim)',
-            'CCHI Urgent Circular Section Sixth (co-payment waived for urgent levels)'
-          ],
-          trace
-        };
-      }
-
-      if (annex66_eligible(beneficiary)) {
-        note('  RF-2 / state-funded backstop', true, 'Patient falls into Annex 66 eligible categories');
-        return {
-          liable_party: 'STATE via MoH-appointed TPA',
-          confidence: 'high',
-          rule_family: 'RF-2 (state-funded backstop)',
-          citations: [
-            'MoH Annex 66 Articles 1, 3, 4 (24-hour TPA notification)',
-            'Service Procurement Mechanism Circular 274877-1439H (referenced in Art. 11)'
-          ],
-          trace
-        };
-      }
-
-      if (beneficiary.employment_sector === 'private' && !is_saudi) {
-        note('  RF-2 / employer-liable', true, 'Uninsured non-Saudi private-sector worker');
-        return {
-          liable_party: 'EMPLOYER (statutory duty to insure)',
-          confidence: 'high',
-          rule_family: 'RF-2 (employer-liable branch)',
-          citations: ['Cooperative Health Insurance Law M/10, Arts. 2, 3'],
-          trace
-        };
-      }
-
-      note('  RF-2 / state default', true, 'Fallthrough — undocumented, court-ruling pattern');
-      return {
-        liable_party: 'STATE (court-ruling pattern)',
-        confidence: 'medium',
-        rule_family: 'RF-2 (state default fallthrough)',
-        citations: ['Court-ruling precedent for emergency care of undocumented persons'],
-        notes: 'Annex 66 adds documentation requirement (report-to-Passports) for unidentified persons.',
-        trace
-      };
-    }
-    note('RF-2', false, 'Not an emergency');
-
-    // RF-3 — Facility-driven (closed systems)
-    if (facility.type === 'closed_system' && CLOSED_SYSTEMS.includes(facility.system)
-        && beneficiary.eligible_for === facility.system) {
-      note('RF-3', true, `facility.system == ${facility.system} AND beneficiary.eligible_for == ${facility.system}`);
-      return {
-        liable_party: facility.system,
-        confidence: 'high',
-        rule_family: 'RF-3 (facility-driven)',
-        citations: [`${facility.system} closed-system convention (not codified)`],
-        trace
-      };
-    }
-    if (facility.type === 'closed_system' && beneficiary.eligible_for !== facility.system) {
-      note('RF-3', false, 'Closed-system facility but beneficiary not eligible for that system');
-    }
-    if (beneficiary.eligible_for && facility.type !== 'closed_system') {
-      note('RF-3 (fall-through)', true,
-        `Beneficiary eligible for ${beneficiary.eligible_for} but at non-system facility — closed systems do not reimburse external bills`);
-    }
-
-    // University Medical Cities — open referral receivers (T11 finding)
-    if (facility.type === 'university_medical_city' && UNIVERSITY_OPEN.includes(facility.system)) {
-      note('RF-3 / open-referral', true, 'University Medical City — open referral receiver, multi-payer');
-      // Without referral context we can only flag this requires further info
-      return {
-        liable_party: null,
-        resolution_required: 'human_review',
-        confidence: 'low',
-        rule_family: 'RF-3 (open-referral facility)',
-        citations: ['T11 research — KAUH/KSUMC/KFSHRC are open referral receivers'],
-        notes: 'Routing depends on referral letter / patient relationship to facility. Needs additional context.',
-        open_questions: ['T11 verification'],
-        trace
-      };
-    }
-
-    // RF-4 + RF-5 — default to private cover
-    const applicable = (beneficiary.cchi_coverages || []).filter(c => c.active);
-
-    if (applicable.length === 1) {
-      note('RF-5 (single CCHI)', true, 'Exactly one active CCHI coverage');
-      return {
-        liable_party: `CCHI ${applicable[0].insurer.toUpperCase()}${applicable[0].tier ? ' (tier ' + applicable[0].tier + ')' : ''}`,
-        confidence: 'high',
-        rule_family: 'RF-5 (single CCHI default)',
-        citations: ['CCHI Beneficiaries of Health Insurance Coverage Policy'],
-        trace
-      };
-    }
-
-    if (applicable.length > 1) {
-      note('RF-4 (multi-CCHI)', true, `${applicable.length} active CCHI coverages`);
-      return {
-        liable_party: null,
-        confidence: 'low',
-        resolution_required: 'human_review',
-        rule_family: 'RF-4 (multi-CCHI assignment ambiguous)',
-        citations: [
-          'CCHI Updated EBP Art. 9 (Duplication) — own-employment coverage prevails over dependent coverage; "no Beneficiary … two different insurance coverages during the same period" (Q5.1 PARTIAL, verified 2026-06)',
-          'Husband-employer ordering NOT codified — CCHI FAQ only (Q4.1 / Q4.4 open); awaiting CHI letter Q5–Q8'
-        ],
-        open_questions: ['Q5.1 (residual: two independent same-type policies)', 'Q4.1', 'Q4.4'],
-        notes: 'EBP Art. 9 resolves the worker-vs-dependent overlap (own-employment wins), but the engine does not yet capture each coverage\'s worker/dependent role, so genuinely parallel same-type policies still surface for human review. Visitor Art. 6 pay-and-subrogate (Q5.3 ANSWERED) is visitor-specific, not a general COB cascade.',
-        trace
-      };
-    }
-
-    // No CCHI — special case scheme?
-    if (beneficiary.special_case_scheme) {
-      const scheme = beneficiary.special_case_scheme;
-      note('RF-5 (special case)', true, `Active scheme: ${scheme}`);
-      if (scheme === 'VISITOR' && beneficiary.has_other_coverage) {
-        return {
-          liable_party: 'VISITOR_INSURANCE',
-          fallback_party: 'OTHER_COVERAGE (subrogation per Art. 6)',
-          confidence: 'high',
-          rule_family: 'RF-5 (visitor pay-and-subrogate)',
-          citations: ['CCHI Visitor Insurance Policy Article 6 — Non duplication of benefits'],
-          notes: 'Visitor insurer pays first, then subrogates against any other plan covering the same expenses.',
-          trace
-        };
-      }
-      const labels = { HAJJ_UMRAH: 'PILGRIM_TAWUNIYA', VISITOR: 'VISITOR_INSURANCE', DOMESTIC_WORKER: 'DOMESTIC_WORKER_INSURANCE' };
-      return {
-        liable_party: labels[scheme] || scheme,
-        confidence: 'high',
-        rule_family: 'RF-5 (special-case scheme)',
-        citations: [`CCHI ${scheme.replace('_', ' ').toLowerCase()} insurance policy`],
-        trace
-      };
-    }
-
-    // Uninsured fall-through
-    note('RF-5 (uninsured)', true, 'No CCHI, no special-case scheme');
-    return {
-      liable_party: null,
-      uninsured_cascade: true,
-      confidence: 'medium',
-      rule_family: 'unresolved',
-      notes: 'Apply emergency cascade if applicable; otherwise out-of-pocket.',
-      trace
-    };
-  }
+  // ── Routing logic lives only in the backend (POST /v1/cases/evaluate). ──
 
   // ─── 25 worked-example scenarios (mirrors docs/research/scenarios.md) ───
   const SCENARIOS = [
@@ -1500,71 +1204,6 @@
   }
 
   // Render verdict
-  function render(verdict, expected) {
-    const out = $('output');
-    const conf = verdict.confidence || 'medium';
-    const liable = verdict.liable_party === null
-      ? '⚠ AMBIGUOUS — human review required'
-      : escapeHtml(verdict.liable_party);
-
-    let compareHtml = '';
-    if (expected) {
-      let exp;
-      try { exp = JSON.parse(expected); } catch { exp = null; }
-      if (exp) {
-        const expLiable = exp.liable_party;
-        const actualLiable = verdict.liable_party;
-        let badgeClass = 'pass', badgeText = 'PASS';
-        if (expLiable === null && actualLiable !== null) { badgeClass = 'unexpected'; badgeText = 'UNEXPECTED VERDICT'; }
-        else if (expLiable !== null && actualLiable === null) { badgeClass = 'differs'; badgeText = 'EXPECTED VERDICT, GOT AMBIGUOUS'; }
-        else if (expLiable === actualLiable || (actualLiable && actualLiable.startsWith(expLiable))) { badgeClass = 'pass'; badgeText = 'PASS'; }
-        else { badgeClass = 'differs'; badgeText = 'DIFFERS'; }
-        compareHtml = `<span class="compare-badge ${badgeClass}">${badgeText}</span>`;
-        if (badgeClass !== 'pass') {
-          compareHtml += ` <span style="font-size:0.78rem;color:var(--text-muted);">expected: <code>${escapeHtml(expLiable || 'AMBIGUOUS')}</code></span>`;
-        }
-      }
-    }
-
-    let html = `
-      <div class="verdict ${conf}">
-        <div class="label">Verdict ${compareHtml}</div>
-        <div class="liable">${liable}</div>
-        <div class="meta">
-          <span><strong>Confidence:</strong> ${conf}</span>
-          <span><strong>Rule family:</strong> ${escapeHtml(verdict.rule_family || '—')}</span>
-          ${verdict.fallback_party ? `<span><strong>Fallback:</strong> ${escapeHtml(verdict.fallback_party)}</span>` : ''}
-        </div>
-      </div>
-    `;
-
-    if (verdict.notes) {
-      html += `<div class="out-section"><h3>Notes</h3><p style="font-size:0.88rem;margin:0;">${escapeHtml(verdict.notes)}</p></div>`;
-    }
-
-    if (verdict.open_questions && verdict.open_questions.length) {
-      html += `<div class="open-questions"><strong>Open questions:</strong> `;
-      html += verdict.open_questions.map(q => `<code>${escapeHtml(q)}</code>`).join(' · ');
-      html += `</div>`;
-    }
-
-    if (verdict.citations && verdict.citations.length) {
-      html += `<div class="out-section"><h3>Citations</h3><ul class="citation-list">`;
-      verdict.citations.forEach(c => { html += `<li>${escapeHtml(c)}</li>`; });
-      html += `</ul></div>`;
-    }
-
-    if (verdict.trace && verdict.trace.length) {
-      html += `<div class="out-section"><h3>Reasoning trace</h3><ul class="trace-list">`;
-      verdict.trace.forEach(t => {
-        const cls = t.matched ? 'matched' : 'skipped';
-        html += `<li class="${cls}"><span class="rule-id">${escapeHtml(t.rule)}</span>${t.matched ? ' matched' : ' did not match'}<span class="why">${escapeHtml(t.why)}</span></li>`;
-      });
-      html += `</ul></div>`;
-    }
-
-    out.innerHTML = html;
-  }
 
   // ─── Wire up ────────────────────────────────────────────────────────────
   populatePresets();
@@ -1590,13 +1229,10 @@
   });
 
   $('evaluate-btn').addEventListener('click', () => {
-    const input = readForm();
-    const verdict = determineLiableCoverage(input);
-    const expected = $('preset-meta').dataset.expected;
-    render(verdict, expected);
-    // Scroll output panel into view on mobile (respects scroll-margin-top via CSS)
+    evaluateViaApi();
+    // On mobile, bring the response panel into view.
     if (window.innerWidth < 960) {
-      const outPanel = $('output').closest('.panel');
+      const outPanel = $('api-response').closest('.panel');
       if (outPanel) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
@@ -1660,11 +1296,29 @@
     if (pre) pre.innerHTML = syntaxHighlight(toApiRequest(readForm()));
   }
 
+  // Compare the API verdict against the loaded preset's expected result (PASS/DIFFERS).
+  function compareBadge(verdict) {
+    const raw = $('preset-meta').dataset.expected;
+    if (!raw) return '';
+    let exp; try { exp = JSON.parse(raw); } catch { return ''; }
+    const expLiable = exp.liable_party;                 // short string, e.g. "GOSI_OH" / "CCHI BUPA" / null
+    const actual = verdict.liable_descriptor;           // backend reproduces the descriptive string
+    let cls = 'pass', text = 'PASS';
+    if (expLiable === null && actual !== null) { cls = 'unexpected'; text = 'UNEXPECTED VERDICT'; }
+    else if (expLiable !== null && actual === null) { cls = 'differs'; text = 'EXPECTED VERDICT, GOT AMBIGUOUS'; }
+    else if (expLiable === actual || (actual && expLiable && actual.startsWith(expLiable))) { cls = 'pass'; text = 'PASS'; }
+    else { cls = 'differs'; text = 'DIFFERS'; }
+    let h = `<span class="compare-badge ${cls}">${text}</span>`;
+    if (cls !== 'pass') h += ` <span style="font-size:0.78rem;color:var(--text-muted);">expected: <code>${escapeHtml(expLiable || 'AMBIGUOUS')}</code></span>`;
+    return ' ' + h;
+  }
+
   function renderApiResult(status, data) {
     const ok = status === 200;
     let html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}</div>`;
     if (ok && data && data.verdict) {
       const v = data.verdict;
+      html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}${compareBadge(v)}</div>`;
       const lp = v.liable_party;
       html += '<div class="api-liable">' +
         (lp ? `${escapeHtml(lp.entity_name_en)} <span class="eid">${escapeHtml(lp.entity_id)}</span>`
@@ -1729,7 +1383,6 @@
     if (saved && !/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(saved)) $('api-base').value = saved;
   } catch (_) {}
 
-  $('api-eval-btn').addEventListener('click', evaluateViaApi);
 
   // Keep the live request preview in sync with form edits (the API base field is excluded).
   document.addEventListener('input', (e) => { if (!e.target || e.target.id !== 'api-base') updateApiRequestPreview(); });
@@ -1758,7 +1411,7 @@
     $('c-service-excluded').checked = false;
     $('f-type').value = 'private';
     $('f-system').value = '';
-    $('output').innerHTML = `<div class="placeholder"><strong>Reset.</strong>Select a preset or build inputs and click Evaluate.</div>`;
+    $('api-response').innerHTML = `<div class="placeholder"><strong>Reset.</strong> Adjust the form, then click Evaluate.</div>`;
     updateApiRequestPreview();
   });
 })();

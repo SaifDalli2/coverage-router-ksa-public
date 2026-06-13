@@ -664,20 +664,18 @@
       </div>
     </section>
 
-    <!-- OUTPUT PANEL -->
+    <!-- لوحة الحُكم — عميل API خالص؛ الخادم هو المصدر الوحيد للمنطق -->
     <section class="panel">
       <h2><span class="panel-num">٢</span> الحُكم</h2>
 
-      <!-- LIVE API BOX (فوق نتائج المحرِّك داخل المتصفِّح) -->
       <div class="api-box">
         <div class="api-box-head">
-          <strong>واجهة API المباشرة</strong>
+          <strong>خدمة القرار</strong>
           <code>POST /v1/cases/evaluate</code>
         </div>
-        <p class="api-hint">يستدعي خدمة القرار المستضافة (المحرِّك المُعتمَد). لاستخدام خادم محلي بدلًا منها، عدِّل العنوان (شغِّل <code>uvicorn app.main:app --reload --port 8010</code> أولًا). قد تتأخَّر الاستضافة المجانية ~50 ثانية في أول طلب.</p>
+        <p class="api-hint">كلُّ حُكم يأتي من الخادم الخلفي — منطق التوجيه موجود على الخادم فقط. لاستخدام خادم محلي، عدِّل العنوان (شغِّل <code>uvicorn app.main:app --reload --port 8010</code> أولًا). قد تتأخَّر الاستضافة المجانية ~50 ثانية في أول طلب.</p>
         <div class="api-row">
           <input id="api-base" type="text" spellcheck="false" dir="ltr" value="https://coverage-router-ksa-api.onrender.com" aria-label="عنوان واجهة API">
-          <button class="evaluate" id="api-eval-btn" type="button">التقييم عبر API ←</button>
         </div>
 
         <div class="api-subhead">جسم الطلب <span>(مباشر — يعكس النموذج)</span></div>
@@ -685,15 +683,7 @@
 
         <div class="api-subhead">الاستجابة</div>
         <div id="api-response" class="api-output">
-          <div class="placeholder">لم تُستدعَ بعد. عدِّل النموذج (يتحدَّث الطلب أعلاه مباشرةً)، ثم اضغط <strong>التقييم عبر API</strong>.</div>
-        </div>
-      </div>
-
-      <div class="output-label">المحرِّك داخل المتصفِّح <span>(مرجع دون اتصال)</span></div>
-      <div id="output">
-        <div class="placeholder">
-          <strong>لم يَجرِ تقييم بعد.</strong>
-          اختر سيناريو من الأعلى واضغط «حمِّل» (أو املأ النموذج يدويًا)، ثم اضغط «قيِّم». يعمل هذا المحرِّك المرجعي داخل متصفِّحك.
+          <div class="placeholder">لا يوجد حُكم بعد. عدِّل النموذج (يتحدَّث الطلب أعلاه مباشرةً)، ثم اضغط <strong>قيِّم ←</strong>.</div>
         </div>
       </div>
     </section>
@@ -704,274 +694,7 @@
 <script>
 (() => {
 
-  const CLOSED_SYSTEMS = ['NGHA', 'MSD', 'MOI_MEDICAL', 'SAMSO', 'RCJY'];
-  const UNIVERSITY_OPEN = ['KFSHRC', 'KAUH', 'KSUMC'];
-
-  function annex66_eligible(b) {
-    if (b.nationality === 'SA') return true;
-    if (b.employment_sector === 'pilgrim') return true;
-    if (b.employment_sector === 'domestic_worker') return true;
-    if (b.employment_sector === 'undocumented') return true;
-    if (['BH','KW','OM','QA','AE'].includes(b.nationality)) return true;
-    return false;
-  }
-
-  function determineLiableCoverage(input) {
-    const { case_attrs, beneficiary, facility } = input;
-    const trace = [];
-    const note = (rule, matched, why) => trace.push({ rule, matched, why });
-
-    if (['DIPLOMATIC_MISSION', 'INTL_ORGANIZATION'].includes(beneficiary.class)) {
-      note('RF-0', true, `فئة المستفيد = ${beneficiary.class} ← يُتجاوز تسلسل التأمين التعاوني`);
-      return {
-        liable_party: beneficiary.billing_mode || 'EMBASSY_DIRECT',
-        confidence: 'high',
-        rule_family: 'RF-0 (استثناء دبلوماسي)',
-        citations: ['اتفاقية فيينا للعلاقات الدبلوماسية 1961، المواد 23 و33 و34'],
-        notes: 'خارج نطاق التأمين التعاوني. يُسوِّى الحساب لاحقًا عبر السفارة أو شركة التأمين.',
-        trace
-      };
-    }
-    note('RF-0', false, 'المستفيد ليس من البعثة الدبلوماسية أو منظمة دولية');
-
-    const is_work_injury = case_attrs.type === 'work_injury'
-      || (case_attrs.commute_related && beneficiary.gosi_registered);
-    const is_rta_with_mtpl_claim = case_attrs.injury_kind === 'bodily'
-      && case_attrs.najm_report_id
-      && (case_attrs.type === 'rta' || case_attrs.commute_related);
-
-    if (is_work_injury && is_rta_with_mtpl_claim) {
-      note('تداخل RF-1', true, 'حادث تنقُّل: ينطبق كلٌّ من إصابة العمل (المادة 30(1)) وحادث المرور (المادة 3 من وثيقة التأمين الإلزامي)');
-      const fallback = beneficiary.cchi_coverages && beneficiary.cchi_coverages[0]
-        ? `التأمين الصحي ${beneficiary.cchi_coverages[0].insurer.toUpperCase()} (دفع مؤقَّت حتَّى صدور تقرير نجم)`
-        : null;
-      return {
-        liable_party: 'NAJM_MTPL — رئيسي للفاتورة الطبية (مسؤولية تقصيرية تجاه الطرف الثالث)',
-        fallback_party: fallback,
-        parallel_claim: 'GOSI — مطالبة موازية لتعويضات العامل (إعانة العجز وفق المادة 31(1)(ب)/(ج))',
-        confidence: 'medium',
-        rule_family: 'تداخل RF-1 (حادث تنقُّل — موزَّع)',
-        citations: [
-          'نظام التأمينات الاجتماعية م/273، المادة 30(1) — بند التنقُّل',
-          'نظام التأمينات الاجتماعية م/273، المادة 31(1)(ب)/(ج) — تعويضات العامل',
-          'وثيقة التأمين الإلزامي الموحَّدة على المركبات، المواد 3/4/6',
-          'وثيقة تأمين الزوار المادة 6 (نظير الرجوع بالحلول)'
-        ],
-        notes: 'تأمين المركبات رئيسي للفاتورة الطبية؛ التأمينات الاجتماعية مطالبة موازية لتعويضات العامل. التوزيع تفسيري — رسالتا المجلس وهيئة التأمين تستوضحان (Q1.x-تنقُّل).',
-        open_questions: ['Q1.x-تنقُّل'],
-        trace
-      };
-    }
-
-    if (is_work_injury) {
-      note('RF-1a', true, case_attrs.commute_related
-        ? 'مرتبط بالتنقُّل (المادة 30(1)) ولا توجد مطالبة طرف ثالث'
-        : 'إصابة عمل ومسجَّل في التأمينات الاجتماعية');
-      return {
-        liable_party: 'GOSI — المؤسسة العامة للتأمينات الاجتماعية / فرع الأخطار المهنية',
-        confidence: 'high',
-        rule_family: 'RF-1a (استثناء نظامي — إصابة عمل)',
-        citations: [
-          'نظام التأمينات الاجتماعية م/273 لعام 1445هـ، المواد 28 و30 و31 و32',
-          'حزمة المنافع الأساسية المُحدَّثة، الفصل 3 §أ البند 7 (السؤال 1.1 مُجاب — استثناء إصابات العمل)'
-        ],
-        notes: 'استثناء: حزمة المنافع §3.أ.7 تستثني صراحةً إصابات العمل. يُعالَج لدى منشآت معتمدة من المؤسسة فقط.',
-        trace
-      };
-    }
-    note('RF-1a', false, case_attrs.type === 'work_injury'
-      ? 'إصابة عمل لكنَّ المستفيد غير مسجَّل في التأمينات (Q1.2)'
-      : 'ليست إصابة عمل');
-
-    if (is_rta_with_mtpl_claim) {
-      note('RF-1b', true, 'إصابة جسدية بحادث مروري + تقرير نجم موجود');
-      const fallback = beneficiary.cchi_coverages && beneficiary.cchi_coverages[0]
-        ? `التأمين الصحي ${beneficiary.cchi_coverages[0].insurer.toUpperCase()} (دفع مؤقَّت + رجوع بالحلول)`
-        : null;
-      return {
-        liable_party: 'NAJM_MTPL (تأمين السائق المخطئ الإلزامي)',
-        fallback_party: fallback,
-        confidence: 'high',
-        rule_family: 'RF-1b (استثناء نظامي — تأمين المركبات)',
-        citations: [
-          'وثيقة التأمين الإلزامي الموحَّدة على المركبات، المواد 3 و4 و6 + الملحق أ',
-          'وثيقة تأمين الزوار المادة 6 (نظير الرجوع بالحلول)'
-        ],
-        trace
-      };
-    }
-    note('RF-1b', false, 'ليس حادثًا مروريًا / لا إصابة جسدية / لا تقرير نجم');
-
-    if (case_attrs.is_emergency) {
-      note('RF-2', true, 'الحالة إسعافية ← ينطبق تسلسل الحالات الإسعافية');
-      const has_cchi = beneficiary.cchi_coverages && beneficiary.cchi_coverages.length > 0;
-      const cchi = has_cchi ? beneficiary.cchi_coverages[0] : null;
-      const is_saudi = beneficiary.nationality === 'SA';
-
-      if (has_cchi && is_saudi && (case_attrs.cap_exhausted || case_attrs.service_excluded)) {
-        note('  RF-2 / المادة 5 من الملحق 66', true,
-          case_attrs.cap_exhausted ? 'سعودي + استُنفِد حدُّ التأمين' : 'سعودي + الخدمة من استثناءات الوثيقة');
-        return {
-          liable_party: 'وزارة الصحة عبر شركة إدارة المطالبات (استكمال)',
-          confidence: 'high',
-          rule_family: 'RF-2 (تسلسل المادة 5 — استنفاد سعودي)',
-          citations: [
-            `الملحق 66 المادة 5${case_attrs.cap_exhausted ? '(أ)' : '(ب)'}`,
-            'أقرب تسلسل تنسيق منافع منشور في تنظيم التأمين التعاوني السعودي'
-          ],
-          notes: 'تُبلَّغ شركة إدارة المطالبات خلال 24 ساعة عبر purchasingprogram.com.sa؛ تُوثِّق شركة التأمين استنفاد الحدِّ.',
-          trace
-        };
-      }
-
-      if (has_cchi) {
-        note('  RF-2 / مؤمَّن', true, 'للمستفيد وثيقة تأمين تعاوني');
-        return {
-          liable_party: `شركة التأمين ${cchi.insurer.toUpperCase()}${cchi.tier ? ' (الفئة ' + cchi.tier + ')' : ''}`,
-          confidence: 'high',
-          rule_family: 'RF-2 (حالة إسعافية لمؤمَّن)',
-          citations: [
-            'الملحق 66 المادة 1 (التزام العلاج أوَّلاً، حرفيًّا)',
-            'التعميم العاجل من المجلس البند سادسًا (إعفاء المشاركة في الدفع للحالات الإسعافية)'
-          ],
-          trace
-        };
-      }
-
-      if (annex66_eligible(beneficiary)) {
-        note('  RF-2 / استكمال على نفقة الدولة', true, 'المستفيد ضمن فئات الملحق 66 المؤهَّلة');
-        return {
-          liable_party: 'الدولة عبر شركة إدارة المطالبات (TPA)',
-          confidence: 'high',
-          rule_family: 'RF-2 (استكمال على نفقة الدولة)',
-          citations: [
-            'الملحق 66 المواد 1 و3 و4 (إبلاغ خلال 24 ساعة)',
-            'تعميم آلية شراء الخدمة الطبية رقم 274877-1439هـ (مُشار إليه في المادة 11)'
-          ],
-          trace
-        };
-      }
-
-      if (beneficiary.employment_sector === 'private' && !is_saudi) {
-        note('  RF-2 / مسؤولية صاحب العمل', true, 'عامل غير سعودي غير مؤمَّن في القطاع الخاص');
-        return {
-          liable_party: 'صاحب العمل (التزام نظامي بالتأمين)',
-          confidence: 'high',
-          rule_family: 'RF-2 (مسؤولية صاحب العمل)',
-          citations: ['نظام الضمان الصحي التعاوني م/10، المادتان 2 و3'],
-          trace
-        };
-      }
-
-      note('  RF-2 / الدولة افتراضيًّا', true, 'لا تنطبق الفئات السابقة — حُكم قضائي معتاد');
-      return {
-        liable_party: 'الدولة (سابقة قضائية)',
-        confidence: 'medium',
-        rule_family: 'RF-2 (الدولة افتراضيًّا)',
-        citations: ['سوابق قضائية في علاج بلا إقامة'],
-        notes: 'الملحق 66 يضيف اشتراط توثيق إبلاغ الجوازات لِمَن لا هُويَّة له.',
-        trace
-      };
-    }
-    note('RF-2', false, 'ليست حالة إسعافية');
-
-    if (facility.type === 'closed_system' && CLOSED_SYSTEMS.includes(facility.system)
-        && beneficiary.eligible_for === facility.system) {
-      note('RF-3', true, `نظام المنشأة = ${facility.system} وللمستفيد أهلية فيه`);
-      return {
-        liable_party: facility.system,
-        confidence: 'high',
-        rule_family: 'RF-3 (التوجيه حسب المنشأة)',
-        citations: [`عُرف النظام المغلق ${facility.system} (غير مُقنَّن)`],
-        trace
-      };
-    }
-    if (facility.type === 'closed_system' && beneficiary.eligible_for !== facility.system) {
-      note('RF-3', false, 'منشأة نظام مغلق لكنَّ المستفيد ليس من المؤهَّلين فيها');
-    }
-    if (beneficiary.eligible_for && facility.type !== 'closed_system') {
-      note('RF-3 (تجاوز)', true,
-        `للمستفيد أهلية في ${beneficiary.eligible_for} لكنَّه في منشأة خارج نظامه — الأنظمة المغلقة لا تُسدِّد الفواتير الخارجية`);
-    }
-
-    if (facility.type === 'university_medical_city' && UNIVERSITY_OPEN.includes(facility.system)) {
-      note('RF-3 / إحالة مفتوحة', true, 'مدينة طبية جامعية — مستقبل إحالة مفتوح متعدِّد الجهات الدافعة');
-      return {
-        liable_party: null,
-        resolution_required: 'human_review',
-        confidence: 'low',
-        rule_family: 'RF-3 (مدينة طبية جامعية)',
-        citations: ['بحث T11 — KAUH/KSUMC/KFSHRC مستقبلات إحالة مفتوحة'],
-        notes: 'التوجيه يعتمد على خطاب الإحالة / علاقة المريض بالمنشأة. تحتاج معلومات إضافية.',
-        open_questions: ['التحقُّق من T11'],
-        trace
-      };
-    }
-
-    const applicable = (beneficiary.cchi_coverages || []).filter(c => c.active);
-
-    if (applicable.length === 1) {
-      note('RF-5 (تأمين تعاوني واحد)', true, 'وثيقة تأمين تعاوني واحدة فقط');
-      return {
-        liable_party: `التأمين ${applicable[0].insurer.toUpperCase()}${applicable[0].tier ? ' (الفئة ' + applicable[0].tier + ')' : ''}`,
-        confidence: 'high',
-        rule_family: 'RF-5 (تعاوني واحد افتراضي)',
-        citations: ['سياسة تغطية مستفيدي التأمين الصحي'],
-        trace
-      };
-    }
-
-    if (applicable.length > 1) {
-      note('RF-4 (تعاوني متعدِّد)', true, `${applicable.length} وثائق تأمين فعَّالة`);
-      return {
-        liable_party: null,
-        confidence: 'low',
-        resolution_required: 'human_review',
-        rule_family: 'RF-4 (تخصيص متعدِّد التعاوني — غامض)',
-        citations: [
-          'حزمة المنافع الأساسية المادة 9 (الازدواج) — تغطية العمل المباشر تتقدَّم على تغطية المُعال؛ «لا يوجد مستفيد له تغطيتان مختلفتان في الفترة نفسها» (Q5.1 جزئي، مُتحقَّق 2026-06)',
-          'ترتيب جهة عمل الزوج غير مُقنَّن — أسئلة شائعة فقط (Q4.1 / Q4.4 مفتوحان)؛ بانتظار رسالة المجلس الأسئلة 5–8'
-        ],
-        open_questions: ['Q5.1 (المتبقِّي: وثيقتان مستقلَّتان من النوع نفسه)', 'Q4.1', 'Q4.4'],
-        notes: 'تحلُّ المادة 9 تداخل «العامل مقابل المُعال» (تغطية العمل المباشر تفوز)، لكنَّ المحرِّك لا يلتقط بعدُ صفة كلِّ تغطية (عامل/مُعال)، فتظلُّ الوثائق المتوازية من النوع نفسه بحاجة لمراجعة بشرية. والمادة 6 من تأمين الزوار للدفع-ثم-الحلول (Q5.3 مُجاب) خاصَّة بالزوار، لا تسلسل تنسيق منافع عامٌّ.',
-        trace
-      };
-    }
-
-    if (beneficiary.special_case_scheme) {
-      const scheme = beneficiary.special_case_scheme;
-      note('RF-5 (نظام خاص)', true, `النظام الفعَّال: ${scheme}`);
-      if (scheme === 'VISITOR' && beneficiary.has_other_coverage) {
-        return {
-          liable_party: 'تأمين الزوار',
-          fallback_party: 'تغطية أخرى (رجوع بالحلول وفق المادة 6)',
-          confidence: 'high',
-          rule_family: 'RF-5 (الزوار: دفع ثم رجوع بالحلول)',
-          citations: ['وثيقة تأمين الزوار المادة 6 — عدم ازدواج المنافع'],
-          notes: 'شركة تأمين الزوار تدفع أوَّلاً، ثم ترجع بالحلول على أيِّ خطَّة أخرى تُغطِّي النفقات نفسها.',
-          trace
-        };
-      }
-      const labels = { HAJJ_UMRAH: 'تأمين الحجَّاج (PILGRIM_TAWUNIYA)', VISITOR: 'تأمين الزوار', DOMESTIC_WORKER: 'تأمين العمالة المنزلية' };
-      return {
-        liable_party: labels[scheme] || scheme,
-        confidence: 'high',
-        rule_family: 'RF-5 (نظام خاص)',
-        citations: [`وثيقة ${labels[scheme] || scheme} الصادرة عن المجلس`],
-        trace
-      };
-    }
-
-    note('RF-5 (بلا تأمين)', true, 'لا تأمين تعاوني، ولا نظام خاص');
-    return {
-      liable_party: null,
-      uninsured_cascade: true,
-      confidence: 'medium',
-      rule_family: 'غير محسوم',
-      notes: 'يطبَّق تسلسل الحالات الإسعافية إن انطبق؛ وإلا فعلى نفقة المستفيد.',
-      trace
-    };
-  }
+  // ── منطق التوجيه موجود على الخادم فقط (POST /v1/cases/evaluate). ──
 
   // ─── 26 scenarios — same input shapes as English; titles in Arabic ────
   const SCENARIOS = [
@@ -1268,63 +991,6 @@
     delete meta.dataset.expected;
   }
 
-  function render(verdict, expected) {
-    const out = $('output');
-    const conf = verdict.confidence || 'medium';
-    const liable = verdict.liable_party === null
-      ? '⚠ غامض — يحتاج مراجعة بشرية'
-      : escapeHtml(verdict.liable_party);
-
-    let compareHtml = '';
-    if (expected) {
-      let exp;
-      try { exp = JSON.parse(expected); } catch { exp = null; }
-      if (exp) {
-        const expLiable = exp.liable_party;
-        const actualLiable = verdict.liable_party;
-        let badgeClass = 'pass', badgeText = 'مطابق';
-        if (expLiable === null && actualLiable !== null) { badgeClass = 'unexpected'; badgeText = 'حُكم غير متوقَّع'; }
-        else if (expLiable !== null && actualLiable === null) { badgeClass = 'differs'; badgeText = 'غامض، كان متوقَّعًا'; }
-        else if (expLiable === actualLiable || (actualLiable && actualLiable.includes(expLiable))) { badgeClass = 'pass'; badgeText = 'مطابق'; }
-        else { badgeClass = 'differs'; badgeText = 'مختلف'; }
-        compareHtml = `<span class="compare-badge ${badgeClass}">${badgeText}</span>`;
-        if (badgeClass !== 'pass') {
-          compareHtml += ` <span style="font-size:0.8rem;color:var(--text-muted);">المتوقَّع: <code>${escapeHtml(expLiable || 'غامض')}</code></span>`;
-        }
-      }
-    }
-
-    let html = `
-      <div class="verdict ${conf}">
-        <div class="label">الحُكم ${compareHtml}</div>
-        <div class="liable">${liable}</div>
-        <div class="meta">
-          <span><strong>درجة الثقة:</strong> ${conf}</span>
-          <span><strong>عائلة القاعدة:</strong> ${escapeHtml(verdict.rule_family || '—')}</span>
-          ${verdict.fallback_party ? `<span><strong>الجهة الاحتياطية:</strong> ${escapeHtml(verdict.fallback_party)}</span>` : ''}
-        </div>
-      </div>
-    `;
-    if (verdict.notes) html += `<div class="out-section"><h3>ملاحظات</h3><p style="font-size:0.92rem;margin:0;">${escapeHtml(verdict.notes)}</p></div>`;
-    if (verdict.open_questions && verdict.open_questions.length) {
-      html += `<div class="open-questions"><strong>أسئلة مفتوحة:</strong> ` +
-              verdict.open_questions.map(q => `<code>${escapeHtml(q)}</code>`).join(' · ') + `</div>`;
-    }
-    if (verdict.citations && verdict.citations.length) {
-      html += `<div class="out-section"><h3>الاستشهادات</h3><ul class="citation-list">`;
-      verdict.citations.forEach(c => { html += `<li>${escapeHtml(c)}</li>`; });
-      html += `</ul></div>`;
-    }
-    if (verdict.trace && verdict.trace.length) {
-      html += `<div class="out-section"><h3>تسلسل الاستدلال</h3><ul class="trace-list">`;
-      verdict.trace.forEach(t => {
-        const cls = t.matched ? 'matched' : 'skipped';
-        html += `<li class="${cls}"><span class="rule-id">${escapeHtml(t.rule)}</span>${t.matched ? ' تطابق' : ' لم يتطابق'}<span class="why">${escapeHtml(t.why)}</span></li>`;
-      });
-      html += `</ul></div>`;
-    }
-    out.innerHTML = html;
-  }
 
   populatePresets();
   $('preset-select').value = '';
@@ -1344,12 +1010,9 @@
   });
 
   $('evaluate-btn').addEventListener('click', () => {
-    const input = readForm();
-    const verdict = determineLiableCoverage(input);
-    const expected = $('preset-meta').dataset.expected;
-    render(verdict, expected);
+    evaluateViaApi();
     if (window.innerWidth < 960) {
-      const outPanel = $('output').closest('.panel');
+      const outPanel = $('api-response').closest('.panel');
       if (outPanel) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
@@ -1410,11 +1073,29 @@
     if (pre) pre.innerHTML = syntaxHighlight(toApiRequest(readForm()));
   }
 
+  // مقارنة حُكم الـAPI بالنتيجة المتوقَّعة للسيناريو المُحمَّل (مطابق/مختلف).
+  function compareBadge(verdict) {
+    const raw = $('preset-meta').dataset.expected;
+    if (!raw) return '';
+    let exp; try { exp = JSON.parse(raw); } catch { return ''; }
+    const expLiable = exp.liable_party;
+    const actual = verdict.liable_descriptor;
+    let cls = 'pass', text = 'مطابق';
+    if (expLiable === null && actual !== null) { cls = 'unexpected'; text = 'حُكم غير متوقَّع'; }
+    else if (expLiable !== null && actual === null) { cls = 'differs'; text = 'كان يُتوقَّع حُكم، فجاء غامضًا'; }
+    else if (expLiable === actual || (actual && expLiable && actual.startsWith(expLiable))) { cls = 'pass'; text = 'مطابق'; }
+    else { cls = 'differs'; text = 'مختلف'; }
+    let h = `<span class="compare-badge ${cls}">${text}</span>`;
+    if (cls !== 'pass') h += ` <span style="font-size:0.78rem;color:var(--text-muted);">المتوقَّع: <code>${escapeHtml(expLiable || 'غامض')}</code></span>`;
+    return ' ' + h;
+  }
+
   function renderApiResult(status, data) {
     const ok = status === 200;
     let html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}</div>`;
     if (ok && data && data.verdict) {
       const v = data.verdict;
+      html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}${compareBadge(v)}</div>`;
       const lp = v.liable_party;
       html += '<div class="api-liable">' +
         (lp ? `${escapeHtml(lp.entity_name_ar)} <span class="eid">${escapeHtml(lp.entity_id)}</span>`
@@ -1478,7 +1159,6 @@
     if (saved && !/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(saved)) $('api-base').value = saved;
   } catch (_) {}
 
-  $('api-eval-btn').addEventListener('click', evaluateViaApi);
 
   // إبقاء معاينة الطلب متزامنة مع تعديلات النموذج (مع استثناء حقل عنوان API).
   document.addEventListener('input', (e) => { if (!e.target || e.target.id !== 'api-base') updateApiRequestPreview(); });
@@ -1507,7 +1187,7 @@
     $('c-service-excluded').checked = false;
     $('f-type').value = 'private';
     $('f-system').value = '';
-    $('output').innerHTML = `<div class="placeholder"><strong>أُعيد التعيين.</strong>اختر سيناريو أو ابنِ المُدخلات يدويًا واضغط «قيِّم».</div>`;
+    $('api-response').innerHTML = `<div class="placeholder"><strong>أُعيد التعيين.</strong> عدِّل النموذج ثم اضغط «قيِّم».</div>`;
     updateApiRequestPreview();
   });
 })();
