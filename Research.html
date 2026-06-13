@@ -890,6 +890,69 @@
   }
   .kpi-fill { height: 100%; transition: width 0.3s; }
 
+  /* Clickable questions metric → opens the full plain-English question overlay */
+  .q-clickable {
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .q-clickable:hover, .q-clickable:focus-visible {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+    outline: none;
+  }
+  .q-hint {
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .q-hint::after { content: " \2192"; }
+
+  /* Questions overlay — answer rows + Excel download */
+  .q-toolbar { margin: 0 0 1rem; }
+  .xlsx-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--success);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+  .xlsx-btn::before { content: "\2913"; font-size: 1em; }
+  .xlsx-btn:hover, .xlsx-btn:focus-visible { filter: brightness(0.93); outline: none; }
+  .modal-content tr.answer-row td {
+    background: rgba(47,158,107,0.06);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--text);
+  }
+  .modal-content tr.answer-partial td { background: rgba(216,165,32,0.08); }
+  .modal-content tr.answer-pending td { background: rgba(90,100,115,0.06); }
+  .answer-tag {
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--success);
+    margin-inline-end: 0.45rem;
+  }
+  .answer-partial .answer-tag { color: #a07b00; }
+  .answer-pending .answer-tag { color: var(--text-muted); }
+  .answer-src {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .answer-src strong { color: var(--text); font-weight: 600; }
+
   .coverage-grid {
     display: grid;
     gap: 0.8rem;
@@ -1219,9 +1282,10 @@
         <div class="num">30+</div>
         <div class="label">Verbatim citations captured</div>
       </div>
-      <div class="stat" role="listitem">
-        <div class="num">1 / 30</div>
-        <div class="label">Open questions answered</div>
+      <div class="stat q-clickable" role="listitem" tabindex="0" data-questions="all" aria-label="View all 30 research questions in plain English">
+        <div class="num">4 / 30</div>
+        <div class="label">Questions answered from primary sources (15 partial)</div>
+        <div class="q-hint">View all 30 questions</div>
       </div>
     </div>
   </div>
@@ -1448,10 +1512,11 @@
         <div class="kpi-label">Verbatim citations captured from primary sources</div>
         <div class="kpi-bar"><div class="kpi-fill" style="width:90%;background:var(--success);"></div></div>
       </div>
-      <div class="kpi yellow" role="listitem">
-        <div class="kpi-num">2 / 30</div>
-        <div class="kpi-label">Questions answered (Q1.1 via EBP §3.A.7; Q2 via Annex 66 Art. 3)</div>
-        <div class="kpi-bar"><div class="kpi-fill" style="width:6.6%;background:var(--warning);"></div></div>
+      <div class="kpi yellow q-clickable" role="listitem" tabindex="0" data-questions="all" aria-label="View all 30 research questions in plain English">
+        <div class="kpi-num">4 / 30</div>
+        <div class="kpi-label">Fully answered from primary sources (Q1.1, Q4.3, Q5.3, Q7.1) · 15 partial · 11 open</div>
+        <div class="kpi-bar"><div class="kpi-fill" style="width:13.3%;background:var(--warning);"></div></div>
+        <div class="q-hint">View all 30 questions</div>
       </div>
       <div class="kpi green" role="listitem">
         <div class="kpi-num">25</div>
@@ -2112,20 +2177,22 @@
           </tbody>
         </table>
 
-        <h4>Question status — 1 answered, 29 open</h4>
+        <h4>Question status — 4 answered, 15 partial, 11 open (re-verified against primary sources, June 2026)</h4>
         <table>
           <thead><tr><th>ID</th><th>Question</th><th>Risk</th><th>Status</th></tr></thead>
           <tbody>
             <tr><td><code class="id">Q1.1</code></td><td>Does GOSI's regulation bar private insurer as secondary?</td><td><span class="risk risk-low">Low</span></td><td><span class="status done">ANSWERED via EBP Ch.3 §A.7</span></td></tr>
-            <tr><td><code class="id">Q1.2</code></td><td>Who pays for work-injury to unregistered worker?</td><td><span class="risk risk-med">Med</span></td><td><span class="status partial">PARTIAL via SIL Art.31(2)</span></td></tr>
-            <tr><td><code class="id">Q2.1</code></td><td>Exact MoH-approved tariffs schedule for emergency</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
-            <tr><td><code class="id">Q3.4</code></td><td>Closed-system beneficiary in emergency at private hospital</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
-            <tr><td><code class="id">Q5.4</code></td><td>Post-IG-v1.0.0 NPHIES bulletins on Coverage.order</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
+            <tr><td><code class="id">Q4.3</code></td><td>When does an adult dependent still qualify for coverage?</td><td><span class="risk risk-low">Low</span></td><td><span class="status done">ANSWERED via Beneficiaries Policy def.</span></td></tr>
+            <tr><td><code class="id">Q5.3</code></td><td>Visitor insurance coordination with other coverage</td><td><span class="risk risk-low">Low</span></td><td><span class="status done">ANSWERED via Visitor Policy Art.6</span></td></tr>
+            <tr><td><code class="id">Q7.1</code></td><td>SDAIA adequacy-list mechanism for data transfer</td><td><span class="risk risk-low">Low</span></td><td><span class="status done">ANSWERED via Cross-Border Reg Art.3</span></td></tr>
+            <tr><td><code class="id">Q2.1</code></td><td>Exact MoH-approved tariffs schedule for emergency</td><td><span class="risk risk-high">High</span></td><td><span class="status partial">PARTIAL — Circular 274877-1439H named</span></td></tr>
+            <tr><td><code class="id">Q3.4</code></td><td>Closed-system beneficiary in emergency at private hospital</td><td><span class="risk risk-high">High</span></td><td><span class="status partial">PARTIAL — stabilization codified; payer convention</span></td></tr>
+            <tr><td><code class="id">Q6.1</code></td><td>Post-March-2024 IA regulation addressing COB?</td><td><span class="risk risk-high">High</span></td><td><span class="status partial">PARTIAL — none found (negative finding)</span></td></tr>
+            <tr><td><code class="id">Q5.4</code></td><td>Post-IG-v1.0.0 NPHIES bulletins on Coverage.order</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN — discovery lists, doesn't order</span></td></tr>
             <tr><td><code class="id">Q5.5</code></td><td>NPHIES sandbox for multi-coverage testing</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
-            <tr><td><code class="id">Q6.1</code></td><td>Post-March-2024 IA regulation addressing COB?</td><td><span class="risk risk-high">High</span></td><td><span class="status pending">OPEN</span></td></tr>
           </tbody>
         </table>
-        <p style="font-size: 0.86rem; color: var(--text-muted);">Full inventory (Q1.1 – Q7.3, with risk gradings, candidate sources, and evidence form needed) in <code>docs/research/second-pass-tasks.md</code>.</p>
+        <p style="font-size: 0.86rem; color: var(--text-muted);">Full re-verified inventory (Q1.1 – Q7.3, each with verified answer + primary citation) is in the clickable "Questions answered" metric at the top of this page, and in <code>docs/research/second-pass-tasks.md</code>.</p>
 
         <h4>Concrete deliverables embedded in the spec</h4>
         <ul>
@@ -2774,6 +2841,59 @@ Thank you.</pre>
     return html;
   }
 
+  // ─── Question inventory — plain-English phrasing of every open research question ───
+  const QUESTIONS = {
+    intro: 'Every factual gap the routing engine depends on, in plain English — 30 questions across 7 rule families. These were put to an external AI, then each answer was re-verified against PRIMARY regulatory sources (royal decrees, CCHI/CHI policies, MoH annexes, GOSI law, SDAIA regs); secondary sources the AI leaned on (encyclopedias, FAQ pages) were not accepted as proof. Each answer below shows the verified finding and its primary citation. Risk is how much an unanswered question could change a routing verdict. Full inventory in <code>docs/research/second-pass-tasks.md</code>.',
+    groups: [
+      { rf: 'RF-1', title: 'Statutory carve-outs', items: [
+        { id: 'Q1.1', risk: 'low',  status: 'done',    q: 'Can a private health insurer ever be billed as a backup payer for a work injury, or does the GOSI law rule that out entirely?', answer: "No — it is ruled out. The CCHI Essential Benefit Package (Ch.3 Controls & Exclusions §A.7) excludes “any illness or injury arising directly from the profession of the Insured,” and GOSI's Occupational Hazards branch provides the medical care instead (SIL M/273 Art. 31(1)). A private insurer is a carve-out, not a backup payer. Life-threatening emergencies are still treated first.", sources: 'CCHI Updated EBP Ch.3 §A.7; GOSI SIL M/273 Art. 31(1)' },
+        { id: 'Q1.2', risk: 'med',  status: 'partial', q: 'If someone is injured at work but was never registered with GOSI, who pays for their treatment?', answer: "Partly. The employer still owes the GOSI contributions plus a 2%-per-month late fine (SIL M/273 Art. 9(3)), and GOSI compensation is payable only if the injury occurs after registration or within the employer's registration grace period (Art. 31(2)) — so an out-of-window unregistered worker falls outside the GOSI carve-out. Who then settles the actual hospital bill (beyond emergency stabilization) is still open.", sources: 'GOSI SIL M/273 Arts. 9(3), 31(2)' },
+        { id: 'Q1.3', risk: 'low',  status: 'partial', q: 'For an occupational disease, how much proof is needed to fix the official date it was diagnosed?', answer: "The date itself is fixed by the first medical examination: SIL M/273 Art. 30(2) deems “the date of the patient's first medical examination… the date on which the injury occurred,” and the CCHI EBP definition aligns (date of first medical diagnosis). The detailed evidence required to prove that date sits in GOSI's Implementing Regulations / Occupational Diseases Schedule, which we don't yet hold.", sources: 'GOSI SIL M/273 Art. 30(2); CCHI EBP Ch.1 def. (occupational injury)' },
+        { id: 'Q1.4', risk: 'med',  status: 'partial', q: 'In a car accident where both drivers share the blame, how is the medical bill split between the two insurers?', answer: 'No fault-percentage split formula between two motor insurers exists in the cooperative-insurance text. What is codified: the notified health insurer must cover a traffic-accident bill (whether the beneficiary is at-fault or not, for a licensed vehicle) and then recover proportional shares from third parties (CCHI EBP §16 + §10 non-duplication) — pay first, apportion later. The MTPL policy’s own split logic could not be confirmed from primary text.', sources: 'CCHI EBP Ch.4 §16, §10; (MTPL Unified Policy — not yet obtained)' },
+        { id: 'Q1.5', risk: 'med',  status: 'partial', q: 'While everyone waits for the official Najm accident report, who pays the medical bill in the meantime?', answer: "No primary source names an interim payer while the Najm report is pending. But emergencies must be treated without delay and with no co-payment in urgent cases (CCHI Urgent Circular §Sixth), and the notified health insurer covers the traffic-accident treatment up front with later recovery (EBP §16). The “patient first” framing the external AI cited is a slogan, not a primary rule.", sources: 'CCHI Urgent Circular §Sixth; CCHI EBP Ch.4 §16' },
+        { id: 'Q1.6', risk: 'low',  status: 'pending', q: "If the at-fault driver had no valid motor insurance, is there a backstop fund that covers the victim's care?", answer: 'Unconfirmed. No primary Insurance Authority / SAMA regulation establishing (or ruling out) a motor Guarantee Fund for victims of uninsured at-fault drivers could be retrieved. The external AI’s description (a SAR 500,000 SME health-policy backstop) appears to conflate a health-insurance fund with the motor context — treat as unverified.', sources: '(Insurance Authority / SAMA motor regulation — not obtained)' }
+      ]},
+      { rf: 'RF-2', title: 'Emergency override', items: [
+        { id: 'Q2.1', risk: 'high', status: 'partial', q: "What is the exact official price list (tariff) the Ministry of Health uses to reimburse emergency care given outside the patient's network?", answer: "No public numeric tariff exists. For state-funded uninsured cases, MoH Annex 66 routes billing through the “Service Procurement Mechanism” Circular No. 274877-1439H (30/10/2017G) — but that schedule isn't public. For insured cases there is no fixed MoH price list; the EBP reimburses out-of-network/emergency care at “reasonable and customary” rates benchmarked to the assigned network level (EBP Art. 18).", sources: 'MoH Annex 66 (billing, Circular 274877-1439H); CCHI EBP Art. 18' },
+        { id: 'Q2.2', risk: 'med',  status: 'pending', q: 'What does "stabilised" actually mean in practice under MoH Annex 66 — the point at which the emergency-treatment duty ends?', answer: "No KSA primary source defines “stabilised” clinically. Annex 66 Art. 1 uses “until the case stabilises” as the endpoint but leaves it to clinical judgment; the urgent-care acuity levels (Resuscitation / Emergency / Urgent) classify urgency at presentation, not the stabilization point. The external AI's “acuity levels = stabilization” is not supported.", sources: 'MoH Annex 66 Art. 1; CCHI EBP Ch.1 def. 32 (Emergency)' },
+        { id: 'Q2.3', risk: 'med',  status: 'pending', q: 'Once a patient is stabilised, at what moment does the normal CCHI pre-approval requirement start applying again?', answer: "Not defined as a single trigger. The real primary mechanisms: for uninsured-eligible patients the hospital notifies the MoH-appointed TPA within 24h (Annex 66 Arts. 3–4); for insured patients the insurer may transfer to its network after stabilization and normal pre-approval timing resumes (EBP Network chapter). The external AI's “OCET/SMARC” route is not in any primary cooperative-insurance text.", sources: 'MoH Annex 66 Arts. 3–4; CCHI EBP Ch.6 (Network)' },
+        { id: 'Q2.4', risk: 'med',  status: 'partial', q: 'When an employer disputes that they are liable for an uninsured non-Saudi worker, who pays while the dispute is unresolved?', answer: "Largely answered. The hospital must treat until stabilization “regardless of nationality or employer, without prior financial demand” (Annex 66 Art. 1), then notify the MoH-appointed TPA within 24h, after which the State bears the cost or transfers to a government hospital for eligible patients (Arts. 3–4). What's undocumented is the later cost-recovery against a defaulting employer.", sources: 'MoH Annex 66 Arts. 1, 3–4' }
+      ]},
+      { rf: 'RF-3', title: 'Facility-driven routing (closed systems)', items: [
+        { id: 'Q3.1', risk: 'low',  status: 'partial', q: 'Do the National Guard, Defence, or Interior health systems have agreements that let them reimburse care given at facilities outside their own system?', answer: 'Not specifically confirmed. The Health Law Implementing Regulation (5/2R) sets the general principle: refer within the same entity first, and to another entity only under a pre-existing arrangement that defines who bears the cost. No primary MoU naming NGHA/MSD/MoI and an outside facility was found, and “SMARC/USMR” is an MoH platform, not these agencies’ system.', sources: 'Health Law Impl. Reg. 5/2R (M/11)' },
+        { id: 'Q3.2', risk: 'med',  status: 'pending', q: 'For an Aramco employee whose spouse also has CCHI cover, does Aramco/SAMSO or CCHI take priority?', answer: 'Unconfirmed. No primary regulation orders benefits between a self-funded Aramco/JHAH plan and a spouse’s CCHI policy. The “wife’s own-employer policy is primary” rule is an industry convention; JHAH handles it via an internal company instruction, not a public regulation.', sources: '(no primary COB rule; Aramco GI internal/non-public)' },
+        { id: 'Q3.3', risk: 'low',  status: 'pending', q: 'How does MoI Medical refer its beneficiaries out to private hospitals?', answer: 'Not established. SMARC/USMR is the MoH national e-referral platform, not MoI Medical’s own system (the external AI mis-attributed it). How MoI Medical refers out to private hospitals and pays for it is not set in any retrievable primary regulation.', sources: 'Health Law Impl. Reg. 5/2R (M/11)' },
+        { id: 'Q3.4', risk: 'high', status: 'partial', q: 'When someone covered by a closed system (National Guard / Defence / Interior / Aramco) has an emergency at a private hospital, who actually pays?', answer: 'Split answer. Mandatory emergency stabilization for everyone IS codified (Health Law Impl. Reg. 4/E — all institutions treat the injured on arrival, transfer after). But the external AI’s “CNHI pays” is wrong for closed systems: CNHI purchases only from the Health Holding Company (corporatized MoH), not Defence/NGHA/MoI. Who reimburses the private hospital for a closed-system beneficiary remains convention, not codified.', sources: 'Health Law Impl. Reg. 4/E (M/11); CNHI charter scope' }
+      ]},
+      { rf: 'RF-4', title: 'Beneficiary-class assignment', items: [
+        { id: 'Q4.1', risk: 'med',  status: 'partial', q: "Exactly when and how does the \"husband's employer covers the family\" rule apply during a job change or transition?", answer: "No “immediately on the wife’s termination” rule exists. The only codified spouse rule (EBP clause 9) defaults the children of two co-working, cohabiting spouses to the husband’s policy; dependent coverage otherwise begins from the enrollment / dependent-status date (Employer’s Commitment Policy 4.2.3) — i.e., via re-enrollment, not an automatic instant switch.", sources: 'CCHI EBP clause 9; Employer’s Commitment Policy 4.2.3' },
+        { id: 'Q4.2', risk: 'med',  status: 'pending', q: "For divorced parents, which parent's employer policy covers the children?", answer: 'Genuinely unregulated. No primary CHI policy addresses divorced parents; the only related rule (children default to the husband) presupposes an intact, cohabiting household. The external AI’s “father’s policy first” is an over-extrapolation.', sources: '(no primary rule; cf. CCHI EBP clause 9)' },
+        { id: 'Q4.3', risk: 'low',  status: 'done', q: 'When does an adult dependent — for example a student or a disabled adult — still qualify for coverage?', answer: 'Answerable from primary text. Sons qualify as dependents up to age 25; unmarried daughters qualify with no stated age limit, conditioned (per the EBP eligibility list) on being unmarried, non-working and dependent on the employee. Confirmed in the Beneficiaries Policy and Employer’s Commitment Policy definitions.', sources: 'CHI Beneficiaries Policy (Dependent def.); Employer’s Commitment Policy (Dependent def.); CCHI EBP eligibility list' },
+        { id: 'Q4.4', risk: 'med',  status: 'pending', q: "If the husband is unemployed or uninsured, does the wife's employer automatically become responsible for the family?", answer: 'Unconfirmed. A husband CAN be enrolled as a dependent of his working wife (the dependent definition is symmetric), but no primary CHI article makes the wife’s employer obliged to cover an unemployed or public-sector husband. The external AI’s “mandated” claim is not codified.', sources: '(symmetric dependent def.; no explicit mandate found)' }
+      ]},
+      { rf: 'RF-5', title: 'Default to private cover', items: [
+        { id: 'Q5.1', risk: 'med',  status: 'partial', q: 'If one person holds two active CCHI policies at the same time (a personal one and a group one), which is primary?', answer: "Partly. The EBP prohibits holding two coverages at once and resolves the worker-vs-dependent overlap in favour of own-employment coverage (“its health insurance as dependent will cease”; “no Beneficiary … two different insurance coverages during the same period” — EBP Art. 9). It does NOT set primacy for two independent employer policies of the same type.", sources: 'CCHI EBP Art. 9 (Duplication)' },
+        { id: 'Q5.2', risk: 'low',  status: 'partial', q: 'For a Saudi pilgrim who also has CCHI, does the pilgrim policy or their normal CCHI cover apply?', answer: 'The Hajj/Umrah pilgrim policy is defined for non-resident entry-visa holders (cap SAR 100,000/pilgrim), so it does not apply to residents/citizens, who stay under the standard CHI cooperative cover. The first half is primary-sourced; “residents stay on standard CCHI” is a sound inference rather than a single explicit clause.', sources: 'CHI Pilgrims (Hajj/Umrah) Policy (Insured def.); CCHI EBP scope' },
+        { id: 'Q5.3', risk: 'low',  status: 'done', q: "How does visitor insurance coordinate with a visitor's home-country insurance?", answer: "There is an explicit mechanism. The Visitor Insurance policy’s Article 6 “Non-duplication of benefits” makes the Saudi insurer pay first and then subrogate the insured’s claim against third parties (incl. any other plan/scheme/insurance) for their proportionate share — the only published pay-and-subrogate COB clause in KSA cooperative regulation (Art. 36 mirrors it for traffic accidents).", sources: 'CCHI Visitor Insurance Policy Art. 6 (and Art. 36)' },
+        { id: 'Q5.4', risk: 'high', status: 'pending', q: 'Has NPHIES issued any newer technical rules that say which coverage is primary when a patient has more than one?', answer: 'Still no. NPHIES does have a “discovery” eligibility purpose that returns the LIST of a beneficiary’s active coverages — but the IG does not constrain Coverage.order or define any primary/secondary ranking or COB precedence. Discovery lists coverages; it does not order them. The original finding stands.', sources: 'NPHIES IG — EligibilityRequest purpose (discovery); no Coverage.order constraint' },
+        { id: 'Q5.5', risk: 'high', status: 'pending', q: 'Is there an NPHIES test environment (sandbox) where multi-coverage scenarios can be tried?', answer: 'Unconfirmed. No official NPHIES primary doc describing a public sandbox/test environment for multi-coverage scenarios was found. An onboarding/integration environment exists at the vendor level, but its multi-coverage test support is not documented in primary sources.', sources: '(NPHIES onboarding — no primary sandbox doc found)' }
+      ]},
+      { rf: 'RF-6', title: 'Cross-cutting / regulatory horizon', items: [
+        { id: 'Q6.1', risk: 'high', status: 'partial', q: 'Since the new Insurance Authority took over in March 2024, has it issued any rule on coordinating benefits between insurers?', answer: 'The Insurance Authority became the sole insurance regulator on 4 March 2024, absorbing CHI’s and SAMA’s insurance functions, with existing regulations remaining in force during transition. No post-March-2024 IA regulation introducing coordination of benefits could be located — a negative finding (ia.gov.sa indexing is sparse), not a positive IA statement.', sources: 'Project regulator notes (IA transfer); no primary IA COB rule found' },
+        { id: 'Q6.2', risk: 'med',  status: 'pending', q: 'What is the current status of the Daman / Unified Mandatory Insurance scheme, and does it include a coordination cascade?', answer: 'Mischaracterized by the AI. The phased rollout “ending 2017” was the OLD CCHI mandatory-cover expansion, not the 2024 Daman/Unified Mandatory program. No primary source documents any coordination cascade for Daman; KSA uses a single-obligor anti-duplication model, not a multi-insurer cascade.', sources: '(no primary Daman cascade text; cf. Unified Policy anti-duplication)' },
+        { id: 'Q6.3', risk: 'med',  status: 'partial', q: 'Does the 2024 draft Insurance Law contain any coordination-of-benefits provisions?', answer: 'A draft new Insurance Law is published on the official istitlaa consultation portal dated 17 June 2025 (not 2024); it replaces the 2003 Cooperative Insurance Control Law. Available legal analyses describe its scope but identify no coordination-of-benefits / double-insurance clause — though the full draft was not parsed line-by-line.', sources: 'Draft Insurance Law, istitlaa.ncc.gov.sa (17 Jun 2025)' },
+        { id: 'Q6.4', risk: 'med',  status: 'partial', q: 'Are there any insurance-dispute-committee (IDC) rulings that set a precedent for how insurers coordinate?', answer: 'The IDC’s governing instrument (Cabinet Decision No. 190 of 1435H — Working Rules for settling insurance disputes) is purely procedural, with no coordination-of-benefits standard. Individual IDC decisions are not published as searchable case law, so no COB precedent can be evidenced from primary sources.', sources: 'IDC Working Rules (Cabinet Decision 190/1435H); IDC decisions unpublished' }
+      ]},
+      { rf: 'RF-7', title: 'PDPL constraints (data residency)', items: [
+        { id: 'Q7.1', risk: 'low',  status: 'done', q: 'Has SDAIA published the list of countries it considers "adequate" for transferring personal data abroad?', answer: 'The mechanism is codified. SDAIA’s Cross-Border Transfer Regulation Art. 3 requires the competent authority to publish (on its website) a list of countries/organizations giving adequate protection, reviewed every four years against six criteria. (Whether an actual list has been published yet is a separate, still-open point.)', sources: 'SDAIA Cross-Border Data Transfer Regulation Art. 3' },
+        { id: 'Q7.2', risk: 'med',  status: 'partial', q: 'Is there a required data-protection impact assessment (DPIA) template for handling health data?', answer: 'A DPIA requirement exists: PDPL Implementing Regulations Art. 25(1) (reproduced in SDAIA’s Risk Assessment Guideline) triggers an impact assessment for sensitive data — and health data is sensitive. But no primary source mandates a specific DPIA template for health data; SDAIA’s guideline is explicitly non-binding.', sources: 'PDPL Implementing Regs Art. 25(1); SDAIA Risk Assessment Guideline' },
+        { id: 'Q7.3', risk: 'low',  status: 'pending', q: 'Can a person withdraw data consent only inside our service, or are external withdrawal methods allowed — and how fast must we act on it?', answer: 'Unconfirmed from primary text. Our local extracts do not cover consent withdrawal; secondary legal summaries report consent must be “easy to withdraw,” processing must cease “without undue delay,” and controllers respond to requests within 30 days (Impl. Regs Art. 3) — but the verbatim primary text could not be retrieved to confirm an SLA.', sources: '(PDPL Implementing Regs Arts. 3/6 — not yet obtained verbatim)' }
+      ]}
+    ]
+  };
+  const Q_RISK_LABEL = { low: 'Low', med: 'Med', high: 'High' };
+  const Q_STATUS_LABEL = { done: 'Answered', partial: 'Partial', pending: 'Open' };
+
   // ─── Modal plumbing ───
   const modal = document.getElementById('modal');
   const content = document.getElementById('modal-content');
@@ -2820,6 +2940,178 @@ Thank you.</pre>
     return html;
   }
 
+  function renderQuestions() {
+    let html = `<h3 class="modal-title">The 30 research questions — in plain English</h3>`;
+    html += `<div class="modal-meta">${QUESTIONS.intro}</div>`;
+    html += `<div class="q-toolbar"><button type="button" class="xlsx-btn" data-download-questions>Download as Excel</button></div>`;
+    QUESTIONS.groups.forEach(g => {
+      html += `<h4>${g.rf} · ${escapeHtml(g.title)}</h4>`;
+      html += '<table><thead><tr><th>ID</th><th>Question</th><th>Risk</th><th>Status</th></tr></thead><tbody>';
+      g.items.forEach(it => {
+        html += `<tr><td><code class="id">${it.id}</code></td>`
+              + `<td>${escapeHtml(it.q)}</td>`
+              + `<td><span class="risk risk-${it.risk}">${Q_RISK_LABEL[it.risk]}</span></td>`
+              + `<td><span class="status ${it.status}">${Q_STATUS_LABEL[it.status]}</span></td></tr>`;
+        if (it.answer) {
+          const meta = ({ done: ['Answer', 'answer-done'], partial: ['Partial answer', 'answer-partial'], pending: ['Finding', 'answer-pending'] })[it.status] || ['Finding', 'answer-pending'];
+          let cell = `<span class="answer-tag">${meta[0]}</span>${escapeHtml(it.answer)}`;
+          if (it.sources) cell += `<span class="answer-src"><strong>Primary sources:</strong> ${escapeHtml(it.sources)}</span>`;
+          html += `<tr class="answer-row ${meta[1]}"><td colspan="4">${cell}</td></tr>`;
+        }
+      });
+      html += '</tbody></table>';
+    });
+    html += `<p style="font-size:0.86rem;color:var(--text-muted);">Full inventory — with risk gradings, candidate sources, and the evidence form each answer must take — in <code>docs/research/second-pass-tasks.md</code>.</p>`;
+    return html;
+  }
+
+  // ─── Self-contained .xlsx export (store-only ZIP, no external library) ───
+  function xmlEsc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+  }
+  function strBytes(s) { return new TextEncoder().encode(s); }
+  function crc32(bytes) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) {
+      let c = (crc ^ bytes[i]) & 0xFF;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (c >>> 1) ^ 0xEDB88320 : c >>> 1;
+      crc = (crc >>> 8) ^ c;
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipStore(files) {
+    const u16 = n => [n & 0xFF, (n >>> 8) & 0xFF];
+    const u32 = n => [n & 0xFF, (n >>> 8) & 0xFF, (n >>> 16) & 0xFF, (n >>> 24) & 0xFF];
+    const chunks = [], central = [];
+    let offset = 0;
+    files.forEach(f => {
+      const name = strBytes(f.name), crc = crc32(f.data), size = f.data.length;
+      const local = [].concat(u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0),
+        u32(crc), u32(size), u32(size), u16(name.length), u16(0));
+      chunks.push(new Uint8Array(local), name, f.data);
+      central.push(new Uint8Array([].concat(u32(0x02014b50), u16(20), u16(20), u16(0), u16(0),
+        u16(0), u16(0), u32(crc), u32(size), u32(size), u16(name.length),
+        u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset))), name);
+      offset += local.length + name.length + size;
+    });
+    let cdSize = 0;
+    central.forEach(c => { chunks.push(c); cdSize += c.length; });
+    chunks.push(new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0),
+      u16(files.length), u16(files.length), u32(cdSize), u32(offset), u16(0))));
+    const total = chunks.reduce((s, c) => s + c.length, 0);
+    const out = new Uint8Array(total);
+    let p = 0;
+    chunks.forEach(c => { out.set(c, p); p += c.length; });
+    return out;
+  }
+  // Style indices into styles.xml cellXfs (built in buildXlsx). 0 = general.
+  const XF = { header: 1, plain: 2, green: 3, amber: 4, red: 5, grey: 6 };
+  const STYLES_XML =
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts count="3">' +
+      '<font><sz val="11"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><name val="Calibri"/></font>' +
+    '</fonts>' +
+    '<fills count="7">' +
+      '<fill><patternFill patternType="none"/></fill>' +
+      '<fill><patternFill patternType="gray125"/></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FF2F6F4E"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFC8E6D4"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFF6E7BD"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFF3D3CD"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFE6E8EB"/><bgColor indexed="64"/></patternFill></fill>' +
+    '</fills>' +
+    '<borders count="2">' +
+      '<border><left/><right/><top/><bottom/><diagonal/></border>' +
+      '<border><left style="thin"><color rgb="FFDDDDDD"/></left><right style="thin"><color rgb="FFDDDDDD"/></right><top style="thin"><color rgb="FFDDDDDD"/></top><bottom style="thin"><color rgb="FFDDDDDD"/></bottom><diagonal/></border>' +
+    '</borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="7">' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="5" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="6" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+    '</cellXfs>' +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+    '</styleSheet>';
+
+  function buildXlsx(sheetName, rows, opts) {
+    opts = opts || {};
+    const colLetter = n => { let s = ''; n++; while (n) { n--; s = String.fromCharCode(65 + n % 26) + s; n = Math.floor(n / 26); } return s; };
+    let sheetData = '';
+    rows.forEach((r, ri) => {
+      sheetData += `<row r="${ri + 1}">`;
+      r.forEach((cell, ci) => {
+        const isObj = cell && typeof cell === 'object';
+        const v = isObj ? cell.v : cell;
+        const s = isObj ? (cell.s || 0) : 0;
+        const sAttr = s ? ` s="${s}"` : '';
+        sheetData += `<c r="${colLetter(ci)}${ri + 1}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+      });
+      sheetData += '</row>';
+    });
+    const cols = (opts.cols && opts.cols.length)
+      ? '<cols>' + opts.cols.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('') + '</cols>'
+      : '';
+    const sheetViews = `<sheetViews><sheetView workbookViewId="0"${opts.rtl ? ' rightToLeft="1"' : ''}>` +
+      '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/></sheetView></sheetViews>';
+    const decl = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const files = [
+      { name: '[Content_Types].xml', data: strBytes(decl +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>') },
+      { name: '_rels/.rels', data: strBytes(decl +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>') },
+      { name: 'xl/workbook.xml', data: strBytes(decl +
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+        `<sheets><sheet name="${xmlEsc(sheetName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`) },
+      { name: 'xl/_rels/workbook.xml.rels', data: strBytes(decl +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>') },
+      { name: 'xl/styles.xml', data: strBytes(decl + STYLES_XML) },
+      { name: 'xl/worksheets/sheet1.xml', data: strBytes(decl +
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+        sheetViews + cols + `<sheetData>${sheetData}</sheetData></worksheet>`) }
+    ];
+    return zipStore(files);
+  }
+  function downloadQuestionsXlsx() {
+    const riskXf = { high: XF.red, med: XF.amber, low: XF.grey };
+    const statusXf = { done: XF.green, partial: XF.amber, pending: XF.red };
+    const rows = [['ID', 'Rule family', 'Question', 'Risk', 'Status', 'Verified answer', 'Primary sources'].map(v => ({ v, s: XF.header }))];
+    QUESTIONS.groups.forEach(g => g.items.forEach(it => {
+      rows.push([
+        { v: it.id, s: XF.plain },
+        { v: `${g.rf} — ${g.title}`, s: XF.plain },
+        { v: it.q, s: XF.plain },
+        { v: Q_RISK_LABEL[it.risk], s: riskXf[it.risk] },
+        { v: Q_STATUS_LABEL[it.status], s: statusXf[it.status] },
+        { v: it.answer || '', s: XF.plain },
+        { v: it.sources || '', s: XF.plain }
+      ]);
+    }));
+    const blob = new Blob([buildXlsx('Research questions', rows, { cols: [9, 24, 48, 10, 11, 62, 38] })],
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'coverage-router-research-questions.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function openModal(html) {
     lastFocus = document.activeElement;
     content.innerHTML = html;
@@ -2858,6 +3150,17 @@ Thank you.</pre>
       openModal(renderRoadmap(stepBtn.dataset.roadmap));
       return;
     }
+    if (e.target.closest('[data-download-questions]')) {
+      e.preventDefault();
+      downloadQuestionsXlsx();
+      return;
+    }
+    const qBtn = e.target.closest('[data-questions]');
+    if (qBtn) {
+      e.preventDefault();
+      openModal(renderQuestions());
+      return;
+    }
     if (e.target.closest('[data-close]')) {
       closeModal();
     }
@@ -2866,6 +3169,12 @@ Thank you.</pre>
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
       closeModal();
+      return;
+    }
+    // Enter / Space activates a focused questions-metric tile
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-questions]')) {
+      e.preventDefault();
+      openModal(renderQuestions());
     }
   });
 

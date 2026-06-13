@@ -1039,11 +1039,11 @@
         resolution_required: 'human_review',
         rule_family: 'RF-4 (multi-CCHI assignment ambiguous)',
         citations: [
-          'CCHI FAQ #37 husband-employer rule (INTERPRETIVE — not in Beneficiaries Policy itself)',
-          'Awaiting CHI letter Q5–Q8 for confirmation'
+          'CCHI Updated EBP Art. 9 (Duplication) — own-employment coverage prevails over dependent coverage; "no Beneficiary … two different insurance coverages during the same period" (Q5.1 PARTIAL, verified 2026-06)',
+          'Husband-employer ordering NOT codified — CCHI FAQ only (Q4.1 / Q4.4 open); awaiting CHI letter Q5–Q8'
         ],
-        open_questions: ['Q5.1', 'Q4.1', 'Q4.4'],
-        notes: 'Multiple CCHI policies require regulator-confirmed assignment rule. Visitor Art. 6 pay-and-subrogate is visitor-specific, not general.',
+        open_questions: ['Q5.1 (residual: two independent same-type policies)', 'Q4.1', 'Q4.4'],
+        notes: 'EBP Art. 9 resolves the worker-vs-dependent overlap (own-employment wins), but the engine does not yet capture each coverage\'s worker/dependent role, so genuinely parallel same-type policies still surface for human review. Visitor Art. 6 pay-and-subrogate (Q5.3 ANSWERED) is visitor-specific, not a general COB cascade.',
         trace
       };
     }
@@ -1172,7 +1172,7 @@
         ], eligible_for:'' },
         case_attrs: { type:'emergency', is_emergency:true, najm_report_id:'', cap_exhausted:false, service_excluded:false },
         facility: { type:'private', system:'' } },
-      expected: { liable_party:'CCHI BUPA', confidence:'high', note:'Algorithm picks first active CCHI → Bupa. CHI FAQ husband-employer rule confirms father-policy primary.' } },
+      expected: { liable_party:'CCHI BUPA', confidence:'high', note:'Emergency → RF-2 insured branch picks first active CCHI (Bupa). The husband/father-employer ordering is NOT codified (Q4.1 open; CHI FAQ is secondary) and does not affect this emergency verdict.' } },
 
     { id: 'X-013', title: 'Saudi cancer patient — Tawuniya cap exhausted mid-treatment',
       input: { beneficiary: { class:'STANDARD', nationality:'SA', age:56, employment_sector:'private', gosi_registered:true,

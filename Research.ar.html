@@ -440,6 +440,109 @@
   .status.pending { color: var(--danger); background: rgba(184,73,58,0.10); }
   .status.pending::before { background: var(--danger); }
 
+  /* Risk pill (used inside the questions overlay) */
+  .risk {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .risk-high { background: rgba(184,73,58,0.12); color: var(--danger); }
+  .risk-med { background: rgba(216,165,32,0.16); color: #a07b00; }
+  .risk-low { background: rgba(90,100,115,0.10); color: var(--text-muted); }
+
+  /* Tables rendered inside the modal (questions overlay) */
+  .modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    margin: 0.5rem 0 1rem;
+  }
+  .modal-content th, .modal-content td {
+    padding: 0.5rem 0.55rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .modal-content th {
+    background: var(--surface-alt);
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .modal-content code.id {
+    background: var(--surface-alt);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-weight: 600;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  /* Clickable questions metric → opens the full plain-Arabic question overlay */
+  .q-clickable {
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .q-clickable:hover, .q-clickable:focus-visible {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+    outline: none;
+  }
+  .q-hint {
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .q-hint::after { content: " \2190"; }
+
+  /* Questions overlay — answer rows + Excel download */
+  .q-toolbar { margin: 0 0 1rem; }
+  .xlsx-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--success);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: filter 0.15s;
+  }
+  .xlsx-btn::before { content: "\2913"; font-size: 1em; }
+  .xlsx-btn:hover, .xlsx-btn:focus-visible { filter: brightness(0.93); outline: none; }
+  .modal-content tr.answer-row td {
+    background: rgba(47,158,107,0.06);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .modal-content tr.answer-partial td { background: rgba(216,165,32,0.08); }
+  .modal-content tr.answer-pending td { background: rgba(90,100,115,0.06); }
+  .answer-tag {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--success);
+    margin-inline-end: 0.45rem;
+  }
+  .answer-partial .answer-tag { color: #a07b00; }
+  .answer-pending .answer-tag { color: var(--text-muted); }
+  .answer-src {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .answer-src strong { color: var(--text); font-weight: 600; }
+
   /* Coverage cards */
   .coverage-grid {
     display: grid;
@@ -633,7 +736,7 @@
     <div class="stats" role="list">
       <div class="stat green"><div class="num">١٦ / ١٦</div><div class="label">ملفات PDF ذات الأولوية المُستخرَجة</div></div>
       <div class="stat green"><div class="num">+30</div><div class="label">اقتباسات حرفية موثَّقة</div></div>
-      <div class="stat yellow"><div class="num">٢ / ٣٠</div><div class="label">أسئلة مفتوحة مُجاب عليها</div></div>
+      <div class="stat yellow q-clickable" tabindex="0" data-questions="all" aria-label="عرض جميع الأسئلة البحثية الثلاثين بصيغة مبسَّطة"><div class="num">٤ / ٣٠</div><div class="label">أسئلة مُجاب عليها من مصادر أوَّلية (15 جزئيًّا)</div><div class="q-hint">عرض الأسئلة الـ30</div></div>
       <div class="stat green"><div class="num">٢٦</div><div class="label">حالة مثال مؤلَّفة</div></div>
       <div class="stat red"><div class="num">٠ / ٤</div><div class="label">تأكيدات الجهات التنظيمية</div></div>
     </div>
@@ -1032,6 +1135,59 @@
     }
   };
 
+  // ─── حصر الأسئلة — صياغة مبسَّطة لكلِّ سؤال بحثي مفتوح ───
+  const QUESTIONS = {
+    intro: 'كلُّ فجوة معلوماتية يعتمد عليها محرِّك التوجيه، بصيغة مبسَّطة — 30 سؤالًا موزَّعة على 7 عائلات قواعد. طُرحت هذه الأسئلة على نموذج ذكاء اصطناعي خارجي، ثم أُعيد التحقُّق من كلِّ إجابة في ضوء المصادر التنظيمية الأوَّلية (المراسيم الملكية، وثائق مجلس الضمان الصحي، ملاحق وزارة الصحة، نظام التأمينات الاجتماعية، أنظمة سدايا)؛ ولم تُقبَل المصادر الثانوية التي اعتمد عليها النموذج (الموسوعات وصفحات الأسئلة الشائعة) كدليل. تعرض كلُّ إجابة أدناه النتيجة المُتحقَّق منها واستشهادها الأوَّلي. «الخطورة» تعني مدى تأثير بقاء السؤال دون إجابة على قرار التوجيه. الحصر الكامل في <code>docs/research/second-pass-tasks.md</code>.',
+    groups: [
+      { rf: 'RF-1', title: 'الاستثناءات النظامية', items: [
+        { id: 'Q1.1', risk: 'low',  status: 'done',    q: 'هل يمكن مطالبة شركة تأمين صحي خاصَّة بالدفع كجهة احتياطية في إصابات العمل، أم أنَّ نظام التأمينات الاجتماعية يستبعد ذلك تمامًا؟', answer: 'لا — الأمر مستبعد. حزمة المنافع الأساسية لمجلس الضمان الصحي (الفصل 3، الضوابط والاستثناءات، القسم أ، البند 7) تستثني «أيَّ مرض أو إصابة ناشئة مباشرةً عن مهنة المؤمَّن عليه»، ويقدِّم فرع الأخطار المهنية بالتأمينات الاجتماعية الرعاية الطبية بدلًا عنها (نظام التأمينات م/273 المادة 31(1)). فالتأمين الخاصُّ استثناء، لا جهة احتياطية. وتظلُّ الحالات الطارئة المهدِّدة للحياة تُعالَج أوَّلًا.', sources: 'حزمة المنافع الأساسية، الفصل 3 §أ.7؛ نظام التأمينات م/273 المادة 31(1)' },
+        { id: 'Q1.2', risk: 'med',  status: 'partial', q: 'إذا أُصيب شخص في عمله ولم يكن مُسجَّلًا لدى التأمينات الاجتماعية، فمن يدفع تكاليف علاجه؟', answer: 'جزئيًّا. يظلُّ صاحب العمل مدينًا بالاشتراكات مع غرامة 2% شهريًّا عن التأخير (المادة 9(3))، ولا تُستحَقُّ تعويضات المؤسسة إلَّا إذا وقعت الإصابة بعد التسجيل أو خلال المهلة الممنوحة لصاحب العمل (المادة 31(2)) — فالعامل غير المُسجَّل خارج المهلة يقع خارج الاستثناء. ويبقى مفتوحًا: من يسدِّد الفاتورة فعليًّا (بعد إسعاف الحالة).', sources: 'نظام التأمينات م/273 المادتان 9(3) و31(2)' },
+        { id: 'Q1.3', risk: 'low',  status: 'partial', q: 'في حالة مرض مهني، ما حجم الدليل المطلوب لتحديد تاريخ التشخيص الرسمي؟', answer: 'التاريخ نفسه يُحدَّد بأوَّل فحص طبي: تنصُّ المادة 30(2) من نظام التأمينات (م/273) على أنَّ «تاريخ أوَّل فحص طبي للمريض يُعدُّ تاريخ وقوع الإصابة»، ويتوافق تعريف حزمة المنافع (تاريخ أوَّل تشخيص طبي). أمَّا تفاصيل الدليل المطلوب لإثبات ذلك التاريخ فهي في اللائحة التنفيذية / جدول الأمراض المهنية للتأمينات، وهي ليست بحوزتنا بعد.', sources: 'نظام التأمينات م/273 المادة 30(2)؛ حزمة المنافع، الفصل 1 (تعريف إصابة العمل)' },
+        { id: 'Q1.4', risk: 'med',  status: 'partial', q: 'في حادث مروري يشترك فيه السائقان بالخطأ، كيف تُقسَّم الفاتورة الطبية بين شركتي التأمين؟', answer: 'لا توجد صيغة لتقسيم نسبة الخطأ بين مؤمِّنَي المركبتين في نصِّ التأمين الصحي. المُقنَّن: تغطِّي شركة التأمين الصحي المُبلَّغة فاتورة الحادث (سواء كان المستفيد مخطئًا أو متضرِّرًا، لمركبة مرخَّصة) ثم تسترِدُّ الحصص النسبية من الغير (حزمة المنافع §16 + §10 منع الازدواج) — تدفع أوَّلًا وتوزِّع لاحقًا. ولم يتسنَّ تأكيد صيغة التقسيم في وثيقة التأمين الإلزامي على المركبات من نصٍّ أوَّلي.', sources: 'حزمة المنافع، الفصل 4 §16 و§10؛ (وثيقة التأمين الإلزامي الموحَّدة — لم تُستخرَج بعد)' },
+        { id: 'Q1.5', risk: 'med',  status: 'partial', q: 'ريثما يصدر تقرير الحادث الرسمي من «نجم»، من يدفع الفاتورة الطبية في هذه الأثناء؟', answer: 'لا يُسمِّي أيُّ مصدر أوَّلي جهة دفع مؤقَّتة بانتظار تقرير «نجم». لكن يجب علاج الطوارئ دون تأخير ودون تحصيل المشاركة في الحالات العاجلة (التعميم العاجل §سادسًا)، وتغطِّي شركة التأمين الصحي المُبلَّغة علاج الحادث ابتداءً مع الاسترداد لاحقًا (حزمة المنافع §16). أمَّا شعار «المريض أوَّلًا» الذي ذكره النموذج فهو شعار، لا قاعدة أوَّلية.', sources: 'التعميم العاجل §سادسًا؛ حزمة المنافع، الفصل 4 §16' },
+        { id: 'Q1.6', risk: 'low',  status: 'pending', q: 'إذا لم يكن لدى السائق المخطئ تأمين مركبة ساري المفعول، فهل يوجد صندوق تعويض احتياطي يغطِّي علاج المصاب؟', answer: 'غير مؤكَّد. لم يُعثَر على نظام أوَّلي من هيئة التأمين / مؤسسة النقد يُنشئ (أو ينفي) صندوق ضمان لمركبات تعويض ضحايا السائق المخطئ غير المؤمَّن. ويبدو أنَّ وصف النموذج (صندوق احتياطي لمنشآت صغيرة استنفدت حدَّ 500,000 ريال) يخلط صندوق تأمين صحي بسياق المركبات — يُعامَل كغير مُتحقَّق منه.', sources: '(نظام هيئة التأمين / مؤسسة النقد للمركبات — لم يُستخرَج)' }
+      ]},
+      { rf: 'RF-2', title: 'أولوية الطوارئ', items: [
+        { id: 'Q2.1', risk: 'high', status: 'partial', q: 'ما هو جدول التعرفة الرسمي المعتمد من وزارة الصحة لتعويض الرعاية الطارئة المقدَّمة خارج شبكة المريض؟', answer: 'لا يوجد جدول تعرفة رقمي منشور. للحالات غير المؤمَّنة المموَّلة من الدولة، يحيل الملحق 66 الفوترة إلى «آلية شراء الخدمات» المعمَّمة برقم 274877-1439هـ (30/10/2017م) — لكنَّ هذا الجدول غير منشور. وللحالات المؤمَّنة لا توجد قائمة أسعار ثابتة لوزارة الصحة؛ إذ تعوِّض حزمة المنافع الرعاية خارج الشبكة/الطارئة بأسعار «معقولة ومعتادة» مقيسة على مستوى الشبكة المخصَّصة (المادة 18).', sources: 'ملحق وزارة الصحة 66 (الفوترة، التعميم 274877-1439هـ)؛ حزمة المنافع المادة 18' },
+        { id: 'Q2.2', risk: 'med',  status: 'pending', q: 'ما المقصود عمليًّا بـ«استقرار الحالة» وفق الملحق رقم 66 — أي اللحظة التي ينتهي عندها واجب العلاج الطارئ؟', answer: 'لا يُعرِّف أيُّ مصدر سعودي أوَّلي «استقرار الحالة» سريريًّا. يستخدم الملحق 66 (المادة 1) عبارة «حتى تستقرَّ الحالة» كنقطة انتهاء، لكنَّه يتركها للتقدير السريري؛ ومستويات العناية العاجلة (إنعاش/طوارئ/عاجل) تصنِّف درجة الإلحاح عند الحضور، لا نقطة الاستقرار. وادِّعاء النموذج بأنَّ «مستويات الحدَّة = الاستقرار» غير مدعوم.', sources: 'ملحق وزارة الصحة 66 المادة 1؛ حزمة المنافع، الفصل 1 تعريف 32 (الطوارئ)' },
+        { id: 'Q2.3', risk: 'med',  status: 'pending', q: 'بعد استقرار حالة المريض، في أيِّ لحظة يعود اشتراط الموافقة المسبقة من مجلس الضمان الصحي إلى السريان؟', answer: 'غير محدَّد كنقطة واحدة. الآليتان الأوَّليتان الفعليتان: للحالات غير المؤمَّنة المستحقَّة يبلِّغ المستشفى شركة إدارة المطالبات المعيَّنة من الوزارة خلال 24 ساعة (الملحق 66 المادتان 3–4)؛ وللحالات المؤمَّنة يجوز للمؤمِّن نقل المريض إلى شبكته بعد الاستقرار، ويعود توقيت الموافقة المسبقة المعتاد (فصل الشبكة بحزمة المنافع). ولا يرد مسار «OCET/SMARC» الذي ذكره النموذج في أيِّ نصٍّ أوَّلي.', sources: 'ملحق وزارة الصحة 66 المادتان 3–4؛ حزمة المنافع، الفصل 6 (الشبكة)' },
+        { id: 'Q2.4', risk: 'med',  status: 'partial', q: 'عندما ينازع صاحب العمل في مسؤوليته عن عامل غير سعودي وغير مؤمَّن عليه، من يدفع ريثما يُحسَم النزاع؟', answer: 'مُجاب إلى حدٍّ كبير. على المستشفى العلاج حتى الاستقرار «بغضِّ النظر عن الجنسية أو صاحب العمل، ودون مطالبة مالية مسبقة» (الملحق 66 المادة 1)، ثم يبلِّغ شركة إدارة المطالبات المعيَّنة من الوزارة خلال 24 ساعة، وبعدها تتحمَّل الدولة التكلفة أو تنقل المريض إلى مستشفى حكومي للمستحقِّين (المادتان 3–4). ويبقى غير موثَّق: استرداد التكلفة لاحقًا من صاحب العمل المتخلِّف.', sources: 'ملحق وزارة الصحة 66 المواد 1 و3–4' }
+      ]},
+      { rf: 'RF-3', title: 'التوجيه حسب المنشأة (الأنظمة المغلقة)', items: [
+        { id: 'Q3.1', risk: 'low',  status: 'partial', q: 'هل لدى الأنظمة الصحية للحرس الوطني أو الدفاع أو الداخلية اتفاقيات تتيح لها تعويض الرعاية المقدَّمة في منشآت خارج نظامها؟', answer: 'غير مؤكَّد تحديدًا. تضع اللائحة التنفيذية لنظام الصحة (5/2ر) المبدأ العام: الإحالة داخل الجهة نفسها أوَّلًا، وإلى جهة أخرى فقط بموجب ترتيب مسبق يحدِّد من يتحمَّل التكلفة. ولم يُعثَر على مذكِّرة تفاهم أوَّلية تسمِّي الحرس/الدفاع/الداخلية ومنشأة خارجية، و«SMARC/USMR» منصَّة تابعة لوزارة الصحة لا لهذه الجهات.', sources: 'اللائحة التنفيذية لنظام الصحة 5/2ر (م/11)' },
+        { id: 'Q3.2', risk: 'med',  status: 'pending', q: 'لموظَّف في أرامكو زوجه مشمول أيضًا بتغطية الضمان الصحي، أيُّهما له الأسبقية: أرامكو/SAMSO أم الضمان الصحي؟', answer: 'غير مؤكَّد. لا يوجد نظام أوَّلي يرتِّب المنافع بين خطَّة أرامكو/JHAH الذاتية ووثيقة ضمان صحي للزوج. وقاعدة «وثيقة صاحب عمل الزوجة هي الأساسية» عُرف صناعي؛ وتعالجها JHAH عبر تعليمات شركة داخلية، لا نظام منشور.', sources: '(لا قاعدة أوَّلية لتنسيق المنافع؛ تعليمات أرامكو داخلية)' },
+        { id: 'Q3.3', risk: 'low',  status: 'pending', q: 'كيف تُحيل الخدمات الطبية لوزارة الداخلية مستفيديها إلى المستشفيات الخاصَّة؟', answer: 'غير مُثبَت. «SMARC/USMR» منصَّة الإحالة الإلكترونية الوطنية لوزارة الصحة، لا نظام الخدمات الطبية بوزارة الداخلية (أخطأ النموذج في نسبتها). وكيفية إحالة الخدمات الطبية للداخلية إلى المستشفيات الخاصَّة وسداد تكلفتها غير محدَّدة في أيِّ نظام أوَّلي يمكن الوصول إليه.', sources: 'اللائحة التنفيذية لنظام الصحة 5/2ر (م/11)' },
+        { id: 'Q3.4', risk: 'high', status: 'partial', q: 'عندما يتعرَّض مستفيد من نظام مغلق (الحرس الوطني / الدفاع / الداخلية / أرامكو) لحالة طارئة في مستشفى خاصٍّ، من يدفع فعليًّا؟', answer: 'إجابة مزدوجة. إسعاف الطوارئ الإلزامي للجميع مُقنَّن (اللائحة التنفيذية لنظام الصحة 4/هـ — كلُّ المنشآت تعالج المصاب عند الوصول ثم تنقله). لكنَّ ادِّعاء النموذج بأنَّ «مركز التأمين الصحي الوطني يدفع» خاطئ للأنظمة المغلقة: فالمركز يشتري فقط من القابضة للصحة (مرافق وزارة الصحة المُشركنة)، لا من الدفاع/الحرس/الداخلية. ومن يعوِّض المستشفى الخاصَّ عن مستفيد نظام مغلق يبقى عُرفًا لا نصًّا.', sources: 'اللائحة التنفيذية لنظام الصحة 4/هـ (م/11)؛ نطاق مركز التأمين الصحي الوطني' }
+      ]},
+      { rf: 'RF-4', title: 'تحديد فئة المستفيد', items: [
+        { id: 'Q4.1', risk: 'med',  status: 'partial', q: 'متى وكيف تنطبق بالضبط قاعدة «صاحب عمل الزوج يغطِّي الأسرة» أثناء تغيير الوظيفة أو الانتقال؟', answer: 'لا توجد قاعدة «فورًا عند انتهاء عمل الزوجة». القاعدة الزوجية الوحيدة المُقنَّنة (البند 9 من حزمة المنافع) تجعل أبناء الزوجين العاملين المقيمين معًا تابعين لوثيقة الزوج؛ وتبدأ تغطية المُعالين من تاريخ التسجيل/اكتساب صفة المُعال (سياسة التزام صاحب العمل 4.2.3) — أي عبر إعادة تسجيل، لا تحوُّل تلقائي فوري.', sources: 'حزمة المنافع البند 9؛ سياسة التزام صاحب العمل 4.2.3' },
+        { id: 'Q4.2', risk: 'med',  status: 'pending', q: 'في حالة الوالدين المطلَّقين، أيُّ وثيقة صاحب عمل تغطِّي الأبناء؟', answer: 'غير منظَّم فعلًا. لا تتناول أيُّ وثيقة ضمان صحي أوَّلية حالة الوالدين المطلَّقين؛ والقاعدة الوحيدة ذات الصلة (تبعية الأبناء للزوج) تفترض أسرة قائمة مقيمة معًا. وقول النموذج «وثيقة الأب أوَّلًا» استنتاج زائد.', sources: '(لا قاعدة أوَّلية؛ قارن البند 9 من حزمة المنافع)' },
+        { id: 'Q4.3', risk: 'low',  status: 'done', q: 'متى يظلُّ المُعال البالغ — مثل الطالب أو البالغ من ذوي الإعاقة — مستحقًّا للتغطية؟', answer: 'قابل للإجابة من النصِّ الأوَّلي. يُستحَقُّ الأبناء الذكور كمُعالين حتى سنِّ 25؛ والبنات غير المتزوِّجات دون حدٍّ عمري معلَن، بشرط (وفق قائمة الأهلية بحزمة المنافع) أن يكنَّ غير متزوِّجات وغير عاملات ومُعالات على الموظَّف. مؤكَّد في تعريفات سياسة تغطية المستفيدين وسياسة التزام صاحب العمل.', sources: 'سياسة تغطية المستفيدين (تعريف المُعال)؛ سياسة التزام صاحب العمل (تعريف المُعال)؛ قائمة أهلية حزمة المنافع' },
+        { id: 'Q4.4', risk: 'med',  status: 'pending', q: 'إذا كان الزوج عاطلًا أو غير مؤمَّن عليه، فهل يصبح صاحب عمل الزوجة مسؤولًا تلقائيًّا عن الأسرة؟', answer: 'غير مؤكَّد. يمكن تسجيل الزوج كمُعال لزوجته العاملة (تعريف المُعال متماثل)، لكن لا توجد مادَّة أوَّلية تُلزِم صاحب عمل الزوجة بتغطية زوج عاطل أو موظَّف حكومي. وادِّعاء النموذج بالـ«إلزام» غير مُقنَّن.', sources: '(تعريف المُعال المتماثل؛ لا إلزام صريح)' }
+      ]},
+      { rf: 'RF-5', title: 'الرجوع إلى التغطية الخاصَّة', items: [
+        { id: 'Q5.1', risk: 'med',  status: 'partial', q: 'إذا حمل شخص واحد وثيقتي ضمان صحي ساريتين في وقت واحد (فردية وجماعية)، فأيُّهما الأساسية؟', answer: 'جزئيًّا. تمنع حزمة المنافع حمل تغطيتين معًا، وتحلُّ تداخل «العامل مقابل المُعال» لصالح تغطية العمل المباشر («تنتهي تغطيته كمُعال»؛ «لا يوجد مستفيد له تغطيتان مختلفتان في الفترة نفسها» — المادة 9). لكنَّها لا تحدِّد الأسبقية بين وثيقتي صاحبَي عمل مستقلَّين من النوع نفسه.', sources: 'حزمة المنافع المادة 9 (الازدواج)' },
+        { id: 'Q5.2', risk: 'low',  status: 'partial', q: 'لحاجٍّ سعودي لديه أيضًا ضمان صحي، هل تنطبق وثيقة الحجَّاج أم تغطيته المعتادة؟', answer: 'وثيقة الحجِّ/العمرة معرَّفة لحامِلي تأشيرات الدخول من غير المقيمين (بحدٍّ 100,000 ريال للحاجِّ)، فلا تنطبق على المقيمين/المواطنين الذين يبقون تحت تغطية الضمان الصحي المعتادة. النصف الأوَّل مدعوم بنصٍّ أوَّلي؛ و«بقاء المقيمين على الضمان المعتاد» استنتاج سليم لا بندٌ صريح واحد.', sources: 'وثيقة الحجِّ/العمرة (تعريف المؤمَّن)؛ نطاق حزمة المنافع' },
+        { id: 'Q5.3', risk: 'low',  status: 'done', q: 'كيف يتنسَّق تأمين الزوار مع تأمين الزائر في بلده الأصلي؟', answer: 'توجد آلية صريحة. تجعل المادة 6 «منع ازدواج المنافع» في وثيقة تأمين الزوار المؤمِّن السعودي يدفع أوَّلًا ثم يحلُّ محلَّ المؤمَّن في الرجوع على الغير (بما في ذلك أيُّ خطَّة/تأمين آخر) لحصصهم النسبية — وهي البند الوحيد المنشور للدفع-ثم-الحلول في التنظيم التعاوني السعودي (والمادة 36 تماثله لحوادث المرور).', sources: 'وثيقة تأمين الزوار المادة 6 (والمادة 36)' },
+        { id: 'Q5.4', risk: 'high', status: 'pending', q: 'هل أصدرت منصَّة «نفيس» أيَّ قواعد تقنية أحدث تُحدِّد أيَّ تغطية تكون الأساسية عند وجود أكثر من تغطية للمريض؟', answer: 'لا حتى الآن. لدى «نفيس» غرض «اكتشاف» في الأهلية يُعيد قائمة بالتغطيات السارية للمستفيد — لكنَّ دليل التطبيق لا يقيِّد Coverage.order ولا يحدِّد ترتيب أساسي/ثانوي أو أسبقية لتنسيق المنافع. الاكتشاف يَسرُد التغطيات، لا يرتِّبها. والنتيجة الأصلية قائمة.', sources: 'دليل تطبيق نفيس — غرض طلب الأهلية (الاكتشاف)؛ لا قيد على Coverage.order' },
+        { id: 'Q5.5', risk: 'high', status: 'pending', q: 'هل تتوفَّر بيئة اختبار (Sandbox) لمنصَّة «نفيس» لتجربة سيناريوهات التغطية المتعدِّدة؟', answer: 'غير مؤكَّد. لم يُعثَر على وثيقة أوَّلية رسمية من «نفيس» تصف بيئة اختبار عامَّة لسيناريوهات التغطية المتعدِّدة. توجد بيئة تأهيل/تكامل على مستوى المورِّد، لكنَّ دعمها لاختبار التغطية المتعدِّدة غير موثَّق في مصادر أوَّلية.', sources: '(تأهيل نفيس — لا وثيقة بيئة اختبار أوَّلية)' }
+      ]},
+      { rf: 'RF-6', title: 'قضايا شاملة / الأفق التنظيمي', items: [
+        { id: 'Q6.1', risk: 'high', status: 'partial', q: 'منذ تولِّي هيئة التأمين الجديدة مهامَّها في مارس 2024، هل أصدرت أيَّ قاعدة بشأن تنسيق المنافع بين شركات التأمين؟', answer: 'أصبحت هيئة التأمين الجهة المنظِّمة الوحيدة للتأمين في 4 مارس 2024، مستوعبةً مهامَّ مجلس الضمان ومؤسسة النقد، مع بقاء الأنظمة القائمة سارية أثناء الانتقال. ولم يُعثَر على نظام صادر عن الهيئة بعد مارس 2024 يستحدث تنسيق منافع — وهي نتيجة سلبية (فهرسة ia.gov.sa شحيحة)، لا تصريح إيجابي من الهيئة.', sources: 'ملاحظات الجهات التنظيمية بالمشروع (انتقال الهيئة)؛ لم يُعثَر على قاعدة أوَّلية لتنسيق المنافع' },
+        { id: 'Q6.2', risk: 'med',  status: 'pending', q: 'ما الوضع الحالي لبرنامج «ضمان» / التأمين الإلزامي الموحَّد، وهل يتضمَّن تسلسل تنسيق منافع؟', answer: 'أساء النموذج توصيفه. التطبيق المرحلي «المنتهي 2017» كان توسعة الإلزام التعاوني القديمة لمجلس الضمان، لا برنامج «ضمان»/الإلزامي الموحَّد لعام 2024. ولا يوثِّق أيُّ مصدر أوَّلي تسلسل تنسيق منافع لـ«ضمان»؛ فالمملكة تعتمد نموذج جهة ملزمة واحدة بمنع الازدواج، لا تسلسلًا متعدِّد المؤمِّنين.', sources: '(لا نصَّ أوَّلي لتسلسل «ضمان»؛ قارن منع الازدواج بالوثيقة الموحَّدة)' },
+        { id: 'Q6.3', risk: 'med',  status: 'partial', q: 'هل يتضمَّن مشروع نظام التأمين لعام 2024 أيَّ أحكام لتنسيق المنافع؟', answer: 'يوجد مشروع نظام تأمين جديد منشور على منصَّة «استطلاع» الرسمية بتاريخ 17 يونيو 2025 (لا 2024)؛ يحلُّ محلَّ نظام مراقبة شركات التأمين التعاوني لعام 2003. وتصف التحليلات القانونية المتاحة نطاقه دون تحديد أيِّ بند لتنسيق المنافع/ازدواج التأمين — مع أنَّ المشروع لم يُحلَّل سطرًا بسطر.', sources: 'مشروع نظام التأمين، istitlaa.ncc.gov.sa (17 يونيو 2025)' },
+        { id: 'Q6.4', risk: 'med',  status: 'partial', q: 'هل توجد قرارات للجان الفصل في المنازعات التأمينية (IDC) ترسي سابقة لكيفية تنسيق شركات التأمين فيما بينها؟', answer: 'الأداة المنظِّمة للجان (قرار مجلس الوزراء رقم 190 لعام 1435هـ — قواعد عمل الفصل في المنازعات التأمينية) إجرائية بحتة، دون معيار لتنسيق المنافع. وقرارات اللجان غير منشورة كسوابق قابلة للبحث، فلا يمكن إثبات سابقة لتنسيق المنافع من مصادر أوَّلية.', sources: 'قواعد عمل اللجان (قرار مجلس الوزراء 190/1435هـ)؛ قرارات اللجان غير منشورة' }
+      ]},
+      { rf: 'RF-7', title: 'قيود نظام حماية البيانات (إقامة البيانات)', items: [
+        { id: 'Q7.1', risk: 'low',  status: 'done', q: 'هل نشرت «سدايا» قائمة الدول التي تعتبرها «ملائمة» لنقل البيانات الشخصية إلى الخارج؟', answer: 'الآلية مُقنَّنة. تُلزِم المادة 3 من لائحة سدايا لنقل البيانات خارج المملكة الجهةَ المختصَّة بنشر قائمة (على موقعها) بالدول/المنظَّمات التي توفِّر مستوى حماية ملائمًا، تُراجَع كلَّ أربع سنوات وفق ستة معايير. (أمَّا هل نُشرت قائمة فعليًّا فمسألة منفصلة لا تزال مفتوحة.)', sources: 'لائحة سدايا لنقل البيانات خارج المملكة المادة 3' },
+        { id: 'Q7.2', risk: 'med',  status: 'partial', q: 'هل يوجد نموذج إلزامي لتقييم أثر حماية البيانات (DPIA) خاصٌّ بمعالجة البيانات الصحِّية؟', answer: 'يوجد اشتراط لتقييم الأثر: المادة 25(1) من اللائحة التنفيذية لنظام حماية البيانات (المقتبسة في دليل تقييم المخاطر لسدايا) تستوجب تقييم أثر لمعالجة البيانات الحسَّاسة — والبيانات الصحِّية حسَّاسة. لكن لا يُلزِم أيُّ مصدر أوَّلي بنموذج DPIA محدَّد للبيانات الصحِّية؛ ودليل سدايا غير مُلزِم صراحةً.', sources: 'اللائحة التنفيذية لنظام حماية البيانات المادة 25(1)؛ دليل تقييم المخاطر لسدايا' },
+        { id: 'Q7.3', risk: 'low',  status: 'pending', q: 'هل يمكن للشخص سحب موافقته على البيانات داخل خدمتنا فقط، أم يُسمَح بوسائل سحب خارجية — وما السرعة المطلوبة للتنفيذ؟', answer: 'غير مؤكَّد من النصِّ الأوَّلي. لا تغطِّي مستخرَجاتنا المحلِّية سحب الموافقة؛ وتذكر الملخَّصات القانونية الثانوية أنَّ الموافقة يجب أن تكون «سهلة السحب»، وأنَّ المعالجة تتوقَّف «دون تأخير لا مبرِّر له»، وأنَّ المتحكِّم يردُّ على الطلبات خلال 30 يومًا (اللائحة التنفيذية المادة 3) — لكن لم يتسنَّ استرداد النصِّ الأوَّلي الحرفي لتأكيد المدَّة.', sources: '(اللائحة التنفيذية لنظام حماية البيانات المادتان 3/6 — لم تُستخرَج حرفيًّا بعد)' }
+      ]}
+    ]
+  };
+  const Q_RISK_LABEL = { low: 'منخفضة', med: 'متوسِّطة', high: 'عالية' };
+  const Q_STATUS_LABEL = { done: 'مُجاب', partial: 'جزئي', pending: 'مفتوح' };
+
   const $ = (id) => document.getElementById(id);
   const modal = $('modal');
   const content = $('modal-content');
@@ -1070,6 +1226,178 @@
     return html;
   }
 
+  function renderQuestions() {
+    let html = `<h3 class="modal-title">الأسئلة البحثية الثلاثون — بصيغة مبسَّطة</h3>`;
+    html += `<div class="modal-meta">${QUESTIONS.intro}</div>`;
+    html += `<div class="q-toolbar"><button type="button" class="xlsx-btn" data-download-questions>تنزيل كملف Excel</button></div>`;
+    QUESTIONS.groups.forEach(g => {
+      html += `<h4>${g.rf} · ${escapeHtml(g.title)}</h4>`;
+      html += '<table><thead><tr><th>المعرِّف</th><th>السؤال</th><th>الخطورة</th><th>الحالة</th></tr></thead><tbody>';
+      g.items.forEach(it => {
+        html += `<tr><td><code class="id">${it.id}</code></td>`
+              + `<td>${escapeHtml(it.q)}</td>`
+              + `<td><span class="risk risk-${it.risk}">${Q_RISK_LABEL[it.risk]}</span></td>`
+              + `<td><span class="status ${it.status}">${Q_STATUS_LABEL[it.status]}</span></td></tr>`;
+        if (it.answer) {
+          const meta = ({ done: ['الإجابة', 'answer-done'], partial: ['إجابة جزئية', 'answer-partial'], pending: ['نتيجة التحقُّق', 'answer-pending'] })[it.status] || ['نتيجة التحقُّق', 'answer-pending'];
+          let cell = `<span class="answer-tag">${meta[0]}</span>${escapeHtml(it.answer)}`;
+          if (it.sources) cell += `<span class="answer-src"><strong>المصادر الأوَّلية:</strong> ${escapeHtml(it.sources)}</span>`;
+          html += `<tr class="answer-row ${meta[1]}"><td colspan="4">${cell}</td></tr>`;
+        }
+      });
+      html += '</tbody></table>';
+    });
+    html += `<p style="font-size:0.86rem;color:var(--text-muted);">الحصر الكامل — مع درجات الخطورة والمصادر المرشَّحة وصيغة الدليل المطلوبة لكلِّ إجابة — في <code>docs/research/second-pass-tasks.md</code>.</p>`;
+    return html;
+  }
+
+  // ─── تصدير ملف .xlsx مستقلٍّ بالكامل (ضغط ZIP بنمط التخزين، دون مكتبات خارجية) ───
+  function xmlEsc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+  }
+  function strBytes(s) { return new TextEncoder().encode(s); }
+  function crc32(bytes) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) {
+      let c = (crc ^ bytes[i]) & 0xFF;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (c >>> 1) ^ 0xEDB88320 : c >>> 1;
+      crc = (crc >>> 8) ^ c;
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipStore(files) {
+    const u16 = n => [n & 0xFF, (n >>> 8) & 0xFF];
+    const u32 = n => [n & 0xFF, (n >>> 8) & 0xFF, (n >>> 16) & 0xFF, (n >>> 24) & 0xFF];
+    const chunks = [], central = [];
+    let offset = 0;
+    files.forEach(f => {
+      const name = strBytes(f.name), crc = crc32(f.data), size = f.data.length;
+      const local = [].concat(u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0),
+        u32(crc), u32(size), u32(size), u16(name.length), u16(0));
+      chunks.push(new Uint8Array(local), name, f.data);
+      central.push(new Uint8Array([].concat(u32(0x02014b50), u16(20), u16(20), u16(0), u16(0),
+        u16(0), u16(0), u32(crc), u32(size), u32(size), u16(name.length),
+        u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset))), name);
+      offset += local.length + name.length + size;
+    });
+    let cdSize = 0;
+    central.forEach(c => { chunks.push(c); cdSize += c.length; });
+    chunks.push(new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0),
+      u16(files.length), u16(files.length), u32(cdSize), u32(offset), u16(0))));
+    const total = chunks.reduce((s, c) => s + c.length, 0);
+    const out = new Uint8Array(total);
+    let p = 0;
+    chunks.forEach(c => { out.set(c, p); p += c.length; });
+    return out;
+  }
+  // مؤشِّرات الأنماط في styles.xml (cellXfs). 0 = افتراضي.
+  const XF = { header: 1, plain: 2, green: 3, amber: 4, red: 5, grey: 6 };
+  const STYLES_XML =
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts count="3">' +
+      '<font><sz val="11"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><name val="Calibri"/></font>' +
+    '</fonts>' +
+    '<fills count="7">' +
+      '<fill><patternFill patternType="none"/></fill>' +
+      '<fill><patternFill patternType="gray125"/></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FF2F6F4E"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFC8E6D4"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFF6E7BD"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFF3D3CD"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFE6E8EB"/><bgColor indexed="64"/></patternFill></fill>' +
+    '</fills>' +
+    '<borders count="2">' +
+      '<border><left/><right/><top/><bottom/><diagonal/></border>' +
+      '<border><left style="thin"><color rgb="FFDDDDDD"/></left><right style="thin"><color rgb="FFDDDDDD"/></right><top style="thin"><color rgb="FFDDDDDD"/></top><bottom style="thin"><color rgb="FFDDDDDD"/></bottom><diagonal/></border>' +
+    '</borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="7">' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="5" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="6" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>' +
+    '</cellXfs>' +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+    '</styleSheet>';
+
+  function buildXlsx(sheetName, rows, opts) {
+    opts = opts || {};
+    const colLetter = n => { let s = ''; n++; while (n) { n--; s = String.fromCharCode(65 + n % 26) + s; n = Math.floor(n / 26); } return s; };
+    let sheetData = '';
+    rows.forEach((r, ri) => {
+      sheetData += `<row r="${ri + 1}">`;
+      r.forEach((cell, ci) => {
+        const isObj = cell && typeof cell === 'object';
+        const v = isObj ? cell.v : cell;
+        const s = isObj ? (cell.s || 0) : 0;
+        const sAttr = s ? ` s="${s}"` : '';
+        sheetData += `<c r="${colLetter(ci)}${ri + 1}"${sAttr} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+      });
+      sheetData += '</row>';
+    });
+    const cols = (opts.cols && opts.cols.length)
+      ? '<cols>' + opts.cols.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('') + '</cols>'
+      : '';
+    const sheetViews = `<sheetViews><sheetView workbookViewId="0"${opts.rtl ? ' rightToLeft="1"' : ''}>` +
+      '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/></sheetView></sheetViews>';
+    const decl = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const files = [
+      { name: '[Content_Types].xml', data: strBytes(decl +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>') },
+      { name: '_rels/.rels', data: strBytes(decl +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>') },
+      { name: 'xl/workbook.xml', data: strBytes(decl +
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+        `<sheets><sheet name="${xmlEsc(sheetName)}" sheetId="1" r:id="rId1"/></sheets></workbook>`) },
+      { name: 'xl/_rels/workbook.xml.rels', data: strBytes(decl +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>') },
+      { name: 'xl/styles.xml', data: strBytes(decl + STYLES_XML) },
+      { name: 'xl/worksheets/sheet1.xml', data: strBytes(decl +
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+        sheetViews + cols + `<sheetData>${sheetData}</sheetData></worksheet>`) }
+    ];
+    return zipStore(files);
+  }
+  function downloadQuestionsXlsx() {
+    const riskXf = { high: XF.red, med: XF.amber, low: XF.grey };
+    const statusXf = { done: XF.green, partial: XF.amber, pending: XF.red };
+    const rows = [['المعرِّف', 'عائلة القواعد', 'السؤال', 'الخطورة', 'الحالة', 'الإجابة المُتحقَّق منها', 'المصادر الأوَّلية'].map(v => ({ v, s: XF.header }))];
+    QUESTIONS.groups.forEach(g => g.items.forEach(it => {
+      rows.push([
+        { v: it.id, s: XF.plain },
+        { v: `${g.rf} — ${g.title}`, s: XF.plain },
+        { v: it.q, s: XF.plain },
+        { v: Q_RISK_LABEL[it.risk], s: riskXf[it.risk] },
+        { v: Q_STATUS_LABEL[it.status], s: statusXf[it.status] },
+        { v: it.answer || '', s: XF.plain },
+        { v: it.sources || '', s: XF.plain }
+      ]);
+    }));
+    const blob = new Blob([buildXlsx('الأسئلة البحثية', rows, { rtl: true, cols: [9, 26, 52, 11, 11, 64, 40] })],
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'coverage-router-research-questions-ar.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function openModal(html) {
     lastFocus = document.activeElement;
     content.innerHTML = html;
@@ -1092,11 +1420,29 @@
       openModal(renderSource(sourceBtn.dataset.source));
       return;
     }
+    if (e.target.closest('[data-download-questions]')) {
+      e.preventDefault();
+      downloadQuestionsXlsx();
+      return;
+    }
+    const qBtn = e.target.closest('[data-questions]');
+    if (qBtn) {
+      e.preventDefault();
+      openModal(renderQuestions());
+      return;
+    }
     if (e.target.closest('[data-close]')) closeModal();
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+      closeModal();
+      return;
+    }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-questions]')) {
+      e.preventDefault();
+      openModal(renderQuestions());
+    }
   });
 })();
 </script>
