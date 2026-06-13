@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f7c66">
-<meta name="description" content="Interactive COB decision-engine tester for the coverage-router-ksa project — load any of 25 worked scenarios, tweak inputs, and see the algorithm's verdict + reasoning trace.">
-<title>COB Tester · coverage-router-ksa</title>
+<meta name="description" content="Interactive COB decision-engine simulator for the coverage-router-ksa project — load any of 25 worked scenarios, tweak inputs, and see the algorithm's verdict + reasoning trace.">
+<title>COB Simulator · coverage-router-ksa</title>
 <style>
   :root {
     --bg: #fbfaf7;
@@ -362,6 +362,59 @@
   button.reset:hover { background: var(--surface-alt); }
 
   /* Output panel */
+  .output-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .output-label span { font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+  /* Live API box */
+  .api-box {
+    margin-top: 1.1rem;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--primary-light);
+    padding: 0.85rem 0.9rem;
+  }
+  .api-box-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .api-box-head strong { color: var(--primary); font-size: 0.95rem; }
+  .api-box-head code { font-size: 0.78rem; background: rgba(15,124,102,0.12); color: var(--primary); padding: 1px 6px; border-radius: 4px; }
+  .api-hint { font-size: 0.78rem; color: var(--text-muted); margin: 0.4rem 0 0.6rem; }
+  .api-hint code { background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 3px; }
+  .api-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+  .api-row input { flex: 1 1 12rem; min-width: 0; padding: 0.5rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 0.85rem; }
+  .api-row .evaluate { flex: 0 0 auto; }
+  .api-subhead { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--primary); margin: 0.85rem 0 0.3rem; }
+  .api-subhead span { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-muted); }
+  .api-codebox { background: #0f1f1b; border-radius: var(--radius); overflow-x: auto; }
+  .api-codebox pre.json { margin: 0; padding: 0.7rem 0.85rem; font-size: 0.78rem; line-height: 1.5; color: #8aa39b; white-space: pre; }
+  /* JSON value highlighting in the request preview */
+  .api-codebox .json-key { color: #7fb4ff; }
+  .api-codebox .json-str { color: #7CE38B; background: rgba(124,227,139,0.12); border-radius: 3px; padding: 0 2px; }
+  .api-codebox .json-num { color: #f0a868; background: rgba(240,168,104,0.14); border-radius: 3px; padding: 0 2px; }
+  .api-codebox .json-bool { color: #d98cf0; background: rgba(217,140,240,0.14); border-radius: 3px; padding: 0 2px; }
+  .api-codebox .json-null { color: #9aa0a6; }
+  .api-output { margin-top: 0.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 0.85rem; font-size: 0.88rem; }
+  .api-status { display: inline-block; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; }
+  .api-status.ok { background: rgba(47,158,107,0.14); color: var(--success); }
+  .api-status.err { background: rgba(184,73,58,0.12); color: var(--danger); }
+  .api-liable { font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
+  .api-liable .eid { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--surface-alt); padding: 1px 5px; border-radius: 4px; }
+  .api-liable-ar { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.1rem; }
+  .api-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; }
+  .api-cites { margin-top: 0.5rem; font-size: 0.82rem; }
+  .api-cites ul { margin: 0.2rem 0 0; padding-left: 1.1rem; }
+  .api-ids { margin-top: 0.45rem; font-size: 0.78rem; color: var(--text-muted); }
+  .api-ids code { font-size: 0.92em; }
+  .api-error-body { font-size: 0.85rem; color: var(--text); }
+  .api-json { margin-top: 0.6rem; }
+  .api-json summary { cursor: pointer; font-size: 0.8rem; color: var(--primary); font-weight: 600; }
+  .api-json pre { margin-top: 0.4rem; background: var(--surface-alt); padding: 0.6rem; border-radius: 6px; overflow-x: auto; font-size: 0.76rem; line-height: 1.4; max-height: 22rem; }
+
   .verdict {
     background: var(--surface-alt);
     border-left: 4px solid var(--text-muted);
@@ -596,9 +649,9 @@
     <div class="brand">coverage-router-ksa</div>
     <nav>
       <a href="Research.html">Research</a>
-      <a href="tester.html" class="active">Tester</a>
+      <a href="simulator.html" class="active">Simulator</a>
       <a href="https://github.com/SaifDalli2/coverage-router-ksa" target="_blank" rel="noopener">GitHub</a>
-      <a href="tester.ar.html" class="lang-switch" lang="ar">العربية</a>
+      <a href="simulator.ar.html" class="lang-switch" lang="ar">العربية</a>
     </nav>
   </div>
 </header>
@@ -606,7 +659,7 @@
 <section class="intro">
   <div class="container">
     <span class="badge">Interactive · v0.1</span>
-    <h1>COB decision engine — interactive tester</h1>
+    <h1>COB decision engine — Interactive simulator</h1>
     <p class="lede">Load any of the 25 worked scenarios, tweak the inputs, and run the algorithm. Verdict + reasoning trace + citations on the right; PASS/DIFFERS badge if a preset is loaded. The JS implementation mirrors the documented pseudocode in <code>docs/coordination-of-benefits.md</code>.</p>
   </div>
 </section>
@@ -783,10 +836,33 @@
     <!-- OUTPUT PANEL -->
     <section class="panel">
       <h2><span class="panel-num">2</span> Verdict</h2>
+
+      <!-- LIVE API BOX (above the in-browser results) -->
+      <div class="api-box">
+        <div class="api-box-head">
+          <strong>Live API</strong>
+          <code>POST /v1/cases/evaluate</code>
+        </div>
+        <p class="api-hint">Sends the same inputs to the backend decision service (the authoritative engine). Start it with <code>uvicorn app.main:app --reload --port 8010</code>.</p>
+        <div class="api-row">
+          <input id="api-base" type="text" spellcheck="false" value="http://127.0.0.1:8010" aria-label="API base URL">
+          <button class="evaluate" id="api-eval-btn" type="button">Evaluate via API →</button>
+        </div>
+
+        <div class="api-subhead">Request body <span>(live — mirrors the form)</span></div>
+        <div id="api-request" class="api-codebox"><pre class="json"></pre></div>
+
+        <div class="api-subhead">Response</div>
+        <div id="api-response" class="api-output">
+          <div class="placeholder">Not called yet. Adjust the form (the request above updates live), then click <strong>Evaluate via API</strong>.</div>
+        </div>
+      </div>
+
+      <div class="output-label">In-browser engine <span>(offline reference)</span></div>
       <div id="output">
         <div class="placeholder">
           <strong>No evaluation yet.</strong>
-          Select a preset scenario above and click Load (or fill the form manually), then click Evaluate. The algorithm runs in your browser; nothing is sent anywhere.
+          Select a preset scenario above and click Load (or fill the form manually), then click Evaluate. This reference engine runs in your browser.
         </div>
       </div>
     </section>
@@ -1347,6 +1423,7 @@
         renderCchiList();
       });
     });
+    if (typeof updateApiRequestPreview === 'function') updateApiRequestPreview();
   }
 
   // Read form into input shape
@@ -1413,6 +1490,7 @@
     meta.innerHTML = metaHtml;
     meta.classList.add('shown');
     meta.dataset.expected = JSON.stringify(scenario.expected);
+    updateApiRequestPreview();
   }
 
   function clearPresetMeta() {
@@ -1523,6 +1601,139 @@
     }
   });
 
+  // ─── Live API wiring ─────────────────────────────────────────────────────
+  // Adapt the in-browser input shape (beneficiary/case_attrs/facility) to the
+  // API request body documented in docs/api-design.md (case.beneficiary/
+  // encounter/case_attributes).
+  function toApiRequest(input) {
+    const b = input.beneficiary;
+    const beneficiary = {
+      class: b.class,
+      nationality: b.nationality,
+      employment_sector: b.employment_sector,
+      gosi_registered: b.gosi_registered,
+      eligible_for: b.eligible_for,
+      cchi_coverages: b.cchi_coverages,
+      has_other_coverage: b.has_other_coverage,
+      billing_mode: b.billing_mode
+    };
+    if (b.special_case_scheme) beneficiary.special_case_scheme = b.special_case_scheme;
+    if (typeof b.age === 'number' && b.age > 0) beneficiary.age = b.age;
+    const ca = input.case_attrs;
+    const case_attributes = {
+      type: ca.type,
+      is_emergency: ca.is_emergency,
+      commute_related: ca.commute_related,
+      najm_report_id: ca.najm_report_id,
+      cap_exhausted: ca.cap_exhausted,
+      service_excluded: ca.service_excluded
+    };
+    if (ca.injury_kind) case_attributes.injury_kind = ca.injury_kind;
+    return {
+      case: {
+        beneficiary,
+        encounter: { facility_type: input.facility.type, facility_system: input.facility.system },
+        case_attributes
+      }
+    };
+  }
+
+  // Highlight JSON values (and keys) for the live request preview.
+  function syntaxHighlight(obj) {
+    let json = JSON.stringify(obj, null, 2);
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(
+      /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|\bnull\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+      (match) => {
+        let cls = 'json-num';
+        if (/^"/.test(match)) cls = /:$/.test(match) ? 'json-key' : 'json-str';
+        else if (/true|false/.test(match)) cls = 'json-bool';
+        else if (/null/.test(match)) cls = 'json-null';
+        return `<span class="${cls}">${match}</span>`;
+      }
+    );
+  }
+
+  // Rebuild the live request preview from the current form state.
+  function updateApiRequestPreview() {
+    const pre = document.querySelector('#api-request pre.json');
+    if (pre) pre.innerHTML = syntaxHighlight(toApiRequest(readForm()));
+  }
+
+  function renderApiResult(status, data) {
+    const ok = status === 200;
+    let html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}</div>`;
+    if (ok && data && data.verdict) {
+      const v = data.verdict;
+      const lp = v.liable_party;
+      html += '<div class="api-liable">' +
+        (lp ? `${escapeHtml(lp.entity_name_en)} <span class="eid">${escapeHtml(lp.entity_id)}</span>`
+            : 'AMBIGUOUS — human review') + '</div>';
+      if (lp) html += `<div class="api-liable-ar" dir="rtl">${escapeHtml(lp.entity_name_ar)}</div>`;
+      html += '<div class="api-meta">' +
+        `<span>Confidence: <strong>${escapeHtml(v.confidence)}</strong></span>` +
+        `<span>Rule: ${escapeHtml(v.rule_family)}</span>` +
+        `<span>tree ${escapeHtml(data.tree_version || '')}</span></div>`;
+      if (v.citations && v.citations.length) {
+        html += '<div class="api-cites"><strong>Citations</strong><ul>' +
+          v.citations.map(c => `<li>${escapeHtml(c.title)}</li>`).join('') + '</ul></div>';
+      }
+      html += `<div class="api-ids">audit_id: <code>${escapeHtml(data.audit_id || '')}</code></div>`;
+    } else if (data && data.error) {
+      html += `<div class="api-error-body"><strong>${escapeHtml(data.error)}</strong>: ${escapeHtml(data.message || '')}`;
+      if (Array.isArray(data.missing_inputs) && data.missing_inputs.length) {
+        html += '<br>missing: ' + data.missing_inputs.map(escapeHtml).join(', ');
+      }
+      html += '</div>';
+    }
+    html += '<details class="api-json"><summary>Raw response JSON</summary>' +
+      `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>`;
+    return html;
+  }
+
+  function renderApiError(base, err) {
+    return '<div class="api-status err">Request failed</div>' +
+      `<div class="api-error-body">Could not reach <code>${escapeHtml(base)}</code>. ` +
+      'Is the API running? Start it with <code>uvicorn app.main:app --reload --port 8010</code>. ' +
+      `If it is running, this is likely a CORS/origin issue.<br>` +
+      `<span style="color:var(--text-muted)">${escapeHtml(String(err))}</span></div>`;
+  }
+
+  async function evaluateViaApi() {
+    const base = ($('api-base').value || '').trim().replace(/\/+$/, '');
+    try { localStorage.setItem('crk_api_base', base); } catch (_) {}
+    updateApiRequestPreview();
+    const reqBody = toApiRequest(readForm());
+    const out = $('api-response');
+    out.innerHTML = `<div class="placeholder">Calling ${escapeHtml(base)}/v1/cases/evaluate …</div>`;
+    let resp, data;
+    try {
+      resp = await fetch(base + '/v1/cases/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody)
+      });
+    } catch (err) {
+      out.innerHTML = renderApiError(base, err);
+      return;
+    }
+    try { data = await resp.json(); } catch (_) { data = { error: 'non_json_response' }; }
+    out.innerHTML = renderApiResult(resp.status, data);
+  }
+
+  // Restore a previously-used API base URL.
+  try {
+    const saved = localStorage.getItem('crk_api_base');
+    if (saved) $('api-base').value = saved;
+  } catch (_) {}
+
+  $('api-eval-btn').addEventListener('click', evaluateViaApi);
+
+  // Keep the live request preview in sync with form edits (the API base field is excluded).
+  document.addEventListener('input', (e) => { if (!e.target || e.target.id !== 'api-base') updateApiRequestPreview(); });
+  document.addEventListener('change', (e) => { if (!e.target || e.target.id !== 'api-base') updateApiRequestPreview(); });
+  updateApiRequestPreview();
+
   $('reset-btn').addEventListener('click', () => {
     $('preset-select').value = '';
     clearPresetMeta();
@@ -1546,6 +1757,7 @@
     $('f-type').value = 'private';
     $('f-system').value = '';
     $('output').innerHTML = `<div class="placeholder"><strong>Reset.</strong>Select a preset or build inputs and click Evaluate.</div>`;
+    updateApiRequestPreview();
   });
 })();
 </script>
