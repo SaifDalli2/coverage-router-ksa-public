@@ -398,6 +398,13 @@
   .api-codebox .json-num { color: #f0a868; background: rgba(240,168,104,0.14); border-radius: 3px; padding: 0 2px; }
   .api-codebox .json-bool { color: #d98cf0; background: rgba(217,140,240,0.14); border-radius: 3px; padding: 0 2px; }
   .api-codebox .json-null { color: #9aa0a6; }
+  .api-codebox .http-method { color: #d98cf0; font-weight: 700; }
+  .api-codebox .http-url { color: #7fb4ff; }
+  .api-codebox .http-header { color: #6f867e; }
+  .api-codebox .placeholder-pre { color: #6f867e; font-style: italic; }
+  .api-status-inline-wrap { margin-left: 0.4rem; }
+  #api-status-inline .api-status { margin-bottom: 0; }
+  #results-card { margin-top: 0.2rem; }
   .api-output { margin-top: 0.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 0.85rem; font-size: 0.88rem; }
   .api-status { display: inline-block; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; }
   .api-status.ok { background: rgba(47,158,107,0.14); color: var(--success); }
@@ -837,6 +844,7 @@
     <section class="panel">
       <h2><span class="panel-num">2</span> Verdict</h2>
 
+      <!-- API section: full request + raw JSON response -->
       <div class="api-box">
         <div class="api-box-head">
           <strong>Decision service</strong>
@@ -847,13 +855,19 @@
           <input id="api-base" type="text" spellcheck="false" value="https://coverage-router-ksa-api.onrender.com" aria-label="API base URL">
         </div>
 
-        <div class="api-subhead">Request body <span>(live — mirrors the form)</span></div>
+        <div class="api-subhead">Request <span>(live — mirrors the form)</span></div>
         <div id="api-request" class="api-codebox"><pre class="json"></pre></div>
 
-        <div class="api-subhead">Response</div>
-        <div id="api-response" class="api-output">
-          <div class="placeholder">No verdict yet. Adjust the form (the request above updates live), then click <strong>Evaluate →</strong>.</div>
-        </div>
+        <div class="api-subhead">Response <span id="api-status-inline"></span></div>
+        <div id="api-response-raw" class="api-codebox"><pre class="json"><span class="placeholder-pre">// no response yet — click Evaluate</span></pre></div>
+      </div>
+    </section>
+
+    <!-- RESULT CARD — rendered from the API response, separate section -->
+    <section class="panel">
+      <h2><span class="panel-num">3</span> Result</h2>
+      <div id="results-card">
+        <div class="placeholder">No verdict yet. Adjust the form (the request updates live), then click <strong>Evaluate →</strong>.</div>
       </div>
     </section>
 
@@ -1230,9 +1244,9 @@
 
   $('evaluate-btn').addEventListener('click', () => {
     evaluateViaApi();
-    // On mobile, bring the response panel into view.
+    // On mobile, bring the result card into view.
     if (window.innerWidth < 960) {
-      const outPanel = $('api-response').closest('.panel');
+      const outPanel = $('results-card').closest('.panel');
       if (outPanel) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
@@ -1291,9 +1305,19 @@
   }
 
   // Rebuild the live request preview from the current form state.
+  function apiUrl() {
+    return ($('api-base').value || '').trim().replace(/\/+$/, '') + '/v1/cases/evaluate';
+  }
+
+  // Live preview of the WHOLE request: method + URL + headers + highlighted body.
   function updateApiRequestPreview() {
     const pre = document.querySelector('#api-request pre.json');
-    if (pre) pre.innerHTML = syntaxHighlight(toApiRequest(readForm()));
+    if (!pre) return;
+    const head =
+      `<span class="http-method">POST</span> <span class="http-url">${escapeHtml(apiUrl())}</span>\n` +
+      `<span class="http-header">Content-Type: application/json</span>\n` +
+      `<span class="http-header">Accept: application/json</span>\n\n`;
+    pre.innerHTML = head + syntaxHighlight(toApiRequest(readForm()));
   }
 
   // Compare the API verdict against the loaded preset's expected result (PASS/DIFFERS).
@@ -1314,20 +1338,15 @@
   }
 
   function renderApiResult(status, data) {
-    const ok = status === 200;
-    const rawJson = '<details class="api-json"><summary>Raw response JSON</summary>' +
-      `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>`;
-
-    if (!(ok && data && data.verdict)) {
-      let html = `<div class="api-status err">HTTP ${status}</div>`;
+    if (!(status === 200 && data && data.verdict)) {
       if (data && data.error) {
-        html += `<div class="api-error-body"><strong>${escapeHtml(data.error)}</strong>: ${escapeHtml(data.message || '')}`;
+        let html = `<div class="api-error-body"><strong>${escapeHtml(data.error)}</strong>: ${escapeHtml(data.message || '')}`;
         if (Array.isArray(data.missing_inputs) && data.missing_inputs.length) {
           html += '<br>missing: ' + data.missing_inputs.map(escapeHtml).join(', ');
         }
-        html += '</div>';
+        return html + '</div>';
       }
-      return html + rawJson;
+      return `<div class="placeholder">No verdict (HTTP ${status}). See the raw response above.</div>`;
     }
 
     const v = data.verdict;
@@ -1337,8 +1356,7 @@
       ? `${escapeHtml(lp.entity_name_en)} <span class="eid">${escapeHtml(lp.entity_id)}</span>`
       : '⚠ AMBIGUOUS — human review required';
 
-    let html = `<div class="api-status ok">HTTP ${status} · via API</div>`;
-    html += `
+    let html = `
       <div class="verdict ${conf}">
         <div class="label">Verdict ${compareBadge(v)}</div>
         <div class="liable">${liable}</div>
@@ -1384,7 +1402,7 @@
     }
 
     html += `<div class="api-ids">tree <code>${escapeHtml(data.tree_version || '')}</code> · audit_id <code>${escapeHtml(data.audit_id || '')}</code></div>`;
-    return html + rawJson;
+    return html;
   }
 
   function renderApiError(base, err) {
@@ -1396,26 +1414,36 @@
       `<span style="color:var(--text-muted)">${escapeHtml(String(err))}</span></div>`;
   }
 
+  function setRawResponse(html) {
+    const pre = document.querySelector('#api-response-raw pre.json');
+    if (pre) pre.innerHTML = html;
+  }
+
   async function evaluateViaApi() {
     const base = ($('api-base').value || '').trim().replace(/\/+$/, '');
     try { localStorage.setItem('crk_api_base', base); } catch (_) {}
     updateApiRequestPreview();
     const reqBody = toApiRequest(readForm());
-    const out = $('api-response');
-    out.innerHTML = `<div class="placeholder">Calling ${escapeHtml(base)}/v1/cases/evaluate …</div>`;
+    $('api-status-inline').innerHTML = '';
+    setRawResponse('<span class="placeholder-pre">// calling …</span>');
+    $('results-card').innerHTML = `<div class="placeholder">Calling ${escapeHtml(apiUrl())} …</div>`;
     let resp, data;
     try {
-      resp = await fetch(base + '/v1/cases/evaluate', {
+      resp = await fetch(apiUrl(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(reqBody)
       });
     } catch (err) {
-      out.innerHTML = renderApiError(base, err);
+      setRawResponse('<span class="placeholder-pre">// no response — request failed</span>');
+      $('api-status-inline').innerHTML = '<span class="api-status err">request failed</span>';
+      $('results-card').innerHTML = renderApiError(base, err);
       return;
     }
     try { data = await resp.json(); } catch (_) { data = { error: 'non_json_response' }; }
-    out.innerHTML = renderApiResult(resp.status, data);
+    setRawResponse(syntaxHighlight(data));                                   // raw JSON in the API section
+    $('api-status-inline').innerHTML = `<span class="api-status ${resp.status === 200 ? 'ok' : 'err'}">HTTP ${resp.status}</span>`;
+    $('results-card').innerHTML = renderApiResult(resp.status, data);         // rich card in its own section
   }
 
   // Restore a previously-used API base URL.
@@ -1425,10 +1453,9 @@
     if (saved && !/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(saved)) $('api-base').value = saved;
   } catch (_) {}
 
-
-  // Keep the live request preview in sync with form edits (the API base field is excluded).
-  document.addEventListener('input', (e) => { if (!e.target || e.target.id !== 'api-base') updateApiRequestPreview(); });
-  document.addEventListener('change', (e) => { if (!e.target || e.target.id !== 'api-base') updateApiRequestPreview(); });
+  // Keep the live request preview in sync with every form edit AND the API base URL.
+  document.addEventListener('input', updateApiRequestPreview);
+  document.addEventListener('change', updateApiRequestPreview);
   updateApiRequestPreview();
 
   $('reset-btn').addEventListener('click', () => {
@@ -1453,7 +1480,9 @@
     $('c-service-excluded').checked = false;
     $('f-type').value = 'private';
     $('f-system').value = '';
-    $('api-response').innerHTML = `<div class="placeholder"><strong>Reset.</strong> Adjust the form, then click Evaluate.</div>`;
+    $('api-status-inline').innerHTML = '';
+    setRawResponse('<span class="placeholder-pre">// no response yet — click Evaluate</span>');
+    $('results-card').innerHTML = `<div class="placeholder"><strong>Reset.</strong> Adjust the form, then click Evaluate.</div>`;
     updateApiRequestPreview();
   });
 })();
