@@ -843,9 +843,9 @@
           <strong>Live API</strong>
           <code>POST /v1/cases/evaluate</code>
         </div>
-        <p class="api-hint">Sends the same inputs to the backend decision service (the authoritative engine). Start it with <code>uvicorn app.main:app --reload --port 8010</code>.</p>
+        <p class="api-hint">Calls the hosted decision service (the authoritative engine). To use a local backend instead, edit the URL (run <code>uvicorn app.main:app --reload --port 8010</code> first). Free-tier hosting may cold-start (~50s) on the first call.</p>
         <div class="api-row">
-          <input id="api-base" type="text" spellcheck="false" value="http://127.0.0.1:8010" aria-label="API base URL">
+          <input id="api-base" type="text" spellcheck="false" value="https://coverage-router-ksa-api.onrender.com" aria-label="API base URL">
           <button class="evaluate" id="api-eval-btn" type="button">Evaluate via API →</button>
         </div>
 
@@ -1694,8 +1694,9 @@
   function renderApiError(base, err) {
     return '<div class="api-status err">Request failed</div>' +
       `<div class="api-error-body">Could not reach <code>${escapeHtml(base)}</code>. ` +
-      'Is the API running? Start it with <code>uvicorn app.main:app --reload --port 8010</code>. ' +
-      `If it is running, this is likely a CORS/origin issue.<br>` +
+      'If this is the hosted free-tier service it may be cold-starting — wait ~50s and retry. ' +
+      'For a local backend, run <code>uvicorn app.main:app --reload --port 8010</code>. ' +
+      `Persistent failures may be a CORS/origin issue.<br>` +
       `<span style="color:var(--text-muted)">${escapeHtml(String(err))}</span></div>`;
   }
 
@@ -1724,7 +1725,8 @@
   // Restore a previously-used API base URL.
   try {
     const saved = localStorage.getItem('crk_api_base');
-    if (saved) $('api-base').value = saved;
+    // Ignore stale localhost values so the hosted default takes effect; honour any other custom URL.
+    if (saved && !/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(saved)) $('api-base').value = saved;
   } catch (_) {}
 
   $('api-eval-btn').addEventListener('click', evaluateViaApi);

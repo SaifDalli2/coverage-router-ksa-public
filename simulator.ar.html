@@ -674,9 +674,9 @@
           <strong>واجهة API المباشرة</strong>
           <code>POST /v1/cases/evaluate</code>
         </div>
-        <p class="api-hint">يُرسِل المُدخلات نفسها إلى خدمة القرار الخلفية (المحرِّك المُعتمَد). شغِّلها بالأمر <code>uvicorn app.main:app --reload --port 8010</code>.</p>
+        <p class="api-hint">يستدعي خدمة القرار المستضافة (المحرِّك المُعتمَد). لاستخدام خادم محلي بدلًا منها، عدِّل العنوان (شغِّل <code>uvicorn app.main:app --reload --port 8010</code> أولًا). قد تتأخَّر الاستضافة المجانية ~50 ثانية في أول طلب.</p>
         <div class="api-row">
-          <input id="api-base" type="text" spellcheck="false" dir="ltr" value="http://127.0.0.1:8010" aria-label="عنوان واجهة API">
+          <input id="api-base" type="text" spellcheck="false" dir="ltr" value="https://coverage-router-ksa-api.onrender.com" aria-label="عنوان واجهة API">
           <button class="evaluate" id="api-eval-btn" type="button">التقييم عبر API ←</button>
         </div>
 
@@ -1444,8 +1444,9 @@
   function renderApiError(base, err) {
     return '<div class="api-status err">فشل الطلب</div>' +
       `<div class="api-error-body">تعذَّر الوصول إلى <code>${escapeHtml(base)}</code>. ` +
-      'هل الخدمة تعمل؟ شغِّلها بالأمر <code>uvicorn app.main:app --reload --port 8010</code>. ' +
-      `وإن كانت تعمل فالسبب غالبًا مشكلة CORS.<br>` +
+      'إن كانت هذه الخدمة المستضافة المجانية فقد تكون في طور الإقلاع — انتظر ~50 ثانية ثم أعد المحاولة. ' +
+      'ولخادم محلي شغِّل <code>uvicorn app.main:app --reload --port 8010</code>. ' +
+      `واستمرار الفشل قد يعني مشكلة CORS.<br>` +
       `<span style="color:var(--text-muted)">${escapeHtml(String(err))}</span></div>`;
   }
 
@@ -1473,7 +1474,8 @@
 
   try {
     const saved = localStorage.getItem('crk_api_base');
-    if (saved) $('api-base').value = saved;
+    // تجاهل قيم localhost القديمة ليسري العنوان المستضاف الافتراضي؛ مع احترام أيِّ عنوان مخصَّص آخر.
+    if (saved && !/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(saved)) $('api-base').value = saved;
   } catch (_) {}
 
   $('api-eval-btn').addEventListener('click', evaluateViaApi);
