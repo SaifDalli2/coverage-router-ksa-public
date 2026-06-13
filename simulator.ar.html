@@ -1092,34 +1092,76 @@
 
   function renderApiResult(status, data) {
     const ok = status === 200;
-    let html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}</div>`;
-    if (ok && data && data.verdict) {
-      const v = data.verdict;
-      html = `<div class="api-status ${ok ? 'ok' : 'err'}">HTTP ${status}${compareBadge(v)}</div>`;
-      const lp = v.liable_party;
-      html += '<div class="api-liable">' +
-        (lp ? `${escapeHtml(lp.entity_name_ar)} <span class="eid">${escapeHtml(lp.entity_id)}</span>`
-            : 'غير محدَّد — يتطلَّب مراجعة بشرية') + '</div>';
-      if (lp) html += `<div class="api-liable-ar" dir="ltr">${escapeHtml(lp.entity_name_en)}</div>`;
-      html += '<div class="api-meta">' +
-        `<span>الثقة: <strong>${escapeHtml(v.confidence)}</strong></span>` +
-        `<span>القاعدة: ${escapeHtml(v.rule_family)}</span>` +
-        `<span>tree ${escapeHtml(data.tree_version || '')}</span></div>`;
-      if (v.citations && v.citations.length) {
-        html += '<div class="api-cites"><strong>الاستشهادات</strong><ul>' +
-          v.citations.map(c => `<li>${escapeHtml(c.title)}</li>`).join('') + '</ul></div>';
-      }
-      html += `<div class="api-ids">audit_id: <code>${escapeHtml(data.audit_id || '')}</code></div>`;
-    } else if (data && data.error) {
-      html += `<div class="api-error-body"><strong>${escapeHtml(data.error)}</strong>: ${escapeHtml(data.message || '')}`;
-      if (Array.isArray(data.missing_inputs) && data.missing_inputs.length) {
-        html += '<br>الحقول الناقصة: ' + data.missing_inputs.map(escapeHtml).join(', ');
-      }
-      html += '</div>';
-    }
-    html += '<details class="api-json"><summary>استجابة JSON الخام</summary>' +
+    const rawJson = '<details class="api-json"><summary>استجابة JSON الخام</summary>' +
       `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>`;
-    return html;
+
+    if (!(ok && data && data.verdict)) {
+      let html = `<div class="api-status err">HTTP ${status}</div>`;
+      if (data && data.error) {
+        html += `<div class="api-error-body"><strong>${escapeHtml(data.error)}</strong>: ${escapeHtml(data.message || '')}`;
+        if (Array.isArray(data.missing_inputs) && data.missing_inputs.length) {
+          html += '<br>الحقول الناقصة: ' + data.missing_inputs.map(escapeHtml).join(', ');
+        }
+        html += '</div>';
+      }
+      return html + rawJson;
+    }
+
+    const v = data.verdict;
+    const lp = v.liable_party;
+    const conf = v.confidence || 'medium';
+    const liable = lp
+      ? `${escapeHtml(lp.entity_name_ar)} <span class="eid">${escapeHtml(lp.entity_id)}</span>`
+      : '⚠ غير محدَّد — يتطلَّب مراجعة بشرية';
+
+    let html = `<div class="api-status ok">HTTP ${status} · عبر API</div>`;
+    html += `
+      <div class="verdict ${conf}">
+        <div class="label">الحُكم ${compareBadge(v)}</div>
+        <div class="liable">${liable}</div>
+        ${lp ? `<div class="api-liable-ar" dir="ltr">${escapeHtml(lp.entity_name_en)}</div>` : ''}
+        <div class="meta">
+          <span><strong>الثقة:</strong> ${escapeHtml(conf)}</span>
+          <span><strong>عائلة القواعد:</strong> ${escapeHtml(v.rule_family || '—')}</span>
+          ${v.fallback_party ? `<span><strong>احتياطي:</strong> ${escapeHtml(v.fallback_party)}</span>` : ''}
+          ${v.parallel_claim ? `<span><strong>مطالبة موازية:</strong> ${escapeHtml(v.parallel_claim)}</span>` : ''}
+        </div>
+      </div>`;
+
+    if (v.notes) {
+      html += `<div class="out-section"><h3>ملاحظات</h3><p style="font-size:0.88rem;margin:0;">${escapeHtml(v.notes)}</p></div>`;
+    }
+
+    const oq = data.open_questions || [];
+    if (oq.length) {
+      html += `<div class="open-questions"><strong>أسئلة مفتوحة:</strong> ` +
+        oq.map(q => `<code>${escapeHtml(q)}</code>`).join(' · ') + `</div>`;
+    }
+
+    if (v.citations && v.citations.length) {
+      html += `<div class="out-section"><h3>الاستشهادات</h3><ul class="citation-list">`;
+      v.citations.forEach(c => {
+        const t = escapeHtml(c.title || c.policy_id || '');
+        html += c.source_url
+          ? `<li><a href="${escapeHtml(c.source_url)}" target="_blank" rel="noopener">${t}</a></li>`
+          : `<li>${t}</li>`;
+      });
+      html += `</ul></div>`;
+    }
+
+    const path = data.path || [];
+    if (path.length) {
+      html += `<div class="out-section"><h3>تسلسل الاستدلال</h3><ul class="trace-list">`;
+      path.forEach(t => {
+        const matched = t.result === true;
+        const cls = matched ? 'matched' : 'skipped';
+        html += `<li class="${cls}"><span class="rule-id">${escapeHtml(t.node_id)}</span>${matched ? ' طابق' : ' لم يُطابق'}<span class="why">${escapeHtml(t.reason || '')}</span></li>`;
+      });
+      html += `</ul></div>`;
+    }
+
+    html += `<div class="api-ids">tree <code>${escapeHtml(data.tree_version || '')}</code> · audit_id <code>${escapeHtml(data.audit_id || '')}</code></div>`;
+    return html + rawJson;
   }
 
   function renderApiError(base, err) {
