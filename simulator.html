@@ -367,26 +367,30 @@
     align-items: center;
     padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom));
   }
-  /* Loading + settle */
+  /* Loading + settle — loader shows only while #sheet has .loading */
   #sheet-loading {
-    display: flex; flex-direction: column; align-items: center; gap: 0.7rem;
-    padding: 2.2rem 0 2.4rem;
+    display: none;
+    flex-direction: column; align-items: center; gap: 0.85rem;
+    padding: 2.4rem 0 2.6rem;
     color: var(--text-muted);
     font-size: 0.85rem;
   }
-  .spinner {
-    width: 30px; height: 30px;
-    border: 3px solid var(--primary-light);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
+  #sheet.loading #sheet-loading { display: flex; }
+  #sheet.loading #sheet-results { display: none; }
+  .loader-dots { display: inline-flex; gap: 7px; }
+  .loader-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--primary);
+    animation: dotPulse 1.05s ease-in-out infinite;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-dots span:nth-child(2) { animation-delay: 0.16s; }
+  .loader-dots span:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes dotPulse { 0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; } 40% { transform: scale(1); opacity: 1; } }
   @keyframes settle { from { opacity: 0; transform: translateY(8px) scale(0.99); } to { opacity: 1; transform: none; } }
   .settle { animation: settle 0.34s ease-out; }
   @media (prefers-reduced-motion: reduce) {
     #sheet-body { transition: none; }
-    .spinner { animation-duration: 1.4s; }
+    .loader-dots span { animation-duration: 1.6s; }
     .settle { animation: none; }
   }
   button.evaluate {
@@ -872,41 +876,41 @@
       </div>
     </section>
 
-    <!-- (results render inside the bottom sheet below) -->
+    <!-- VERDICT PANEL — API section (full request + raw JSON response) -->
+    <section class="panel">
+      <h2><span class="panel-num">2</span> Verdict</h2>
+      <div class="api-box">
+        <div class="api-box-head">
+          <strong>Decision service</strong>
+          <code>POST /v1/cases/evaluate</code>
+        </div>
+        <p class="api-hint">Every verdict comes from the hosted backend — the routing logic lives only on the server. To point at a local backend, edit the URL (run <code>uvicorn app.main:app --reload --port 8010</code> first). Free-tier hosting may cold-start (~50s) on the first call.</p>
+        <div class="api-row">
+          <input id="api-base" type="text" spellcheck="false" value="https://coverage-router-ksa-api.onrender.com" aria-label="API base URL">
+        </div>
+
+        <div class="api-subhead">Request <span>(live — mirrors the form)</span></div>
+        <div id="api-request" class="api-codebox"><pre class="json"></pre></div>
+
+        <div class="api-subhead">Response <span id="api-status-inline"></span></div>
+        <div id="api-response-raw" class="api-codebox"><pre class="json"><span class="placeholder-pre">// no response yet — click Evaluate</span></pre></div>
+      </div>
+    </section>
   </div>
 </main>
 
-<!-- Bottom sheet: Evaluate pinned to the screen bottom; results expand upward above it -->
+<!-- Bottom sheet — the result only; Evaluate pinned to the screen bottom -->
 <div id="sheet">
   <div class="container">
-    <button class="sheet-handle" id="sheet-handle" type="button" aria-label="Show or hide results"></button>
+    <button class="sheet-handle" id="sheet-handle" type="button" aria-label="Show or hide the result"></button>
 
     <div id="sheet-body">
-      <div id="sheet-loading" hidden>
-        <div class="spinner" role="status" aria-label="Loading"></div>
+      <div id="sheet-loading">
+        <div class="loader-dots" role="status" aria-label="Loading"><span></span><span></span><span></span></div>
         <div class="loading-text">Evaluating…</div>
       </div>
-
       <div id="sheet-results">
-        <!-- API section: full request + raw JSON response -->
-        <div class="api-box">
-          <div class="api-box-head">
-            <strong>Decision service</strong>
-            <code>POST /v1/cases/evaluate</code>
-          </div>
-          <p class="api-hint">Every verdict comes from the hosted backend — the routing logic lives only on the server. To point at a local backend, edit the URL (run <code>uvicorn app.main:app --reload --port 8010</code> first). Free-tier hosting may cold-start (~50s) on the first call.</p>
-          <div class="api-row">
-            <input id="api-base" type="text" spellcheck="false" value="https://coverage-router-ksa-api.onrender.com" aria-label="API base URL">
-          </div>
-
-          <div class="api-subhead">Request <span>(live — mirrors the form)</span></div>
-          <div id="api-request" class="api-codebox"><pre class="json"></pre></div>
-
-          <div class="api-subhead">Response <span id="api-status-inline"></span></div>
-          <div id="api-response-raw" class="api-codebox"><pre class="json"><span class="placeholder-pre">// no response yet — click Evaluate</span></pre></div>
-        </div>
-
-        <div class="output-label" style="margin-top:0.95rem;">Result</div>
+        <div class="output-label">Result</div>
         <div id="results-card">
           <div class="placeholder">No verdict yet. Fill the form, then click <strong>Evaluate →</strong>.</div>
         </div>
@@ -1469,8 +1473,7 @@
     $('sheet-body').scrollTop = 0;                 // results reveal from the top
   }
   function showLoading(on) {
-    $('sheet-loading').hidden = !on;
-    $('sheet-results').hidden = on;
+    $('sheet').classList.toggle('loading', on);    // CSS shows loader / hides results
     if (!on) {                                     // settle the results in
       const r = $('sheet-results');
       r.classList.remove('settle'); void r.offsetWidth; r.classList.add('settle');
@@ -1546,8 +1549,7 @@
     $('api-status-inline').innerHTML = '';
     setRawResponse('<span class="placeholder-pre">// no response yet — click Evaluate</span>');
     $('results-card').innerHTML = `<div class="placeholder"><strong>Reset.</strong> Adjust the form, then click Evaluate.</div>`;
-    $('sheet-loading').hidden = true;
-    $('sheet-results').hidden = false;
+    $('sheet').classList.remove('loading');
     $('sheet').classList.remove('open');           // collapse the sheet
     updateApiRequestPreview();
   });

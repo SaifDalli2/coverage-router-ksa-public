@@ -230,12 +230,17 @@
   #sheet-body { max-height: 0; overflow: hidden; transition: max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
   #sheet.open #sheet-body { max-height: 76vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .sheet-bar { display: flex; gap: 0.55rem; align-items: center; padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom)); }
-  #sheet-loading { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; padding: 2.2rem 0 2.4rem; color: var(--text-muted); font-size: 0.85rem; }
-  .spinner { width: 30px; height: 30px; border: 3px solid var(--primary-light); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.75s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  #sheet-loading { display: none; flex-direction: column; align-items: center; gap: 0.85rem; padding: 2.4rem 0 2.6rem; color: var(--text-muted); font-size: 0.85rem; }
+  #sheet.loading #sheet-loading { display: flex; }
+  #sheet.loading #sheet-results { display: none; }
+  .loader-dots { display: inline-flex; gap: 7px; }
+  .loader-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); animation: dotPulse 1.05s ease-in-out infinite; }
+  .loader-dots span:nth-child(2) { animation-delay: 0.16s; }
+  .loader-dots span:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes dotPulse { 0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; } 40% { transform: scale(1); opacity: 1; } }
   @keyframes settle { from { opacity: 0; transform: translateY(8px) scale(0.99); } to { opacity: 1; transform: none; } }
   .settle { animation: settle 0.34s ease-out; }
-  @media (prefers-reduced-motion: reduce) { #sheet-body { transition: none; } .spinner { animation-duration: 1.4s; } .settle { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { #sheet-body { transition: none; } .loader-dots span { animation-duration: 1.6s; } .settle { animation: none; } }
   button.evaluate {
     flex: 1; padding: 0.8rem 1rem;
     background: var(--primary); color: white;
@@ -671,40 +676,41 @@
       </div>
     </section>
 
-    <!-- (تظهر النتائج داخل اللوحة السفلية أدناه) -->
+    <!-- لوحة الحُكم — قسم API (الطلب الكامل + استجابة JSON الخام) -->
+    <section class="panel">
+      <h2><span class="panel-num">٢</span> الحُكم</h2>
+      <div class="api-box">
+        <div class="api-box-head">
+          <strong>خدمة القرار</strong>
+          <code>POST /v1/cases/evaluate</code>
+        </div>
+        <p class="api-hint">كلُّ حُكم يأتي من الخادم الخلفي — منطق التوجيه موجود على الخادم فقط. لاستخدام خادم محلي، عدِّل العنوان (شغِّل <code>uvicorn app.main:app --reload --port 8010</code> أولًا). قد تتأخَّر الاستضافة المجانية ~50 ثانية في أول طلب.</p>
+        <div class="api-row">
+          <input id="api-base" type="text" spellcheck="false" dir="ltr" value="https://coverage-router-ksa-api.onrender.com" aria-label="عنوان واجهة API">
+        </div>
+
+        <div class="api-subhead">الطلب <span>(مباشر — يعكس النموذج)</span></div>
+        <div id="api-request" class="api-codebox"><pre class="json"></pre></div>
+
+        <div class="api-subhead">الاستجابة <span id="api-status-inline"></span></div>
+        <div id="api-response-raw" class="api-codebox"><pre class="json"><span class="placeholder-pre">// لا استجابة بعد — اضغط «قيِّم»</span></pre></div>
+      </div>
+    </section>
   </div>
 </main>
 
-<!-- لوحة سفلية: زر «قيِّم» مثبَّت أسفل الشاشة؛ تمتدُّ النتائج للأعلى فوقه -->
+<!-- لوحة سفلية — النتيجة فقط؛ زر «قيِّم» مثبَّت أسفل الشاشة -->
 <div id="sheet">
   <div class="container">
-    <button class="sheet-handle" id="sheet-handle" type="button" aria-label="إظهار/إخفاء النتائج"></button>
+    <button class="sheet-handle" id="sheet-handle" type="button" aria-label="إظهار/إخفاء النتيجة"></button>
 
     <div id="sheet-body">
-      <div id="sheet-loading" hidden>
-        <div class="spinner" role="status" aria-label="جارٍ التحميل"></div>
+      <div id="sheet-loading">
+        <div class="loader-dots" role="status" aria-label="جارٍ التحميل"><span></span><span></span><span></span></div>
         <div class="loading-text">يجري التقييم…</div>
       </div>
-
       <div id="sheet-results">
-        <div class="api-box">
-          <div class="api-box-head">
-            <strong>خدمة القرار</strong>
-            <code>POST /v1/cases/evaluate</code>
-          </div>
-          <p class="api-hint">كلُّ حُكم يأتي من الخادم الخلفي — منطق التوجيه موجود على الخادم فقط. لاستخدام خادم محلي، عدِّل العنوان (شغِّل <code>uvicorn app.main:app --reload --port 8010</code> أولًا). قد تتأخَّر الاستضافة المجانية ~50 ثانية في أول طلب.</p>
-          <div class="api-row">
-            <input id="api-base" type="text" spellcheck="false" dir="ltr" value="https://coverage-router-ksa-api.onrender.com" aria-label="عنوان واجهة API">
-          </div>
-
-          <div class="api-subhead">الطلب <span>(مباشر — يعكس النموذج)</span></div>
-          <div id="api-request" class="api-codebox"><pre class="json"></pre></div>
-
-          <div class="api-subhead">الاستجابة <span id="api-status-inline"></span></div>
-          <div id="api-response-raw" class="api-codebox"><pre class="json"><span class="placeholder-pre">// لا استجابة بعد — اضغط «قيِّم»</span></pre></div>
-        </div>
-
-        <div class="output-label" style="margin-top:0.95rem;">النتيجة</div>
+        <div class="output-label">النتيجة</div>
         <div id="results-card">
           <div class="placeholder">لا يوجد حُكم بعد. عبِّئ النموذج ثم اضغط <strong>قيِّم ←</strong>.</div>
         </div>
@@ -1214,8 +1220,7 @@
     $('sheet-body').scrollTop = 0;
   }
   function showLoading(on) {
-    $('sheet-loading').hidden = !on;
-    $('sheet-results').hidden = on;
+    $('sheet').classList.toggle('loading', on);
     if (!on) {
       const r = $('sheet-results');
       r.classList.remove('settle'); void r.offsetWidth; r.classList.add('settle');
@@ -1290,8 +1295,7 @@
     $('api-status-inline').innerHTML = '';
     setRawResponse('<span class="placeholder-pre">// لا استجابة بعد — اضغط «قيِّم»</span>');
     $('results-card').innerHTML = `<div class="placeholder"><strong>أُعيد التعيين.</strong> عدِّل النموذج ثم اضغط «قيِّم».</div>`;
-    $('sheet-loading').hidden = true;
-    $('sheet-results').hidden = false;
+    $('sheet').classList.remove('loading');
     $('sheet').classList.remove('open');
     updateApiRequestPreview();
   });
