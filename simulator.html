@@ -141,7 +141,8 @@
 
   /* Main layout */
   main {
-    padding: 1.5rem 0 4rem;
+    padding: 1.5rem 0;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
   .layout {
     display: grid;
@@ -329,11 +330,27 @@
   .add-cchi:hover { border-color: var(--primary); background: var(--primary-light); }
 
   /* Evaluate button */
-  .evaluate-bar {
-    margin-top: 1rem;
+  /* Fixed bottom action bar — Evaluate pinned to the screen bottom */
+  #action-bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.97);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 14px rgba(0,0,0,0.07);
+    padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom));
+  }
+  #action-bar .action-inner {
     display: flex;
     gap: 0.55rem;
+    align-items: center;
   }
+  /* Result panels reveal from the top when populated */
+  @keyframes revealDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  .reveal { animation: revealDown 0.3s ease-out; }
+  .panel { scroll-margin-top: 76px; }
   button.evaluate {
     flex: 1;
     padding: 0.75rem 1rem;
@@ -590,24 +607,6 @@
     .cchi-row .rm { width: 32px; height: 36px; font-size: 1.4rem; }
   }
 
-  /* Sticky Evaluate bar on mobile (single-column layout) — kept WITHIN
-     panel padding so it never causes horizontal overflow on iOS Safari */
-  @media (max-width: 959px) {
-    .evaluate-bar {
-      position: sticky;
-      bottom: 0;
-      background: rgba(255,255,255,0.96);
-      -webkit-backdrop-filter: saturate(180%) blur(10px);
-      backdrop-filter: saturate(180%) blur(10px);
-      margin: 1.1rem 0 0;
-      padding: 0.7rem 0 calc(0.7rem + env(safe-area-inset-bottom));
-      border-top: 1px solid var(--border);
-      z-index: 30;
-    }
-    main { padding-bottom: 1.5rem; }
-    .panel { padding-bottom: 1.4rem; }
-  }
-
   /* Compact top nav on small screens */
   @media (max-width: 520px) {
     header.topbar nav {
@@ -833,11 +832,6 @@
           </select>
         </div>
       </div>
-
-      <div class="evaluate-bar">
-        <button class="evaluate" id="evaluate-btn" type="button">Evaluate →</button>
-        <button class="reset" id="reset-btn" type="button">Reset</button>
-      </div>
     </section>
 
     <!-- VERDICT PANEL — pure API client; the backend is the single source of truth -->
@@ -873,6 +867,14 @@
 
   </div>
 </main>
+
+<!-- Fixed action bar: Evaluate pinned to the bottom of the screen -->
+<div id="action-bar">
+  <div class="container action-inner">
+    <button class="reset" id="reset-btn" type="button">Reset</button>
+    <button class="evaluate" id="evaluate-btn" type="button">Evaluate →</button>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -1244,11 +1246,9 @@
 
   $('evaluate-btn').addEventListener('click', () => {
     evaluateViaApi();
-    // On mobile, bring the result card into view.
-    if (window.innerWidth < 960) {
-      const outPanel = $('results-card').closest('.panel');
-      if (outPanel) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // Reveal the results from the top: scroll the Verdict section to the top of the viewport.
+    const top = $('api-request').closest('.panel');
+    if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   // ─── Live API wiring ─────────────────────────────────────────────────────
@@ -1419,6 +1419,16 @@
     if (pre) pre.innerHTML = html;
   }
 
+  // Re-trigger the "reveal from the top" animation on the results elements.
+  function reveal() {
+    [$('results-card'), $('api-response-raw')].forEach(el => {
+      if (!el) return;
+      el.classList.remove('reveal');
+      void el.offsetWidth;       // force reflow so the animation restarts
+      el.classList.add('reveal');
+    });
+  }
+
   async function evaluateViaApi() {
     const base = ($('api-base').value || '').trim().replace(/\/+$/, '');
     try { localStorage.setItem('crk_api_base', base); } catch (_) {}
@@ -1444,6 +1454,7 @@
     setRawResponse(syntaxHighlight(data));                                   // raw JSON in the API section
     $('api-status-inline').innerHTML = `<span class="api-status ${resp.status === 200 ? 'ok' : 'err'}">HTTP ${resp.status}</span>`;
     $('results-card').innerHTML = renderApiResult(resp.status, data);         // rich card in its own section
+    reveal();
   }
 
   // Restore a previously-used API base URL.

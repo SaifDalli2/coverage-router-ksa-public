@@ -103,7 +103,7 @@
     color: var(--primary); margin-left: 0.4rem;
   }
 
-  main { padding: 1.5rem 0 4rem; }
+  main { padding: 1.5rem 0; padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
   .layout { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
   @media (min-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 
@@ -212,9 +212,20 @@
     color: var(--primary); align-self: flex-start;
   }
 
-  .evaluate-bar {
-    margin-top: 1rem; display: flex; gap: 0.55rem;
+  /* شريط الإجراء الثابت أسفل الشاشة — زر «قيِّم» */
+  #action-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    background: rgba(255,255,255,0.97);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    backdrop-filter: saturate(180%) blur(10px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 14px rgba(0,0,0,0.07);
+    padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom));
   }
+  #action-bar .action-inner { display: flex; gap: 0.55rem; align-items: center; }
+  @keyframes revealDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  .reveal { animation: revealDown 0.3s ease-out; }
+  .panel { scroll-margin-top: 76px; }
   button.evaluate {
     flex: 1; padding: 0.8rem 1rem;
     background: var(--primary); color: white;
@@ -429,21 +440,6 @@
     .cchi-row .rm { width: 32px; height: 36px; font-size: 1.4rem; }
   }
 
-  @media (max-width: 959px) {
-    .evaluate-bar {
-      position: sticky;
-      bottom: 0;
-      background: rgba(255,255,255,0.96);
-      -webkit-backdrop-filter: saturate(180%) blur(10px);
-      backdrop-filter: saturate(180%) blur(10px);
-      margin: 1.1rem 0 0;
-      padding: 0.7rem 0 calc(0.7rem + env(safe-area-inset-bottom));
-      border-top: 1px solid var(--border);
-      z-index: 30;
-    }
-    main { padding-bottom: 1.5rem; }
-    .panel { padding-bottom: 1.4rem; scroll-margin-top: 70px; }
-  }
 
   @media (max-width: 520px) {
     header.topbar nav {
@@ -663,11 +659,6 @@
           </select>
         </div>
       </div>
-
-      <div class="evaluate-bar">
-        <button class="evaluate" id="evaluate-btn" type="button">قيِّم ←</button>
-        <button class="reset" id="reset-btn" type="button">إعادة تعيين</button>
-      </div>
     </section>
 
     <!-- قسم API: الطلب الكامل + استجابة JSON الخام -->
@@ -702,6 +693,14 @@
 
   </div>
 </main>
+
+<!-- شريط إجراء ثابت: زر «قيِّم» مثبَّت أسفل الشاشة -->
+<div id="action-bar">
+  <div class="container action-inner">
+    <button class="reset" id="reset-btn" type="button">إعادة تعيين</button>
+    <button class="evaluate" id="evaluate-btn" type="button">قيِّم ←</button>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -1023,10 +1022,9 @@
 
   $('evaluate-btn').addEventListener('click', () => {
     evaluateViaApi();
-    if (window.innerWidth < 960) {
-      const outPanel = $('results-card').closest('.panel');
-      if (outPanel) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // إظهار النتائج من الأعلى: تمرير قسم الحُكم إلى أعلى الشاشة.
+    const top = $('api-request').closest('.panel');
+    if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   // ─── ربط واجهة API المباشرة ───────────────────────────────────────────────
@@ -1194,6 +1192,16 @@
     if (pre) pre.innerHTML = html;
   }
 
+  // إعادة تشغيل حركة «الظهور من الأعلى» على عناصر النتائج.
+  function reveal() {
+    [$('results-card'), $('api-response-raw')].forEach(el => {
+      if (!el) return;
+      el.classList.remove('reveal');
+      void el.offsetWidth;
+      el.classList.add('reveal');
+    });
+  }
+
   async function evaluateViaApi() {
     const base = ($('api-base').value || '').trim().replace(/\/+$/, '');
     try { localStorage.setItem('crk_api_base', base); } catch (_) {}
@@ -1219,6 +1227,7 @@
     setRawResponse(syntaxHighlight(data));                                    // JSON الخام في قسم API
     $('api-status-inline').innerHTML = `<span class="api-status ${resp.status === 200 ? 'ok' : 'err'}">HTTP ${resp.status}</span>`;
     $('results-card').innerHTML = renderApiResult(resp.status, data);          // البطاقة في قسمها المستقل
+    reveal();
   }
 
   try {
