@@ -1212,7 +1212,7 @@
     };
     const case_attrs = {
       type: $('c-type').value,
-      is_emergency: $('c-emergency').checked,
+      is_emergency: $('c-emergency').checked || $('c-type').value === 'emergency',
       commute_related: $('c-commute-related').checked,
       najm_report_id: $('c-najm').value || '',
       cap_exhausted: $('c-cap-exhausted').checked,
