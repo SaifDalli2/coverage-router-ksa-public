@@ -1488,6 +1488,12 @@
     const reqBody = toApiRequest(readForm());
     openSheet();
     showLoading(true);
+    const lt = document.querySelector('#sheet-loading .loading-text');
+    if (lt) lt.textContent = 'Evaluating…';
+    // If it's slow, explain the free-tier cold start so the wait doesn't look broken.
+    const slowTimer = setTimeout(() => {
+      if (lt) lt.textContent = 'Waking the server (free tier) — the first request can take ~50s…';
+    }, 3500);
     const started = nowMs();
     let resp, data;
     try {
@@ -1497,6 +1503,7 @@
         body: JSON.stringify(reqBody)
       });
     } catch (err) {
+      clearTimeout(slowTimer);
       const e = nowMs() - started; if (e < SPIN_MIN_MS) await sleep(SPIN_MIN_MS - e);
       setRawResponse('<span class="placeholder-pre">// no response — request failed</span>');
       $('api-status-inline').innerHTML = '<span class="api-status err">request failed</span>';
@@ -1504,6 +1511,7 @@
       showLoading(false);
       return;
     }
+    clearTimeout(slowTimer);
     try { data = await resp.json(); } catch (_) { data = { error: 'non_json_response' }; }
     const elapsed = nowMs() - started; if (elapsed < SPIN_MIN_MS) await sleep(SPIN_MIN_MS - elapsed);
     setRawResponse(syntaxHighlight(data));                                   // raw JSON in the API section
